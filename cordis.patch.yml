@@ -1,0 +1,37 @@
+- insert:
+    - id: medical-extract
+      name: 'dsh-medical-extract'
+      config:
+        # 输出根目录；空 = 输入旁的 _medical-extract
+        outputRoot: ''
+        # 默认抽取模板（插件自带 mdd 样例；用户模板放在插件数据目录 templates/）
+        template: mdd
+        # hybrid：规则优先，规则定不了才送模型；model：召回到的字段都送模型，规则作第二票；rules：不调模型
+        extractMode: hybrid
+        # 只跑这些优先级的字段（空 = 全部），如 [P0]
+        priorities: []
+        # 通用文件的字段映射（空 = 自动识别）：text、id、patient、encounter、type、time、title
+        mapping: {}
+        # 病历内容只发往这里配置的端点（通常为本机或内网）
+        modelEnabled: true
+        baseURL: ''
+        model: ''
+        # 核验模型：抽样背靠背重抽，统计各字段一致率；空 = 不做抽样核验
+        verifyBaseURL: ''
+        verifyModel: ''
+        disableThinking: true
+        timeoutMs: 120000
+        # 全局同时进行的模型请求数（分到各工作线程）
+        modelConcurrency: 8
+        # 工作线程数；0 = 自动（CPU 数 - 1，最多 8）
+        workers: 0
+        # p_doc 导出：每个分片的病人数
+        shardUnits: 20
+        # 抽样核验：文书抽样比例；每个字段每个分片至少核验几份
+        verifySampleRate: 0.02
+        verifyMinPerField: 2
+        # 验收门④：抽样一致率阈值
+        verifyThreshold: 0.9
+        # 值不超过这个数时另出一份 result.xlsx
+        xlsxMaxRows: 200000
+        showSidebarEntry: true
