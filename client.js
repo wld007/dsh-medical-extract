@@ -790,18 +790,19 @@ window.__ModuleLoader__.load({
           h('text', { x: mx, y: my - 8, textAnchor: 'middle', fill: P.ink2, fontSize: 10, ...halo }, '裁定按稳定编号存 · 重跑沿用')))
       }
       // 标签卡
-      const anchor = (k) => (k === 0 ? iso(42, 58, 112) : k === 6 ? iso(yard + 75, 70, 40) : k === 7 ? iso(TW.i + TW.a / 2, TW.j + TW.b / 2, TW.hh + 40) : iso(bay0(k) + bw / 2, D / 2, H + 30))
+      const anchor = (k) => (k === 0 ? iso(42, 58, 112) : k === 6 ? iso(yard + 75, 70, 40) : k === 7 ? iso(TW.i + TW.a - 6, TW.j + 6, TW.hh + 22) : iso(bay0(k) + bw / 2, D / 2, H + 30))
       const gateFill = { ok: P.ok, warn: P.warn, '': P.ink3 }
       const maxCh = 34 + Math.max(...stations.map((s) => 3 + s.rows.length)) * 18
-      stations.forEach((s, k) => { const [x, y] = anchor(k); bb.push([x + 30, y - 106], [x + 142, y - 70], [x + 70, y - 80 - maxCh], [x + 266, y - 80]) })
+      // 模板塔最高：它的小标签贴着塔顶，大卡放在塔右侧（那里本来空着），不把画布顶部往上撑
+      stations.forEach((s, k) => { const [x, y] = anchor(k); if (k === 7) bb.push([x + 30, y - 82], [x + 142, y - 46], [x + 44, y - 30], [x + 240, y - 30 + maxCh]); else bb.push([x + 30, y - 106], [x + 142, y - 70], [x + 70, y - 80 - maxCh], [x + 266, y - 80]) })
       stations.forEach((s, k) => {
         if (k === sel) return
         const [x, y] = anchor(k)
         const hotS = s.state === 'hold' || s.state === 'run'
-        const cw = 112; const ch = 36; const cx = x + 30; const cy = y - 70 - ch
+        const cw = 112; const ch = 36; const cx = x + 30; const cy = y - (k === 7 ? 46 : 70) - ch
         const [, gv, gc] = s.rows[0] ?? []
         els.push(h('g', { key: `tag${k}`, ...click(k) },
-          h('polyline', { points: pts([[x, y], [x, y - 20], [cx, cy + ch]]), fill: 'none', stroke: hotS ? A : C.grid, strokeOpacity: hotS ? 0.8 : 0.35 }),
+          h('polyline', { points: pts([[x, y], [x, y - (k === 7 ? 14 : 20)], [cx, cy + ch]]), fill: 'none', stroke: hotS ? A : C.grid, strokeOpacity: hotS ? 0.8 : 0.35 }),
           h('circle', { cx: x, cy: y, r: 1.8, fill: hotS ? A : C.grid, opacity: hotS ? 1 : 0.5 }),
           h('rect', { x: cx, y: cy, width: cw, height: ch, rx: 2, fill: C.card, stroke: hotS ? A : C.cardLine, strokeOpacity: hotS ? 0.8 : 1 }),
           h('text', { x: cx + 7, y: cy + 13, fill: hotS ? A : P.ink3, fontSize: 8.5, fontFamily: MONO, letterSpacing: 0.5 }, s.no, h('tspan', { fill: P.ink2, dx: 5, fontFamily: 'inherit' }, s.nm)),
@@ -812,10 +813,11 @@ window.__ModuleLoader__.load({
         const s = stations[sel]; const [x, y] = anchor(sel)
         const rows = [[s.unit || '状态', s.big, ''], ...s.rows, ['完成', `${Math.round((s.frac ?? 0) * 100)}%`, ''], ['状态', STATE_LABEL[s.state], s.state === 'done' ? 'ok' : s.state === 'idle' ? '' : 'warn']]
         const cw = 196; const ch = 34 + rows.length * 18
-        const cx = x + 70; const cy = y - 80 - ch
+        const side = sel === 7
+        const cx = side ? x + 44 : x + 70; const cy = side ? y - 30 : y - 80 - ch
         const fill = { ok: P.ok, warn: P.warn, '': P.ink }
         els.push(h('g', { key: 'card', className: 'mx-cardin' },
-          h('polyline', { points: pts([[x, y], [x, y - 22], [cx, cy + ch]]), fill: 'none', stroke: A, strokeWidth: 1 }),
+          h('polyline', { points: pts(side ? [[x, y], [cx, y]] : [[x, y], [x, y - 22], [cx, cy + ch]]), fill: 'none', stroke: A, strokeWidth: 1 }),
           h('circle', { cx: x, cy: y, r: 3, fill: A, filter: 'url(#mx-glow)' }),
           h('rect', { x: cx, y: cy, width: cw, height: ch, rx: 3, fill: C.card, stroke: C.cardLine }),
           h('rect', { x: cx, y: cy, width: 2, height: ch, fill: A }),
