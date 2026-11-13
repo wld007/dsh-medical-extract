@@ -204,7 +204,7 @@ export function apply(ctx, config = {}) {
           default: throw Object.assign(new Error(`未知方法: ${endpoint}`), { code: 'unknown-endpoint' })
         }
       })()
-      return { ok: true, value }
+      return { ok: true, value: plain(value) }
     } catch (error) {
       return { ok: false, error: { code: error?.code ?? 'medical-extract', message: String(error?.message ?? error), details: {} } }
     }
@@ -241,6 +241,9 @@ function tool(def) {
     description: def.description,
     parameters: { type: 'object', properties, ...(required.length ? { required } : {}), additionalProperties: false },
     output: { schema: { type: 'object', additionalProperties: true }, render: def.render ?? ((args, value) => [{ type: 'text', text: JSON.stringify(value, null, 2) }]) },
-    execute: def.execute,
+    // 宿主要求输出是无损 JSON：去掉 undefined、SQLite 行的空原型等
+    execute: async (...args) => plain(await def.execute(...args)),
   }
 }
+
+const plain = (v) => (v === undefined ? null : JSON.parse(JSON.stringify(v)))
