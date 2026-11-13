@@ -1,16 +1,16 @@
-# 病历定向抽取 · dsh-medical-extract
+# 病历文书提取 · dsh-medical-extract
 
 DeepSeek Harness 插件。给一份**抽取模板**（字段清单），从病历文书里把这些字段抽出来（chart abstraction），**每个值带逐字原文引语和位置**；面向千万级文书。
 
 插件本身不含任何病种知识，病种内容全部在模板里。自带一份样例模板 **抑郁障碍（MDD）**，共 78 个字段：诊断分型、病程、症状、自杀与安全、量表、药物与非药物治疗、疗效与转归、共病、人口学与危险因素、检验。字段的依据见 [docs/mdd-fields.md](docs/mdd-fields.md)。
 
 ```
-医疗数据匿名化 → 【病历定向抽取】 → 宽表／证据长表 → 科研统计、队列、训练数据……
+医疗数据匿名化 → 【病历文书提取】 → 宽表／证据长表 → 科研统计、队列、训练数据……
 ```
 
 ## 用法
 
-- **左侧栏「病历定向抽取」**：有产线、模板、宽表、原文标注、复核、模型调用、报告几页。
+- **左侧栏「病历文书提取」**：有产线、模板、宽表、原文标注、复核、模型调用、报告几页。
 - **聊天框**：`/extract <输入目录或文件> [--template mdd] [--mode hybrid|model|rules] [--out 输出根目录] [--as-of "YYYY-MM-DD HH:mm"]`
 - **Agent 工具**：`extract_start`、`extract_status`、`extract_report`、`extract_runs`、`extract_cancel`、`extract_templates`、`extract_save_template`。
 

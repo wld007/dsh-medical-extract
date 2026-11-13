@@ -1,7 +1,7 @@
 {
   "name": "dsh-medical-extract",
   "version": "0.1.0",
-  "description": "病历定向抽取：按抽取模板（字段清单）从病历文书里抽取内容，每个值带逐字原文出处；面向千万级文书（分片、并行、断点续跑、模型去重缓存）。DeepSeek Harness 插件。",
+  "description": "病历文书提取：按抽取模板（字段清单）从病历文书里抽取内容，每个值带逐字原文出处；面向千万级文书（分片、并行、断点续跑、模型去重缓存）。DeepSeek Harness 插件。",
   "type": "module",
   "license": "MIT",
   "author": "wld007",

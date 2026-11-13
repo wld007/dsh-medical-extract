@@ -386,7 +386,7 @@ window.__ModuleLoader__.load({
         h('header', { className: 'mx-frame mx-top' },
           h('div', { className: 'mx-brand' },
             h('div', { className: 'mx-logo' }, h('svg', { width: 17, height: 17, viewBox: '0 0 24 24', fill: 'none', stroke: '#fff', strokeWidth: 2.2, strokeLinecap: 'round', strokeLinejoin: 'round' }, h('path', { d: 'M5 6h8M5 11h5M5 16h4' }), h('circle', { cx: 16, cy: 15, r: 4.2 }), h('path', { d: 'M16 9v2M16 19v2M10 15h2M20 15h2' }))),
-            h('div', {}, h('b', {}, '病历定向抽取'), h('span', {}, 'TARGETED RECORD EXTRACTION'))),
+            h('div', {}, h('b', {}, '病历文书提取'), h('span', {}, 'MEDICAL DOCUMENT EXTRACTION'))),
           h('div', { className: `mx-status s-${lineStatus}` },
             h('span', { className: 'mx-lamp' }),
             h('div', {},
@@ -433,7 +433,7 @@ window.__ModuleLoader__.load({
                         : h(Report, { run })),
         modal === 'settings' ? h('div', { className: 'mx-modal-back', onMouseDown: (e) => { if (e.target === e.currentTarget) setModal(null) } },
           h('div', { className: 'mx-modal', role: 'dialog', 'aria-modal': 'true', 'aria-label': '设置' },
-            h('div', { className: 'mx-modal-head' }, h('h3', {}, '设置 · 病历定向抽取'), h('button', { className: 'mx-btn sm', onClick: () => setModal(null), 'aria-label': '关闭' }, '✕')),
+            h('div', { className: 'mx-modal-head' }, h('h3', {}, '设置 · 病历文书提取'), h('button', { className: 'mx-btn sm', onClick: () => setModal(null), 'aria-label': '关闭' }, '✕')),
             h('div', { className: 'mx-modal-body' }, activeId ? h('div', { className: 'mx-err', style: { marginBottom: 10 } }, '有批次在运行：改动从下一个批次起生效。') : null, h(SettingsSection, { inModal: true })))) : null))
     }
 
@@ -935,7 +935,7 @@ window.__ModuleLoader__.load({
       if (t.conflicts) items.push(['warn', 'E5', `冲突 ${fmt(t.conflicts)} 个格子`, '同一格子互斥取值，不自动选边', 'wide'])
       if (t.quoteFail) items.push(['warn', 'E3', `${fmt(t.quoteFail)} 条模型回答被丢弃`, '引语对不上原文或不支持取值', 'report'])
       for (const w of run.warnings ?? []) items.push(['warn', '提示', w, '', null])
-      items.push(run.model ? ['info', '模型', `${run.model.model}${run.model.verifyModel ? ` ＋ ${run.model.verifyModel}` : ''}`, `调用 ${fmt(t.calls)} · 缓存 ${fmt(t.cached)} · 失败 ${fmt(t.failed)}`, 'calls'] : ['info', '模型', '未配置模型：只跑规则', '设置 → 病历定向抽取', null])
+      items.push(run.model ? ['info', '模型', `${run.model.model}${run.model.verifyModel ? ` ＋ ${run.model.verifyModel}` : ''}`, `调用 ${fmt(t.calls)} · 缓存 ${fmt(t.cached)} · 失败 ${fmt(t.failed)}`, 'calls'] : ['info', '模型', '未配置模型：只跑规则', '设置 → 病历文书提取', null])
       if (run.output) items.push(['ok', 'E7', '已交付', run.output.split('/').slice(-2).join('/'), 'wide'])
       const crit = items.filter((x) => x[0] === 'crit').length
       const tag = { crit: 'CRIT', warn: 'WARN', info: 'INFO', ok: 'OK' }
@@ -1150,7 +1150,7 @@ window.__ModuleLoader__.load({
         try { await call('saveDefaults', patch); setState('已保存（插件会重新加载）') } catch (e) { setState(msg(e)) }
       }
       return h('div', { className: 'mx-settings' }, h('style', {}, CSS),
-        inModal ? null : h('p', { style: { margin: 0, color: 'var(--dsw-alias-label-secondary)' } }, '这里只放配置。运行批次、看宽表与复核，请到左侧栏的「病历定向抽取」，或在聊天框使用 /extract。'),
+        inModal ? null : h('p', { style: { margin: 0, color: 'var(--dsw-alias-label-secondary)' } }, '这里只放配置。运行批次、看宽表与复核，请到左侧栏的「病历文书提取」，或在聊天框使用 /extract。'),
         h('h3', { style: { margin: '6px 0 0' } }, '抽取'),
         h('div', { className: 'mx-grid2' },
           field('template', '默认模板 id'),
@@ -1167,7 +1167,7 @@ window.__ModuleLoader__.load({
         check('disableThinking', '关闭思考模式（推理模型更快）'),
         h('h3', { style: { margin: '6px 0 0' } }, '规模与批次'),
         h('div', { className: 'mx-grid2' }, field('outputRoot', '默认输出根目录（空＝输入旁的 _medical-extract）'), field('workers', '工作线程数（0＝自动）'), field('shardUnits', 'p_doc 导出：每个分片的病人数')),
-        check('showSidebarEntry', '在左侧栏显示「病历定向抽取」入口'),
+        check('showSidebarEntry', '在左侧栏显示「病历文书提取」入口'),
         h('div', { style: { display: 'flex', gap: 8, alignItems: 'center' } }, h('button', { className: 'mx-btn', onClick: save }, '保存'), h('span', { style: { color: 'var(--dsw-alias-label-secondary)' } }, state)))
     }
 
@@ -1176,11 +1176,11 @@ window.__ModuleLoader__.load({
       inject: ['slots'],
       apply(ctx) {
         services.ctx = ctx
-        ctx.slots.inject('settings.section', () => ctx.slots.register({ name: 'settings.section', id: 'medical-extract', order: 32, label: () => '病历定向抽取' }, SettingsSection))
+        ctx.slots.inject('settings.section', () => ctx.slots.register({ name: 'settings.section', id: 'medical-extract', order: 32, label: () => '病历文书提取' }, SettingsSection))
         ctx.slots.inject('main', () => ctx.slots.register({ name: 'main', key: PANEL_ID }, Page))
         let disposeEntry = null
         const setSidebar = (visible) => {
-          if (visible && !disposeEntry) disposeEntry = ctx.slots.inject('sidebar.panellist', () => ctx.slots.register({ name: 'sidebar.panellist', id: PANEL_ID, order: 32, label: () => '病历定向抽取' }, Icon))
+          if (visible && !disposeEntry) disposeEntry = ctx.slots.inject('sidebar.panellist', () => ctx.slots.register({ name: 'sidebar.panellist', id: PANEL_ID, order: 32, label: () => '病历文书提取' }, Icon))
           else if (!visible && disposeEntry) { disposeEntry(); disposeEntry = null }
         }
         setSidebar(true)

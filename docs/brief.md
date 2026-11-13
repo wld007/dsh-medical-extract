@@ -1,12 +1,12 @@
-# 病历定向抽取 · dsh-medical-extract
+# 病历文书提取 · dsh-medical-extract
 
-> Targeted Medical Record Extraction（chart abstraction）。DeepSeek Harness 插件。
+> Medical Document Extraction（chart abstraction）。DeepSeek Harness 插件。
 > **通用插件**：给一份抽取模板（字段清单），从任意病历文书里把这些字段抽出来，每个值带逐字原文出处。
 > MDD（抑郁障碍）只是第一份样例模板，用来实践插件，不是插件本身。
 
 ## 1. 定位
 
-| | 病历事件还原（`event`） | 病历定向抽取（本插件，`extract`） |
+| | 病历事件还原（`event`） | 病历文书提取（本插件，`extract`） |
 |---|---|---|
 | 抽什么 | 全部：每处提及都记 | 只抽模板里的字段 |
 | 单位 | 一位病人 | 一份文书（7,000 万份级） |

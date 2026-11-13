@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh"><meta charset="utf-8"><title>病历定向抽取 · 产线（效果图）</title>
+<html lang="zh"><meta charset="utf-8"><title>病历文书提取 · 产线（效果图）</title>
 <style>
 html,body{margin:0;background:#0c0b12}
 body{width:1600px}
@@ -467,7 +467,7 @@ const logo = h('svg', { width: 17, height: 17, viewBox: '0 0 24 24', fill: 'none
 const tabs = [['◈ 产线', null, true], ['模板', 52], ['病人', 186], ['宽表'], ['证据'], ['复核', 37], ['评测'], ['规则改进'], ['模型调用'], ['规则包'], ['报告']]
 document.getElementById('root').innerHTML = h('div', { className: `mx ${DARK ? 'mx-dark' : 'mx-light'}` },
   h('header', { className: 'mx-frame mx-top' },
-    h('div', { className: 'mx-brand' }, h('div', { className: 'mx-logo' }, logo), h('div', {}, h('b', {}, '病历定向抽取'), h('span', {}, 'TARGETED RECORD EXTRACTION'))),
+    h('div', { className: 'mx-brand' }, h('div', { className: 'mx-logo' }, logo), h('div', {}, h('b', {}, '病历文书提取'), h('span', {}, 'MEDICAL DOCUMENT EXTRACTION'))),
     h('div', { className: 'mx-status s-running' }, h('span', { className: 'mx-lamp' }),
       h('div', {}, h('b', {}, '运行中'), h('span', { className: 'mx-num' }, '20261113-mdd-186pt'), h('span', { className: 'mx-tl' }, 'P-0120 · E3 补抽 D3 自杀未遂史'))),
     h('div', { className: 'mx-tpl' }, h('span', { style: { fontSize: 15, color: 'var(--teal)' } }, '▤'), h('div', {}, h('b', {}, '模板 MDD v0.3'), h('span', {}, 'P0 52 字段 · 已确认 · 按住院'))),
