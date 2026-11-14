@@ -754,8 +754,9 @@ window.__ModuleLoader__.load({
       if (t.quoteFail) {
         const gi = (bay0(3) + bw + bay0(4)) / 2 - 7; const gg = []
         for (let q = 0; q < Math.min(4, Math.ceil(t.quoteFail / 10)); q++) gg.push(...isoBox(`rq${q}`, gi + (q % 2) * 15 - 4, D + 6 + Math.floor(q / 2) * 13, 0, 13, 12, 11, RED))
-        const lp = iso(gi - 30, D + 30)
-        gg.push(h('text', { key: 't', x: lp[0], y: lp[1] + 16, textAnchor: 'end', fill: P.bad, fontSize: 10, ...halo }, `${fmt(t.quoteFail)} 条模型引语对不上原文 · 已丢弃`))
+        // 标签放在红箱正上方：左下是去模型旁路的斜管，下方是回 E6 的横管
+        const lp = iso(gi + 5, D + 12, 22)
+        gg.push(h('text', { key: 't', x: lp[0], y: lp[1], textAnchor: 'middle', fill: P.bad, fontSize: 10, ...halo }, h('title', {}, '模型回答的引语在原文里找不到，或引语不支持所取的值：已丢弃，不进交付'), `${fmt(t.quoteFail)} 条模型回答已丢弃`))
         els.push(h('g', { key: 'redq' }, gg))
       }
       // 处理中：发光的箱子
@@ -967,24 +968,33 @@ window.__ModuleLoader__.load({
         try { obj = JSON.parse(draft) } catch (e) { setState(`JSON 有误：${msg(e)}`); return }
         try { const r = await call('saveTemplate', { template: obj }); setState(r.saved ? `已保存到模板库（${obj.id}）` : `未保存：\n- ${r.problems.join('\n- ')}`); if (r.saved) { list.reload(); setSel(obj.id) } } catch (e) { onError(msg(e)) }
       }
+      const copyAsMine = () => {
+        const ids = new Set((list.value?.templates ?? []).map((x) => x.id))
+        let nid = `${t.id}-my`; let n = 2
+        while (ids.has(nid)) nid = `${t.id}-my${n++}`
+        setDraft(JSON.stringify({ ...t, id: nid, name: `${t.name}（我的）`, version: '0.1.0' }, null, 2))
+        setView('json')
+        setState(`已复制为 ${nid}：改好 id、名称和字段后点「校验并保存到模板库」。`)
+      }
       const groupName = Object.fromEntries((t?.groups ?? []).map((g) => [g.id, g.name]))
+      const nw = { whiteSpace: 'nowrap' }
       return h('div', { className: 'mx-split' },
         h('div', { className: 'mx-frame mx-scroll mx-pad' },
           h('div', { className: 'mx-h' }, h('b', {}, '模板库'), h('span', { className: 'mx-cap' }, 'TEMPLATES')),
           (list.value?.templates ?? []).map((x) => h('div', { key: x.id, className: `mx-pi${x.id === id ? ' on' : ''}`, onClick: () => { setSel(x.id); setState('') } },
-            h('b', {}, x.name), h('span', {}, `${x.fields} 字段`), h('span', { style: { gridColumn: '1 / 3' } }, `${x.id} v${x.version} · ${x.origin === 'builtin' ? '插件自带样例' : '用户模板'}`))),
-          h('div', { className: 'mx-faint', style: { marginTop: 12, fontSize: 11.5, lineHeight: 1.7 } }, '模板是插件唯一的"病种知识"入口：字段清单、定义、召回词、规则、取值规则、粒度、值域。格式见 docs/template.md。改好后在右侧「JSON」里保存到模板库（同 id 覆盖），新批次即可选用。')),
+            h('b', {}, x.name), h('span', {}, `${x.fields} 字段`), h('span', { style: { gridColumn: '1 / 3' } }, `${x.id} v${x.version} · `, x.origin === 'builtin' ? h('span', { className: 'mx-chip', style: { marginLeft: 2 } }, '插件自带 · 只读') : h('span', { className: 'mx-chip v', style: { marginLeft: 2 } }, '我的模板')), x.origin === 'builtin' ? null : h('span', { className: 'mx-num', style: { gridColumn: '1 / 3', fontSize: 9.5, wordBreak: 'break-all' }, title: x.file }, x.file))),
+          h('div', { className: 'mx-faint', style: { marginTop: 12, fontSize: 11.5, lineHeight: 1.7 } }, '模板库属于本插件（不是 DSH 系统内置）：「插件自带」随插件发布、只读；「我的模板」存在本机插件数据目录（…/plugin-data/medical-extract/templates/），与自带模板同 id 时用我的版本。模板是插件唯一的"病种知识"入口：字段清单、定义、召回词、规则、取值规则、粒度、值域，格式见 docs/template.md。要做新课题：选一份模板 →「复制为我的模板」→ 改 id 与字段 → 保存，新批次即可选用。')),
         h('div', { className: 'mx-frame mx-col', style: { minWidth: 0 } },
           !t ? h('div', { className: 'mx-empty' }, d.error ?? '加载中…') : h(React.Fragment, {},
             h('div', { className: 'mx-pad', style: { borderBottom: '1px solid var(--line)' } },
               h('div', { className: 'mx-h' }, h('b', {}, t.name), h('span', { className: 'mx-cap' }, `${t.id} v${t.version}`), d.value.problems?.length ? h('span', { className: 'mx-chip b' }, `${d.value.problems.length} 个问题`) : h('span', { className: 'mx-chip ok' }, '校验通过')),
               h('div', { className: 'mx-muted', style: { fontSize: 12 } }, t.description),
-              h('div', { style: { display: 'flex', gap: 4, marginTop: 8 } }, [['fields', `字段 ${t.fields.length}`], ['json', 'JSON（编辑、另存）']].map(([k, l]) => h('button', { key: k, className: `mx-btn sm${view === k ? ' on' : ''}`, onClick: () => setView(k) }, l)))),
+              h('div', { style: { display: 'flex', gap: 4, marginTop: 8 } }, [['fields', `字段 ${t.fields.length}`], ['json', 'JSON（编辑、另存）']].map(([k, l]) => h('button', { key: k, className: `mx-btn sm${view === k ? ' on' : ''}`, onClick: () => setView(k) }, l)), h('span', { className: 'mx-sp' }), h('button', { className: 'mx-btn sm pri', onClick: copyAsMine, title: '以当前模板为底稿，换一个新 id，在 JSON 里改好后保存到我的模板库' }, '＋ 复制为我的模板'))),
             view === 'fields' ? h('div', { className: 'mx-scroll', style: { flex: 1 } }, h('table', {},
-              h('thead', {}, h('tr', {}, ['字段', '名称', '组', '优先级', '类型', '粒度', '模型', '定义', '召回／规则'].map((x) => h('th', { key: x }, x)))),
+              h('thead', {}, h('tr', {}, ['字段', '名称', '组', '优先级', '类型', '粒度', '模型', '定义', '召回／规则'].map((x) => h('th', { key: x, style: nw }, x)))),
               h('tbody', {}, t.fields.map((f) => h('tr', { key: f.id },
-                h('td', { className: 'mx-num' }, f.id), h('td', {}, f.name), h('td', { className: 'mx-faint' }, groupName[f.group] ?? f.group ?? ''), h('td', {}, h('span', { className: `mx-chip ${f.priority === 'P0' ? 'v' : ''}` }, f.priority ?? 'P1')),
-                h('td', {}, f.type), h('td', { className: 'mx-faint' }, f.granularity ?? 'encounter'), h('td', { className: 'mx-faint' }, f.model ?? 'auto'),
+                h('td', { className: 'mx-num', style: nw }, f.id), h('td', { style: { minWidth: 120 } }, f.name), h('td', { className: 'mx-faint', style: nw }, groupName[f.group] ?? f.group ?? ''), h('td', { style: nw }, h('span', { className: `mx-chip ${f.priority === 'P0' ? 'v' : ''}` }, f.priority ?? 'P1')),
+                h('td', { style: nw }, f.type), h('td', { className: 'mx-faint', style: nw }, f.granularity ?? 'encounter'), h('td', { className: 'mx-faint', style: nw }, f.model ?? 'auto'),
                 h('td', { style: { maxWidth: 360, fontSize: 11.5 } }, f.definition),
                 h('td', { className: 'mx-faint', style: { maxWidth: 280, fontSize: 11 } }, f.type === 'derived' ? `派生：${f.derive?.op}` : [...(f.recall?.terms ?? []), ...(f.options ?? []).map((o) => o.value)].slice(0, 8).join('、') + (f.rules?.length ? ` · 规则 ${f.rules.length}` : '')))))))
               : h('div', { className: 'mx-pad mx-col', style: { flex: 1 } },
