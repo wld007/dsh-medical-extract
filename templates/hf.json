@@ -1,0 +1,1719 @@
+{
+  "format": "extract-template/1",
+  "id": "hf",
+  "name": "心力衰竭（HF）",
+  "version": "0.1.0",
+  "domain": "心血管",
+  "description": "心衰研究与质控常用字段：心衰分型（按 LVEF）、NYHA 心功能、病因、诱因、超声与利钠肽、指南导向药物治疗（\"新四联\"）、器械治疗、合并症、住院结局与关键检验。",
+  "references": [
+    {
+      "title": "中国心力衰竭诊断和治疗指南 2024，中华心血管病杂志 2024;52(3):235-275",
+      "url": "https://www.hnysfww.com/data/article/1710983533716760047.pdf"
+    },
+    {
+      "title": "2021 ESC Guidelines for the diagnosis and treatment of acute and chronic heart failure; 2023 Focused Update"
+    },
+    {
+      "title": "2022 AHA/ACC/HFSA Guideline for the Management of Heart Failure"
+    }
+  ],
+  "documents": {
+    "excludeRecordTypes": [
+      "门诊收费",
+      "基本信息"
+    ]
+  },
+  "groups": [
+    {
+      "id": "A",
+      "name": "诊断与分型"
+    },
+    {
+      "id": "B",
+      "name": "心功能与症状体征"
+    },
+    {
+      "id": "C",
+      "name": "病因与诱因"
+    },
+    {
+      "id": "D",
+      "name": "超声与利钠肽"
+    },
+    {
+      "id": "E",
+      "name": "药物治疗"
+    },
+    {
+      "id": "F",
+      "name": "器械与手术"
+    },
+    {
+      "id": "G",
+      "name": "合并症"
+    },
+    {
+      "id": "H",
+      "name": "结局"
+    },
+    {
+      "id": "K",
+      "name": "检验与生命体征"
+    }
+  ],
+  "fields": [
+    {
+      "id": "A1",
+      "name": "心衰相关诊断",
+      "group": "A",
+      "priority": "P0",
+      "type": "list",
+      "granularity": "encounter",
+      "definition": "诊断栏写明的心力衰竭诊断（原文写法）。",
+      "sources": {
+        "sections": [
+          "诊断",
+          "初步诊断",
+          "出院诊断",
+          "入院诊断",
+          "ICD-10 名称",
+          "ICD-10"
+        ]
+      },
+      "rules": [
+        {
+          "id": "dx",
+          "regex": "(?<v>[^\\n，,。；;：:]{0,14}(?:心力衰竭|心衰|心功能不全)[^\\n，,。；;：:]{0,14})"
+        }
+      ],
+      "recall": {
+        "terms": [
+          "心力衰竭",
+          "心衰",
+          "心功能不全"
+        ]
+      }
+    },
+    {
+      "id": "A1c",
+      "name": "ICD-10 编码（I50/I11.0/I13）",
+      "group": "A",
+      "priority": "P0",
+      "type": "list",
+      "granularity": "encounter",
+      "definition": "心衰相关编码。",
+      "rules": [
+        {
+          "id": "icd",
+          "regex": "(?<v>(?:I50|I11\\.0|I13\\.[02])(?:\\.\\d{1,3})?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "I50",
+          "I11\\.0",
+          "I13"
+        ]
+      }
+    },
+    {
+      "id": "A2",
+      "name": "心衰分型（按 LVEF）",
+      "group": "A",
+      "priority": "P0",
+      "type": "enum",
+      "definition": "射血分数降低（HFrEF）、轻度降低（HFmrEF）、保留（HFpEF）、改善（HFimpEF）。",
+      "options": [
+        {
+          "value": "HFrEF",
+          "terms": [
+            "HFrEF",
+            "射血分数降低的心衰",
+            "射血分数降低型心力衰竭",
+            "射血分数降低的心力衰竭"
+          ]
+        },
+        {
+          "value": "HFmrEF",
+          "terms": [
+            "HFmrEF",
+            "射血分数轻度降低",
+            "射血分数中间值"
+          ]
+        },
+        {
+          "value": "HFpEF",
+          "terms": [
+            "HFpEF",
+            "射血分数保留的心衰",
+            "射血分数保留型心力衰竭",
+            "射血分数保留的心力衰竭"
+          ]
+        },
+        {
+          "value": "HFimpEF",
+          "terms": [
+            "HFimpEF",
+            "射血分数改善"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "pick": "last"
+    },
+    {
+      "id": "A3",
+      "name": "LVEF ≤40%（按末次 LVEF）",
+      "group": "A",
+      "priority": "P0",
+      "type": "derived",
+      "definition": "末次 LVEF ≤40%（HFrEF 范围）。",
+      "derive": {
+        "op": "threshold",
+        "field": "D1",
+        "cmp": "<=",
+        "value": 40
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "A4",
+      "name": "急慢性",
+      "group": "A",
+      "priority": "P1",
+      "type": "enum",
+      "definition": "急性心衰、慢性心衰急性失代偿或慢性心衰。",
+      "options": [
+        {
+          "value": "急性心衰",
+          "terms": [
+            "急性心衰",
+            "急性心力衰竭",
+            "急性左心衰",
+            "急性左心衰竭"
+          ]
+        },
+        {
+          "value": "慢性心衰急性失代偿",
+          "terms": [
+            "慢性心衰急性失代偿",
+            "急性失代偿",
+            "慢性心力衰竭急性加重",
+            "慢性心衰急性加重"
+          ]
+        },
+        {
+          "value": "慢性心衰",
+          "terms": [
+            "慢性心衰",
+            "慢性心力衰竭",
+            "慢性心功能不全"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "pick": "last"
+    },
+    {
+      "id": "A5",
+      "name": "左心／右心／全心",
+      "group": "A",
+      "priority": "P2",
+      "type": "enum",
+      "definition": "心衰部位。",
+      "options": [
+        {
+          "value": "左心衰",
+          "terms": [
+            "左心衰",
+            "左心衰竭",
+            "左心功能不全"
+          ]
+        },
+        {
+          "value": "右心衰",
+          "terms": [
+            "右心衰",
+            "右心衰竭",
+            "右心功能不全"
+          ]
+        },
+        {
+          "value": "全心衰",
+          "terms": [
+            "全心衰",
+            "全心衰竭"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "A6",
+      "name": "ACC/AHA 心衰分期",
+      "group": "A",
+      "priority": "P2",
+      "type": "enum",
+      "granularity": "encounter",
+      "definition": "A–D 期。",
+      "options": [
+        {
+          "value": "A期"
+        },
+        {
+          "value": "B期"
+        },
+        {
+          "value": "C期"
+        },
+        {
+          "value": "D期",
+          "terms": [
+            "终末期心衰",
+            "晚期心衰"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "id": "stage",
+          "regex": "(?:心衰|心力衰竭)\\s*(?<v>[A-D])\\s*期|(?:[A-D])期心衰",
+          "map": {
+            "A": "A期",
+            "B": "B期",
+            "C": "C期",
+            "D": "D期"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B1",
+      "name": "NYHA 心功能分级",
+      "group": "B",
+      "priority": "P0",
+      "type": "enum",
+      "granularity": "encounter",
+      "pick": "last",
+      "definition": "NYHA I–IV 级。",
+      "options": [
+        {
+          "value": "I"
+        },
+        {
+          "value": "II"
+        },
+        {
+          "value": "III"
+        },
+        {
+          "value": "IV"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?:NYHA|心功能)[^。；\\n]{0,8}(?:[ⅠⅡⅢⅣ]|IV|III|II|I|[1-4])\\s*级"
+        ]
+      },
+      "rules": [
+        {
+          "id": "nyha",
+          "regex": "(?:NYHA|心功能)[^。；\\n]{0,8}?(?<v>Ⅳ|Ⅲ|Ⅱ|Ⅰ|IV|III|II|I|[1-4])\\s*级",
+          "map": {
+            "1": "I",
+            "2": "II",
+            "3": "III",
+            "4": "IV",
+            "Ⅰ": "I",
+            "Ⅱ": "II",
+            "Ⅲ": "III",
+            "Ⅳ": "IV"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B2",
+      "name": "呼吸困难",
+      "group": "B",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "劳力性／夜间阵发性呼吸困难、端坐呼吸、气促。",
+      "recall": {
+        "terms": [
+          "呼吸困难",
+          "气促",
+          "气急",
+          "胸闷气促",
+          "活动后气短",
+          "夜间阵发性呼吸困难",
+          "端坐呼吸",
+          "不能平卧"
+        ]
+      }
+    },
+    {
+      "id": "B3",
+      "name": "下肢水肿",
+      "group": "B",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "双下肢或凹陷性水肿。",
+      "recall": {
+        "terms": [
+          "下肢水肿",
+          "双下肢水肿",
+          "下肢浮肿",
+          "凹陷性水肿",
+          "水肿"
+        ]
+      }
+    },
+    {
+      "id": "B4",
+      "name": "肺部湿啰音",
+      "group": "B",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "查体闻及湿啰音。",
+      "recall": {
+        "terms": [
+          "湿啰音",
+          "湿性啰音",
+          "水泡音"
+        ]
+      }
+    },
+    {
+      "id": "B5",
+      "name": "颈静脉怒张",
+      "group": "B",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "颈静脉怒张或肝颈静脉回流征阳性。",
+      "recall": {
+        "terms": [
+          "颈静脉怒张",
+          "颈静脉充盈",
+          "肝颈静脉回流征阳性"
+        ]
+      }
+    },
+    {
+      "id": "B6",
+      "name": "KCCQ",
+      "group": "B",
+      "priority": "P2",
+      "type": "score",
+      "scale": "KCCQ",
+      "granularity": "timepoint",
+      "range": {
+        "min": 0,
+        "max": 100
+      },
+      "definition": "KCCQ总分（每次评定一条）。只取写明的总分，不取条目分、不取参考范围。",
+      "rules": [
+        {
+          "id": "b6-total",
+          "regex": "(?:KCCQ|堪萨斯城心肌病问卷)\\s*(?:量表)?\\s*(?:评分|总分|得分|评定|测评|分值|评估)?\\s*(?:结果)?\\s*[:：为是]?\\s*(?<v>\\d{1,3}(?:\\.\\d)?)\\s*分?"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "KCCQ|堪萨斯城心肌病问卷"
+        ]
+      }
+    },
+    {
+      "id": "B7",
+      "name": "6 分钟步行距离",
+      "group": "B",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "m",
+      "range": {
+        "min": 10,
+        "max": 1000
+      },
+      "definition": "6 分钟步行距离（m）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "b7-v",
+          "regex": "(?:6\\s*分钟步行(?:距离|试验)?|6MWD|6MWT)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "6\\s*分钟步行(?:距离|试验)?|6MWD|6MWT"
+        ]
+      }
+    },
+    {
+      "id": "C1",
+      "name": "主要病因",
+      "group": "C",
+      "priority": "P0",
+      "type": "enum",
+      "definition": "心衰主要病因。",
+      "options": [
+        {
+          "value": "缺血性心肌病",
+          "terms": [
+            "缺血性心肌病",
+            "缺血性心脏病"
+          ]
+        },
+        {
+          "value": "高血压性心脏病",
+          "terms": [
+            "高血压性心脏病",
+            "高血压心脏病"
+          ]
+        },
+        {
+          "value": "扩张型心肌病",
+          "terms": [
+            "扩张型心肌病",
+            "DCM"
+          ]
+        },
+        {
+          "value": "肥厚型心肌病",
+          "terms": [
+            "肥厚型心肌病",
+            "HCM"
+          ]
+        },
+        {
+          "value": "瓣膜性心脏病",
+          "terms": [
+            "瓣膜性心脏病",
+            "风湿性心脏病",
+            "瓣膜病"
+          ]
+        },
+        {
+          "value": "心肌炎",
+          "terms": [
+            "心肌炎"
+          ]
+        },
+        {
+          "value": "先天性心脏病",
+          "terms": [
+            "先天性心脏病"
+          ]
+        },
+        {
+          "value": "心律失常性心肌病",
+          "terms": [
+            "心律失常性心肌病",
+            "心动过速性心肌病"
+          ]
+        },
+        {
+          "value": "淀粉样变",
+          "terms": [
+            "淀粉样变",
+            "心肌淀粉样变"
+          ]
+        },
+        {
+          "value": "围产期心肌病",
+          "terms": [
+            "围产期心肌病"
+          ]
+        }
+      ],
+      "granularity": "patient",
+      "pick": "mode",
+      "sources": {
+        "sections": [
+          "诊断",
+          "初步诊断",
+          "出院诊断",
+          "入院诊断",
+          "ICD-10 名称",
+          "ICD-10",
+          "既往史",
+          "现病史",
+          "病例特点"
+        ]
+      }
+    },
+    {
+      "id": "C2",
+      "name": "本次诱因",
+      "group": "C",
+      "priority": "P1",
+      "type": "list",
+      "definition": "本次心衰加重的诱因。",
+      "options": [
+        {
+          "value": "感染",
+          "terms": [
+            "感染",
+            "肺部感染",
+            "上呼吸道感染",
+            "受凉"
+          ]
+        },
+        {
+          "value": "心律失常",
+          "terms": [
+            "心律失常",
+            "快速房颤"
+          ]
+        },
+        {
+          "value": "急性冠脉综合征",
+          "terms": [
+            "急性冠脉综合征",
+            "急性心肌梗死",
+            "ACS"
+          ]
+        },
+        {
+          "value": "血压控制不佳",
+          "terms": [
+            "血压控制不佳",
+            "高血压未控制"
+          ]
+        },
+        {
+          "value": "依从性差",
+          "terms": [
+            "依从性差",
+            "自行停药",
+            "未规律服药"
+          ]
+        },
+        {
+          "value": "液体摄入过多",
+          "terms": [
+            "液体摄入过多",
+            "饮水过多",
+            "摄盐过多",
+            "高盐饮食"
+          ]
+        },
+        {
+          "value": "劳累",
+          "terms": [
+            "劳累",
+            "过度劳累"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "model": "always",
+      "recall": {
+        "terms": [
+          "诱因",
+          "受凉",
+          "感冒",
+          "劳累",
+          "停药",
+          "感染"
+        ]
+      }
+    },
+    {
+      "id": "D1",
+      "name": "LVEF",
+      "group": "D",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "%",
+      "range": {
+        "min": 5,
+        "max": 85
+      },
+      "definition": "超声心动图左室射血分数（%）；写成 0.35 的按 35% 记。",
+      "rules": [
+        {
+          "id": "d1-v",
+          "regex": "(?:(?:LVEF|左室射血分数|左心室射血分数|射血分数|EF值?))[^。；;\\n\\d]{0,24}?(?<v>\\d{1,2}(?:\\.\\d)?(?=\\s*%))"
+        },
+        {
+          "id": "lvef-fraction",
+          "regex": "(?:LVEF|左室射血分数|左心室射血分数|射血分数|EF值?)[^。；;\\n\\d]{0,12}?(?<v>0\\.\\d{1,2})(?!\\d)",
+          "factor": 100
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?:LVEF|左室射血分数|左心室射血分数|射血分数|EF值?)"
+        ]
+      }
+    },
+    {
+      "id": "D2",
+      "name": "LVEDD",
+      "group": "D",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mm",
+      "range": {
+        "min": 20,
+        "max": 100
+      },
+      "definition": "LVEDD（mm）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "d2-v",
+          "regex": "(?:LVEDD|左室舒张末(?:期)?(?:内)?径|左心室舒张末(?:期)?(?:内)?径)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "LVEDD|左室舒张末(?:期)?(?:内)?径|左心室舒张末(?:期)?(?:内)?径"
+        ]
+      }
+    },
+    {
+      "id": "D3",
+      "name": "NT-proBNP",
+      "group": "D",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "pg/mL",
+      "range": {
+        "min": 5,
+        "max": 70000
+      },
+      "definition": "NT-proBNP（pg/mL）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "d3-v",
+          "regex": "(?:NT-?pro-?BNP|N末端(?:B型)?(?:利钠肽|脑钠肽)前体|氨基末端脑钠肽前体)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "NT-?pro-?BNP|N末端(?:B型)?(?:利钠肽|脑钠肽)前体|氨基末端脑钠肽前体"
+        ]
+      }
+    },
+    {
+      "id": "D4",
+      "name": "BNP",
+      "group": "D",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "pg/mL",
+      "range": {
+        "min": 1,
+        "max": 10000
+      },
+      "definition": "BNP（pg/mL）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "d4-v",
+          "regex": "(?:(?<!pro-?|NT-?)BNP|B型(?:利钠肽|钠尿肽)|脑钠肽(?!前体))[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<!pro-?|NT-?)BNP|B型(?:利钠肽|钠尿肽)|脑钠肽(?!前体)"
+        ]
+      }
+    },
+    {
+      "id": "D5",
+      "name": "肺动脉收缩压",
+      "group": "D",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mmHg",
+      "range": {
+        "min": 10,
+        "max": 150
+      },
+      "definition": "肺动脉收缩压（mmHg）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "d5-v",
+          "regex": "(?:PASP|肺动脉收缩压|估测肺动脉压)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "PASP|肺动脉收缩压|估测肺动脉压"
+        ]
+      }
+    },
+    {
+      "id": "E1",
+      "name": "ARNI／ACEI／ARB",
+      "group": "E",
+      "priority": "P0",
+      "type": "list",
+      "definition": "在用或出院带的 RAS 抑制剂。",
+      "options": [
+        {
+          "value": "沙库巴曲缬沙坦",
+          "terms": [
+            "沙库巴曲缬沙坦",
+            "诺欣妥",
+            "ARNI"
+          ]
+        },
+        {
+          "value": "依那普利",
+          "terms": [
+            "依那普利"
+          ]
+        },
+        {
+          "value": "培哚普利",
+          "terms": [
+            "培哚普利",
+            "雅施达"
+          ]
+        },
+        {
+          "value": "贝那普利",
+          "terms": [
+            "贝那普利",
+            "洛汀新"
+          ]
+        },
+        {
+          "value": "雷米普利",
+          "terms": [
+            "雷米普利"
+          ]
+        },
+        {
+          "value": "卡托普利",
+          "terms": [
+            "卡托普利"
+          ]
+        },
+        {
+          "value": "缬沙坦",
+          "terms": [
+            "缬沙坦",
+            "代文"
+          ]
+        },
+        {
+          "value": "氯沙坦",
+          "terms": [
+            "氯沙坦",
+            "科素亚"
+          ]
+        },
+        {
+          "value": "厄贝沙坦",
+          "terms": [
+            "厄贝沙坦",
+            "安博维"
+          ]
+        },
+        {
+          "value": "坎地沙坦",
+          "terms": [
+            "坎地沙坦"
+          ]
+        },
+        {
+          "value": "替米沙坦",
+          "terms": [
+            "替米沙坦",
+            "美卡素"
+          ]
+        },
+        {
+          "value": "奥美沙坦",
+          "terms": [
+            "奥美沙坦"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "E2",
+      "name": "β 受体阻滞剂",
+      "group": "E",
+      "priority": "P0",
+      "type": "list",
+      "definition": "在用或出院带的 β 受体阻滞剂。",
+      "options": [
+        {
+          "value": "美托洛尔",
+          "terms": [
+            "美托洛尔",
+            "倍他乐克",
+            "琥珀酸美托洛尔",
+            "酒石酸美托洛尔"
+          ]
+        },
+        {
+          "value": "比索洛尔",
+          "terms": [
+            "比索洛尔",
+            "康忻",
+            "博苏"
+          ]
+        },
+        {
+          "value": "卡维地洛",
+          "terms": [
+            "卡维地洛",
+            "络德"
+          ]
+        },
+        {
+          "value": "奈必洛尔",
+          "terms": [
+            "奈必洛尔"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "E3",
+      "name": "MRA",
+      "group": "E",
+      "priority": "P0",
+      "type": "list",
+      "definition": "盐皮质激素受体拮抗剂。",
+      "options": [
+        {
+          "value": "螺内酯",
+          "terms": [
+            "螺内酯",
+            "安体舒通"
+          ]
+        },
+        {
+          "value": "依普利酮",
+          "terms": [
+            "依普利酮"
+          ]
+        },
+        {
+          "value": "非奈利酮",
+          "terms": [
+            "非奈利酮",
+            "可申"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "E4",
+      "name": "SGLT2 抑制剂",
+      "group": "E",
+      "priority": "P0",
+      "type": "list",
+      "definition": "SGLT2 抑制剂。",
+      "options": [
+        {
+          "value": "达格列净",
+          "terms": [
+            "达格列净",
+            "安达唐"
+          ]
+        },
+        {
+          "value": "恩格列净",
+          "terms": [
+            "恩格列净",
+            "欧唐静"
+          ]
+        },
+        {
+          "value": "卡格列净",
+          "terms": [
+            "卡格列净",
+            "怡可安"
+          ]
+        },
+        {
+          "value": "恒格列净",
+          "terms": [
+            "恒格列净"
+          ]
+        },
+        {
+          "value": "索格列净",
+          "terms": [
+            "索格列净"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "E5",
+      "name": "利尿剂",
+      "group": "E",
+      "priority": "P0",
+      "type": "list",
+      "definition": "袢利尿剂、噻嗪类、托伐普坦等。",
+      "options": [
+        {
+          "value": "呋塞米",
+          "terms": [
+            "呋塞米",
+            "速尿"
+          ]
+        },
+        {
+          "value": "托拉塞米",
+          "terms": [
+            "托拉塞米"
+          ]
+        },
+        {
+          "value": "布美他尼",
+          "terms": [
+            "布美他尼"
+          ]
+        },
+        {
+          "value": "氢氯噻嗪",
+          "terms": [
+            "氢氯噻嗪"
+          ]
+        },
+        {
+          "value": "托伐普坦",
+          "terms": [
+            "托伐普坦",
+            "苏麦卡"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "E6",
+      "name": "其他心衰药物",
+      "group": "E",
+      "priority": "P1",
+      "type": "list",
+      "definition": "伊伐布雷定、地高辛、维立西呱、新活素、正性肌力药等。",
+      "options": [
+        {
+          "value": "伊伐布雷定",
+          "terms": [
+            "伊伐布雷定",
+            "可兰特"
+          ]
+        },
+        {
+          "value": "地高辛",
+          "terms": [
+            "地高辛"
+          ]
+        },
+        {
+          "value": "维立西呱",
+          "terms": [
+            "维立西呱"
+          ]
+        },
+        {
+          "value": "重组人脑利钠肽",
+          "terms": [
+            "重组人脑利钠肽",
+            "新活素",
+            "奈西立肽"
+          ]
+        },
+        {
+          "value": "左西孟旦",
+          "terms": [
+            "左西孟旦"
+          ]
+        },
+        {
+          "value": "多巴酚丁胺",
+          "terms": [
+            "多巴酚丁胺"
+          ]
+        },
+        {
+          "value": "米力农",
+          "terms": [
+            "米力农"
+          ]
+        },
+        {
+          "value": "去乙酰毛花苷",
+          "terms": [
+            "去乙酰毛花苷",
+            "西地兰"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "E7",
+      "name": "是否使用 SGLT2i",
+      "group": "E",
+      "priority": "P1",
+      "type": "derived",
+      "definition": "本次就诊是否记录 SGLT2 抑制剂（种数）。",
+      "derive": {
+        "op": "countOf",
+        "field": "E4"
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "E8",
+      "name": "抗凝药",
+      "group": "E",
+      "priority": "P1",
+      "type": "list",
+      "definition": "在用抗凝药（合并房颤等）。",
+      "options": [
+        {
+          "value": "华法林",
+          "terms": [
+            "华法林"
+          ]
+        },
+        {
+          "value": "达比加群",
+          "terms": [
+            "达比加群"
+          ]
+        },
+        {
+          "value": "利伐沙班",
+          "terms": [
+            "利伐沙班",
+            "拜瑞妥"
+          ]
+        },
+        {
+          "value": "阿哌沙班",
+          "terms": [
+            "阿哌沙班"
+          ]
+        },
+        {
+          "value": "艾多沙班",
+          "terms": [
+            "艾多沙班"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "F1",
+      "name": "ICD",
+      "group": "F",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "植入式心律转复除颤器。",
+      "recall": {
+        "terms": [
+          "ICD",
+          "植入式心律转复除颤器",
+          "埋藏式心律转复除颤器"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "F2",
+      "name": "CRT",
+      "group": "F",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "心脏再同步化治疗（CRT-P/CRT-D）。",
+      "recall": {
+        "terms": [
+          "CRT",
+          "CRT-D",
+          "CRT-P",
+          "心脏再同步化治疗",
+          "三腔起搏器"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "F3",
+      "name": "PCI／CABG 史",
+      "group": "F",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "冠脉介入或搭桥史。",
+      "recall": {
+        "terms": [
+          "PCI",
+          "冠脉支架",
+          "支架植入",
+          "CABG",
+          "冠状动脉旁路移植",
+          "搭桥"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "F4",
+      "name": "左室辅助装置／心脏移植",
+      "group": "F",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "LVAD 或心脏移植。",
+      "recall": {
+        "terms": [
+          "LVAD",
+          "左心室辅助装置",
+          "心室辅助装置",
+          "心脏移植"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G1",
+      "name": "心房颤动",
+      "group": "G",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "心房颤动（含阵发性）。",
+      "recall": {
+        "terms": [
+          "心房颤动",
+          "房颤",
+          "AF"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G2",
+      "name": "高血压",
+      "group": "G",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "高血压病史。",
+      "recall": {
+        "terms": [
+          "高血压"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G3",
+      "name": "糖尿病",
+      "group": "G",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "糖尿病病史。",
+      "recall": {
+        "terms": [
+          "糖尿病"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G4",
+      "name": "慢性肾脏病",
+      "group": "G",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "慢性肾脏病或肾功能不全。",
+      "recall": {
+        "terms": [
+          "慢性肾脏病",
+          "CKD",
+          "肾功能不全",
+          "慢性肾衰竭",
+          "肾衰竭"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G5",
+      "name": "冠心病",
+      "group": "G",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "冠心病或心肌梗死。",
+      "recall": {
+        "terms": [
+          "冠心病",
+          "冠状动脉粥样硬化性心脏病",
+          "心肌梗死",
+          "陈旧性心肌梗死"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G6",
+      "name": "COPD",
+      "group": "G",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "慢性阻塞性肺疾病。",
+      "recall": {
+        "terms": [
+          "慢性阻塞性肺疾病",
+          "COPD",
+          "慢阻肺"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G7",
+      "name": "贫血",
+      "group": "G",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "贫血或缺铁。",
+      "recall": {
+        "terms": [
+          "贫血",
+          "缺铁"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "H1",
+      "name": "院内死亡",
+      "group": "H",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "住院期间死亡。",
+      "recall": {
+        "terms": [
+          "死亡",
+          "临床死亡",
+          "宣告死亡",
+          "抢救无效"
+        ]
+      },
+      "granularity": "encounter",
+      "sources": {
+        "sections": [
+          "出院情况",
+          "诊疗经过",
+          "病程记录",
+          "正文"
+        ]
+      }
+    },
+    {
+      "id": "H2",
+      "name": "住院天数",
+      "group": "H",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "encounter",
+      "unit": "天",
+      "range": {
+        "min": 0,
+        "max": 365
+      },
+      "pick": "last",
+      "definition": "住院天数（天）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "h2-v",
+          "regex": "(?:住院(?:天数|日数)|共住院)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        },
+        {
+          "id": "los-b",
+          "regex": "住院(?<v>\\d{1,3})\\s*天"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "住院(?:天数|日数)|共住院"
+        ]
+      }
+    },
+    {
+      "id": "H3",
+      "name": "既往心衰住院次数",
+      "group": "H",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "patient",
+      "unit": "次",
+      "range": {
+        "min": 0,
+        "max": 50
+      },
+      "pick": "max",
+      "definition": "既往心衰住院次数（次）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "h3-v",
+          "regex": "(?:(?:心衰|心力衰竭)[^。；\\n]{0,10}?住院)[^。；;\\n\\d]{0,24}?(?<v>\\d{1,2}(?=\\s*次))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?:心衰|心力衰竭)[^。；\\n]{0,10}?住院"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "H4",
+      "name": "入院年龄",
+      "group": "H",
+      "priority": "P0",
+      "type": "derived",
+      "definition": "本次就诊时年龄。",
+      "derive": {
+        "op": "ageAt",
+        "at": "$encounter.start"
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "H5",
+      "name": "出院体重",
+      "group": "H",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "kg",
+      "range": {
+        "min": 25,
+        "max": 250
+      },
+      "definition": "出院体重（kg）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "h5-v",
+          "regex": "(?:(?:出院|干)?体重)[^。；;\\n\\d]{0,24}?(?<v>\\d{2,3}(?:\\.\\d)?(?=\\s*(?:kg|Kg|KG|公斤)))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?:出院|干)?体重"
+        ]
+      }
+    },
+    {
+      "id": "K1",
+      "name": "血钾",
+      "group": "K",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mmol/L",
+      "range": {
+        "min": 1.5,
+        "max": 9
+      },
+      "definition": "血钾（mmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k1-v",
+          "regex": "(?:血钾|血清钾|项目：钾|(?<![a-zA-Z])K\\+?)[^。；;\\n\\d]{0,24}?(?<v>\\d\\.\\d{1,2})"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "血钾|血清钾|项目：钾|(?<![a-zA-Z])K\\+?"
+        ]
+      }
+    },
+    {
+      "id": "K2",
+      "name": "血钠",
+      "group": "K",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mmol/L",
+      "range": {
+        "min": 100,
+        "max": 180
+      },
+      "definition": "血钠（mmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k2-v",
+          "regex": "(?:血钠|血清钠|项目：钠|Na\\+?)[^。；;\\n\\d]{0,24}?(?<v>1\\d{2}(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "血钠|血清钠|项目：钠|Na\\+?"
+        ]
+      }
+    },
+    {
+      "id": "K3",
+      "name": "肌酐",
+      "group": "K",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "μmol/L",
+      "range": {
+        "min": 10,
+        "max": 2500
+      },
+      "definition": "肌酐（μmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k3-v",
+          "regex": "(?:肌酐|Scr|SCr|Cr(?![a-z]))[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "肌酐|Scr|SCr|Cr(?![a-z])"
+        ]
+      }
+    },
+    {
+      "id": "K4",
+      "name": "eGFR",
+      "group": "K",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mL/min/1.73m²",
+      "range": {
+        "min": 1,
+        "max": 200
+      },
+      "definition": "eGFR（mL/min/1.73m²）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k4-v",
+          "regex": "(?:eGFR|估算肾小球滤过率|肾小球滤过率)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "eGFR|估算肾小球滤过率|肾小球滤过率"
+        ]
+      }
+    },
+    {
+      "id": "K5",
+      "name": "血红蛋白",
+      "group": "K",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "g/L",
+      "range": {
+        "min": 20,
+        "max": 250
+      },
+      "definition": "血红蛋白（g/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k5-v",
+          "regex": "(?:血红蛋白|Hb(?!A)|HGB)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "血红蛋白|Hb(?!A)|HGB"
+        ]
+      }
+    },
+    {
+      "id": "K6",
+      "name": "心率",
+      "group": "K",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "次/分",
+      "range": {
+        "min": 20,
+        "max": 250
+      },
+      "definition": "心率（次/分）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k6-v",
+          "regex": "(?:心率|HR|脉搏)[^。；;\\n\\d]{0,24}?(?<v>\\d{2,3}(?=\\s*次))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "心率|HR|脉搏"
+        ]
+      }
+    },
+    {
+      "id": "K7",
+      "name": "收缩压",
+      "group": "K",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mmHg",
+      "range": {
+        "min": 50,
+        "max": 280
+      },
+      "definition": "血压记录中的收缩压（每次测量一条）。",
+      "rules": [
+        {
+          "id": "k7-v",
+          "regex": "(?:(?:BP|血压)\\s*[:：]?)[^。；;\\n\\d]{0,24}?(?<v>\\d{2,3}(?=\\s*/\\s*\\d{2,3}))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?:BP|血压)\\s*[:：]?"
+        ]
+      }
+    },
+    {
+      "id": "K8",
+      "name": "血清铁蛋白",
+      "group": "K",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "ng/mL",
+      "range": {
+        "min": 1,
+        "max": 5000
+      },
+      "definition": "血清铁蛋白（ng/mL）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k8-v",
+          "regex": "(?:铁蛋白)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "铁蛋白"
+        ]
+      }
+    },
+    {
+      "id": "K9",
+      "name": "肌钙蛋白",
+      "group": "K",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": null,
+      "range": {
+        "min": 0,
+        "max": 100000
+      },
+      "definition": "肌钙蛋白的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k9-v",
+          "regex": "(?:cTnI|cTnT|hs-?cTn[IT]?|肌钙蛋白)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "cTnI|cTnT|hs-?cTn[IT]?|肌钙蛋白"
+        ]
+      }
+    },
+    {
+      "id": "K10",
+      "name": "主诉",
+      "group": "K",
+      "priority": "P1",
+      "type": "text",
+      "definition": "本次就诊主诉原文。",
+      "granularity": "encounter",
+      "pick": "first",
+      "sources": {
+        "sections": [
+          "主诉"
+        ]
+      },
+      "rules": [
+        {
+          "id": "chief",
+          "regex": "(?<v>[^\\n]{2,100})"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "[^\\s]{2,}"
+        ]
+      }
+    }
+  ]
+}

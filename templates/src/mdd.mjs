@@ -1,6 +1,5 @@
 /**
- * 样例模板：抑郁障碍（MDD）。依据见 docs/mdd-fields.md（ICD-10/11、DSM-5-TR、中国抑郁障碍防治指南第二版、CANMAT 2023、NICE NG222）。
- * 这是插件的一份样例模板，不是插件的一部分；插件代码里没有任何病种内容。
+ * 抑郁障碍（MDD）。依据见 docs/mdd-fields.md（ICD-10/11、DSM-5-TR、中国抑郁障碍防治指南第二版、CANMAT 2023、NICE NG222）。
  * 生成：node scripts/build-templates.mjs → templates/mdd.json
  */
 const NUM = '[\\d一二两三四五六七八九十]+'
@@ -31,8 +30,16 @@ ANTIDEPRESSANTS.find((o) => o.value === '帕罗西汀').terms = ['帕罗西汀',
 export default {
   format: 'extract-template/1',
   id: 'mdd',
-  name: '抑郁障碍（MDD）样例',
+  name: '抑郁障碍（MDD）',
   version: '0.1.0',
+  domain: '精神',
+  references: [
+    { title: '中国抑郁障碍防治指南（第二版），中华医学电子音像出版社 2015' },
+    { title: '国家卫生健康委《精神障碍诊疗规范（2020 年版）》' },
+    { title: 'CANMAT 2023 Update on Clinical Guidelines for Management of Major Depressive Disorder in Adults' },
+    { title: 'NICE NG222 Depression in adults: treatment and management (2022)' },
+    { title: 'DSM-5-TR；ICD-10 F32/F33；ICD-11 6A70/6A71' },
+  ],
   description: '抑郁障碍研究队列的常用字段：诊断分型、病程、症状、自杀与安全、量表、药物与非药物治疗、疗效与转归、共病、人口学与危险因素、关键检验。',
   documents: { excludeRecordTypes: ['门诊收费', '基本信息'] },
   groups: [

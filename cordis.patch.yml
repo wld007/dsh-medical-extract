@@ -4,7 +4,7 @@
       config:
         # 输出根目录；空 = 输入旁的 _medical-extract
         outputRoot: ''
-        # 默认抽取模板（插件自带 mdd 样例；用户模板放在插件数据目录 templates/）
+        # 默认抽取模板 id（内置：mdd、stroke-ais、ad、hf、t2dm、ckd-hd、nsclc；我的模板放在插件数据目录 templates/）
         template: mdd
         # hybrid：规则优先，规则定不了才送模型；model：召回到的字段都送模型，规则作第二票；rules：不调模型
         extractMode: hybrid

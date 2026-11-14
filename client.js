@@ -466,7 +466,7 @@ window.__ModuleLoader__.load({
         h('div', { className: 'mx-grid2' },
           h('label', { className: 'mx-field' }, '抽取模板',
             h('select', { className: 'mx-input', value: template, onChange: (e) => setTemplate(e.target.value) },
-              h('option', { value: '' }, `默认（${cfg.value?.template ?? '…'}）`), tplList.map((t) => h('option', { key: t.id, value: t.id }, `${t.name} · ${t.fields} 字段`)))),
+              h('option', { value: '' }, `默认（${cfg.value?.template ?? '…'}）`), tplList.map((t) => h('option', { key: t.id, value: t.id }, `${t.domain ? `${t.domain} · ` : ''}${t.name} · ${t.fields} 字段${t.origin === 'builtin' ? '' : '（我的）'}`)))),
           h('label', { className: 'mx-field' }, '模式',
             h('select', { className: 'mx-input', value: mode, onChange: (e) => setMode(e.target.value) },
               h('option', { value: '' }, `默认（${MODE_LABEL[cfg.value?.mode] ?? '…'}）`), Object.entries(MODE_LABEL).map(([k, l]) => h('option', { key: k, value: k }, l))))),
@@ -953,6 +953,12 @@ window.__ModuleLoader__.load({
     }
 
     /* -------------------------------------------------------------- template */
+    /** 模板列表分组：内置按学科（domain），我的模板单独一组 */
+    function tplGroups(xs) {
+      const g = new Map()
+      for (const x of xs) { const k = x.origin === 'builtin' ? `内置 · ${x.domain ?? '其他'}` : '我的模板'; if (!g.has(k)) g.set(k, []); g.get(k).push(x) }
+      return [...g.entries()].sort((a, b) => (a[0] === '我的模板' ? 1 : b[0] === '我的模板' ? -1 : a[0].localeCompare(b[0], 'zh')))
+    }
     function Templates({ run, onError }) {
       const list = useAsync(() => call('templates'), [])
       const [sel, setSel] = useState(run?.template?.id ?? null)
@@ -981,14 +987,18 @@ window.__ModuleLoader__.load({
       return h('div', { className: 'mx-split' },
         h('div', { className: 'mx-frame mx-scroll mx-pad' },
           h('div', { className: 'mx-h' }, h('b', {}, '模板库'), h('span', { className: 'mx-cap' }, 'TEMPLATES')),
-          (list.value?.templates ?? []).map((x) => h('div', { key: x.id, className: `mx-pi${x.id === id ? ' on' : ''}`, onClick: () => { setSel(x.id); setState('') } },
-            h('b', {}, x.name), h('span', {}, `${x.fields} 字段`), h('span', { style: { gridColumn: '1 / 3' } }, `${x.id} v${x.version} · `, x.origin === 'builtin' ? h('span', { className: 'mx-chip', style: { marginLeft: 2 } }, '插件自带 · 只读') : h('span', { className: 'mx-chip v', style: { marginLeft: 2 } }, '我的模板')), x.origin === 'builtin' ? null : h('span', { className: 'mx-num', style: { gridColumn: '1 / 3', fontSize: 9.5, wordBreak: 'break-all' }, title: x.file }, x.file))),
-          h('div', { className: 'mx-faint', style: { marginTop: 12, fontSize: 11.5, lineHeight: 1.7 } }, '模板库属于本插件（不是 DSH 系统内置）：「插件自带」随插件发布、只读；「我的模板」存在本机插件数据目录（…/plugin-data/medical-extract/templates/），与自带模板同 id 时用我的版本。模板是插件唯一的"病种知识"入口：字段清单、定义、召回词、规则、取值规则、粒度、值域，格式见 docs/template.md。要做新课题：选一份模板 →「复制为我的模板」→ 改 id 与字段 → 保存，新批次即可选用。')),
+          tplGroups(list.value?.templates ?? []).map(([label, xs]) => h(React.Fragment, { key: label },
+            h('div', { className: 'mx-side-sec', style: { marginTop: 10 } }, h('span', {}, label), h('span', {}, String(xs.length))),
+            xs.map((x) => h('div', { key: x.id, className: `mx-pi${x.id === id ? ' on' : ''}`, onClick: () => { setSel(x.id); setState('') } },
+              h('b', {}, x.name), h('span', {}, `${x.fields} 字段`), h('span', { style: { gridColumn: '1 / 3' } }, `${x.id} v${x.version} · `, x.origin === 'builtin' ? h('span', { className: 'mx-chip', style: { marginLeft: 2 } }, '内置 · 只读') : h('span', { className: 'mx-chip v', style: { marginLeft: 2 } }, '我的模板')), x.origin === 'builtin' ? null : h('span', { className: 'mx-num', style: { gridColumn: '1 / 3', fontSize: 9.5, wordBreak: 'break-all' }, title: x.file }, x.file))))),
+          h('div', { className: 'mx-faint', style: { marginTop: 12, fontSize: 11.5, lineHeight: 1.7 } }, '模板库属于本插件（不是 DSH 系统内置）：「内置」模板按国内外指南整理、随插件发布、只读；「我的模板」存在本机插件数据目录（…/plugin-data/medical-extract/templates/），与内置模板同 id 时用我的版本。模板是插件唯一的"病种知识"入口：字段清单、定义、召回词、规则、取值规则、粒度、值域，格式见 docs/template.md。要做新课题：选一份模板 →「复制为我的模板」→ 改 id 与字段 → 保存，新批次即可选用。')),
         h('div', { className: 'mx-frame mx-col', style: { minWidth: 0 } },
           !t ? h('div', { className: 'mx-empty' }, d.error ?? '加载中…') : h(React.Fragment, {},
             h('div', { className: 'mx-pad', style: { borderBottom: '1px solid var(--line)' } },
               h('div', { className: 'mx-h' }, h('b', {}, t.name), h('span', { className: 'mx-cap' }, `${t.id} v${t.version}`), d.value.problems?.length ? h('span', { className: 'mx-chip b' }, `${d.value.problems.length} 个问题`) : h('span', { className: 'mx-chip ok' }, '校验通过')),
               h('div', { className: 'mx-muted', style: { fontSize: 12 } }, t.description),
+              t.references?.length ? h('div', { style: { fontSize: 11, marginTop: 6, lineHeight: 1.7 } }, h('span', { className: 'mx-faint' }, '依据：'),
+                t.references.map((r, i) => h('span', { key: i }, i ? h('span', { className: 'mx-faint' }, '；') : null, r.url ? h('a', { href: r.url, target: '_blank', rel: 'noreferrer', style: { color: 'var(--teal2)' } }, r.title) : r.title))) : null,
               h('div', { style: { display: 'flex', gap: 4, marginTop: 8 } }, [['fields', `字段 ${t.fields.length}`], ['json', 'JSON（编辑、另存）']].map(([k, l]) => h('button', { key: k, className: `mx-btn sm${view === k ? ' on' : ''}`, onClick: () => setView(k) }, l)), h('span', { className: 'mx-sp' }), h('button', { className: 'mx-btn sm pri', onClick: copyAsMine, title: '以当前模板为底稿，换一个新 id，在 JSON 里改好后保存到我的模板库' }, '＋ 复制为我的模板'))),
             view === 'fields' ? h('div', { className: 'mx-scroll', style: { flex: 1 } }, h('table', {},
               h('thead', {}, h('tr', {}, ['字段', '名称', '组', '优先级', '类型', '粒度', '模型', '定义', '召回／规则'].map((x) => h('th', { key: x, style: nw }, x)))),

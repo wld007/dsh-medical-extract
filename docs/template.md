@@ -1,7 +1,7 @@
 # 抽取模板格式（`extract-template/1`）
 
 > 模板是插件的唯一"病种知识"入口。插件代码里不写任何病种内容。
-> 模板是一个 JSON 文件，放在 `templates/<id>.json`（插件自带样例）或用户的模板库（`<stateDir>/templates/`）。
+> 模板是一个 JSON 文件，放在 `templates/<id>.json`（插件内置模板）或用户的模板库（`<stateDir>/templates/`）。
 > 字段只增不改；改动升 `format` 版本。
 
 ## 1. 顶层
@@ -10,7 +10,7 @@
 {
   "format": "extract-template/1",
   "id": "mdd",
-  "name": "抑郁障碍（MDD）样例",
+  "name": "抑郁障碍（MDD）",
   "version": "0.1.0",
   "description": "一句话说明用途",
   "documents": { "recordTypes": [], "excludeRecordTypes": ["检验", "门诊收费"] },
@@ -28,6 +28,8 @@
 | `documents` | 否 | 全模板的文书类型过滤（`recordTypes` 为空＝全部）；字段级 `sources` 再细分 |
 | `groups` | 否 | 字段分组（界面、宽表列顺序） |
 | `lexicon` | 否 | 追加到通用断言词表的词（见 §4），不替换 |
+| `domain` | 否 | 学科／病种分类（界面分组用），如 `精神`、`神经`、`心血管` |
+| `references` | 否 | 依据：`[{title, url?}]`，如指南名称与链接 |
 | `fields` | 是 | 字段数组，顺序即宽表列顺序 |
 
 ## 2. 字段
@@ -113,6 +115,8 @@
 | `regex` | JS 正则源码；命名分组 `v`＝值，`unit`＝单位，`variant`＝量表版本，`date`＝日期文本 |
 | `value` | 固定值（如命中"自杀未遂"时值为 `有`）；与 `v` 二选一 |
 | `assertion` | 可选：强制断言（不再按 §4 判） |
+| `map` | 可选：捕获值到规范值的映射（如 `{"Ⅲ": "III", "3": "III"}`），先映射再按类型归一 |
+| `factor` | 可选：数值换算系数（如 LVEF 写成 0.35 时 `factor: 100` 记为 35） |
 | `sections` | 可选：只在这些栏目生效 |
 
 规则命中就定值，不送模型（`model: "always"` 时规则结果作第二票）。

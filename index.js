@@ -29,7 +29,7 @@ export function apply(ctx, config = {}) {
 
   ctx.tools.register(tool({
     name: 'extract_start',
-    description: `dsh-medical-extract 插件（病历文书提取）：按抽取模板（字段清单，如自带的 mdd 样例）从病历文书里抽取内容，每个值带逐字原文引语与位置。输入可以是区域平台导出（p_doc_*.json，一位或多位病人）或通用文件（json／ndjson／jsonl／csv／tsv／txt／md，每行或每个文件一份文书），可到千万份文书：分片并行、可取消、可从取消或失败处继续。规则优先，规则定不了的片段送模型，引语回原文核对；可选核验模型做抽样核验。交付宽表（病人／就诊／文书）、时间点长表、证据长表、冲突表与报告；绝不修改源文件。${DATA_BOUNDARY}立即返回批次 id。`,
+    description: `dsh-medical-extract 插件（病历文书提取）：按抽取模板（字段清单；内置抑郁障碍、急性缺血性卒中、阿尔茨海默病、心力衰竭、2 型糖尿病、慢性肾脏病与血透、非小细胞肺癌，也可自建）从病历文书里抽取内容，每个值带逐字原文引语与位置。输入可以是区域平台导出（p_doc_*.json，一位或多位病人）或通用文件（json／ndjson／jsonl／csv／tsv／txt／md，每行或每个文件一份文书），可到千万份文书：分片并行、可取消、可从取消或失败处继续。规则优先，规则定不了的片段送模型，引语回原文核对；可选核验模型做抽样核验。交付宽表（病人／就诊／文书）、时间点长表、证据长表、冲突表与报告；绝不修改源文件。${DATA_BOUNDARY}立即返回批次 id。`,
     parameters: {
       inputDir: { type: 'string', description: '输入目录或单个文件的绝对路径（或相对工作区）。' },
       template: { type: 'string', description: '模板 id（用 extract_templates 查看）；省略时用设置里的默认模板。' },
@@ -91,7 +91,7 @@ export function apply(ctx, config = {}) {
 
   ctx.tools.register(tool({
     name: 'extract_templates',
-    description: '列出可用的抽取模板（插件自带样例与用户模板库），或给 id 查看一个模板的字段清单。',
+    description: '列出可用的抽取模板（插件内置的病种模板与我的模板库），或给 id 查看一个模板的字段清单。',
     parameters: { id: { type: 'string', description: '模板 id；省略则列出全部。' } },
     execute: async (args) => (args.id ? service.template(args.id) : service.templates()),
     render: (args, v) => {

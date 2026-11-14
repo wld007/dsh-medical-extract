@@ -53,7 +53,7 @@ test('栏目切分', () => {
   assert.deepEqual(sections.map((s) => text.slice(s.s, s.e)), ['a', 'b'])
 })
 
-test('模板：MDD 样例校验通过；错误模板列出问题', () => {
+test('模板：内置模板校验通过；错误模板列出问题', () => {
   assert.deepEqual(validateTemplate(mdd), [])
   assert.ok(mdd.fields.length >= 70)
   const bad = { format: 'extract-template/1', id: 'Bad', name: 'x', version: '1', description: 'x', fields: [

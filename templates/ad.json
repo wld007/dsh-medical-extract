@@ -1,0 +1,1717 @@
+{
+  "format": "extract-template/1",
+  "id": "ad",
+  "name": "阿尔茨海默病与认知障碍（AD）",
+  "version": "0.1.0",
+  "domain": "神经",
+  "description": "认知障碍研究队列常用字段：临床诊断与分期、起病与病程、认知与功能量表、核心症状与精神行为症状、生物标志物（脑脊液、血液、PET、APOE）、影像、治疗（胆碱酯酶抑制剂、美金刚、抗 Aβ 单抗及 ARIA）、危险因素。",
+  "references": [
+    {
+      "title": "中国阿尔茨海默病痴呆诊疗指南（2020 年版），中华老年医学杂志 2021;40(3)",
+      "url": "https://cs.medjournals.cn/article/doi/full/10.3760/cma.j.issn.0254-9026.2021.03.001"
+    },
+    {
+      "title": "2018 中国痴呆与认知障碍诊治指南"
+    },
+    {
+      "title": "Revised criteria for diagnosis and staging of Alzheimer’s disease: Alzheimer’s Association Workgroup (2024)"
+    },
+    {
+      "title": "NIA-AA Research Framework (2018)"
+    }
+  ],
+  "documents": {
+    "excludeRecordTypes": [
+      "门诊收费",
+      "基本信息"
+    ]
+  },
+  "groups": [
+    {
+      "id": "A",
+      "name": "诊断与分期"
+    },
+    {
+      "id": "B",
+      "name": "起病与病程"
+    },
+    {
+      "id": "C",
+      "name": "认知与功能量表"
+    },
+    {
+      "id": "D",
+      "name": "症状"
+    },
+    {
+      "id": "E",
+      "name": "生物标志物"
+    },
+    {
+      "id": "F",
+      "name": "影像"
+    },
+    {
+      "id": "G",
+      "name": "治疗"
+    },
+    {
+      "id": "H",
+      "name": "危险因素与共病"
+    },
+    {
+      "id": "K",
+      "name": "检验"
+    }
+  ],
+  "fields": [
+    {
+      "id": "A1",
+      "name": "认知障碍相关诊断",
+      "group": "A",
+      "priority": "P0",
+      "type": "list",
+      "granularity": "encounter",
+      "definition": "诊断栏写明的痴呆、AD、MCI 等认知障碍诊断名称（原文写法）。",
+      "sources": {
+        "sections": [
+          "诊断",
+          "初步诊断",
+          "出院诊断",
+          "入院诊断",
+          "ICD-10 名称",
+          "ICD-10"
+        ]
+      },
+      "rules": [
+        {
+          "id": "dx",
+          "regex": "(?<v>[^\\n，,。；;：:]{0,14}(?:痴呆|阿尔茨海默|阿尔采末|老年性痴呆|认知障碍|认知功能障碍|认知损害|MCI|AD)[^\\n，,。；;：:]{0,14})"
+        }
+      ],
+      "recall": {
+        "terms": [
+          "痴呆",
+          "阿尔茨海默",
+          "认知障碍",
+          "认知功能障碍",
+          "认知损害",
+          "MCI"
+        ]
+      }
+    },
+    {
+      "id": "A1c",
+      "name": "ICD-10 编码（F00–F03/G30/G31）",
+      "group": "A",
+      "priority": "P0",
+      "type": "list",
+      "granularity": "encounter",
+      "definition": "痴呆相关编码。",
+      "rules": [
+        {
+          "id": "icd",
+          "regex": "(?<v>(?:F0[0-3]|G30|G31)(?:\\.\\d{1,3})?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "F0[0-3]",
+          "G3[01]"
+        ]
+      }
+    },
+    {
+      "id": "A2",
+      "name": "认知障碍病因类型",
+      "group": "A",
+      "priority": "P0",
+      "type": "enum",
+      "definition": "临床诊断的病因类型。",
+      "options": [
+        {
+          "value": "阿尔茨海默病",
+          "terms": [
+            "阿尔茨海默病",
+            "阿尔茨海默病性痴呆",
+            "AD痴呆",
+            "阿尔茨海默症",
+            "老年性痴呆"
+          ]
+        },
+        {
+          "value": "血管性痴呆",
+          "terms": [
+            "血管性痴呆",
+            "血管性认知障碍",
+            "VaD",
+            "VCI"
+          ]
+        },
+        {
+          "value": "混合性痴呆",
+          "terms": [
+            "混合性痴呆",
+            "混合型痴呆"
+          ]
+        },
+        {
+          "value": "路易体痴呆",
+          "terms": [
+            "路易体痴呆",
+            "DLB",
+            "路易体"
+          ]
+        },
+        {
+          "value": "额颞叶痴呆",
+          "terms": [
+            "额颞叶痴呆",
+            "FTD",
+            "额颞叶变性"
+          ]
+        },
+        {
+          "value": "帕金森病痴呆",
+          "terms": [
+            "帕金森病痴呆",
+            "PDD"
+          ]
+        },
+        {
+          "value": "其他",
+          "terms": [
+            "其他"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "pick": "last",
+      "sources": {
+        "sections": [
+          "诊断",
+          "初步诊断",
+          "出院诊断",
+          "入院诊断",
+          "ICD-10 名称",
+          "ICD-10",
+          "病例特点",
+          "鉴别诊断",
+          "诊疗经过"
+        ]
+      }
+    },
+    {
+      "id": "A3",
+      "name": "临床阶段",
+      "group": "A",
+      "priority": "P0",
+      "type": "enum",
+      "definition": "认知功能的临床阶段：主观认知下降、轻度认知障碍、痴呆。",
+      "options": [
+        {
+          "value": "主观认知下降",
+          "terms": [
+            "主观认知下降",
+            "SCD",
+            "主观认知减退"
+          ]
+        },
+        {
+          "value": "轻度认知障碍",
+          "terms": [
+            "轻度认知障碍",
+            "MCI",
+            "轻度认知功能障碍",
+            "轻度认知损害"
+          ]
+        },
+        {
+          "value": "轻度痴呆",
+          "terms": [
+            "轻度痴呆",
+            "痴呆（轻度）",
+            "轻度阿尔茨海默"
+          ]
+        },
+        {
+          "value": "中度痴呆",
+          "terms": [
+            "中度痴呆",
+            "中度阿尔茨海默"
+          ]
+        },
+        {
+          "value": "重度痴呆",
+          "terms": [
+            "重度痴呆",
+            "重度阿尔茨海默"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "pick": "last"
+    },
+    {
+      "id": "A4",
+      "name": "早发型（<65 岁起病）",
+      "group": "A",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "医生写明早发型或 65 岁前起病。",
+      "recall": {
+        "terms": [
+          "早发型",
+          "早老性痴呆",
+          "早发性"
+        ]
+      },
+      "granularity": "patient",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "A5",
+      "name": "AD 生物学分期（AA 2024）",
+      "group": "A",
+      "priority": "P2",
+      "type": "enum",
+      "definition": "AA 2024 生物学分期 A–D（如病历写明）。",
+      "options": [
+        {
+          "value": "A期",
+          "terms": [
+            "生物学A期"
+          ]
+        },
+        {
+          "value": "B期",
+          "terms": [
+            "生物学B期"
+          ]
+        },
+        {
+          "value": "C期",
+          "terms": [
+            "生物学C期"
+          ]
+        },
+        {
+          "value": "D期",
+          "terms": [
+            "生物学D期"
+          ]
+        }
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "B1",
+      "name": "认知症状首发时间",
+      "group": "B",
+      "priority": "P0",
+      "type": "date",
+      "definition": "记忆或其他认知症状首次出现的时间；\"记忆力下降3年\"取 3 年前。",
+      "granularity": "patient",
+      "pick": "earliest",
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "model": "always",
+      "sources": {
+        "sections": [
+          "主诉",
+          "现病史"
+        ]
+      },
+      "recall": {
+        "terms": [
+          "记忆力下降",
+          "记忆力减退",
+          "健忘",
+          "遗忘",
+          "认知下降",
+          "起病",
+          "发病"
+        ]
+      }
+    },
+    {
+      "id": "B2",
+      "name": "起病年龄",
+      "group": "B",
+      "priority": "P0",
+      "type": "derived",
+      "definition": "认知症状首发时的年龄。",
+      "derive": {
+        "op": "ageAt",
+        "at": "B1"
+      },
+      "granularity": "patient"
+    },
+    {
+      "id": "B3",
+      "name": "病程（月）",
+      "group": "B",
+      "priority": "P1",
+      "type": "derived",
+      "definition": "首发至本次就诊的月数。",
+      "derive": {
+        "op": "monthsBetween",
+        "from": "B1",
+        "to": "$encounter.start"
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "B4",
+      "name": "起病方式",
+      "group": "B",
+      "priority": "P2",
+      "type": "enum",
+      "definition": "起病与进展方式。",
+      "options": [
+        {
+          "value": "隐匿起病",
+          "terms": [
+            "隐匿起病",
+            "隐匿起病、逐渐进展",
+            "缓慢起病",
+            "慢性起病"
+          ]
+        },
+        {
+          "value": "急性起病",
+          "terms": [
+            "急性起病",
+            "突然起病"
+          ]
+        },
+        {
+          "value": "阶梯样进展",
+          "terms": [
+            "阶梯样进展",
+            "阶梯式"
+          ]
+        }
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "B5",
+      "name": "受教育年限",
+      "group": "B",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "patient",
+      "unit": "年",
+      "range": {
+        "min": 0,
+        "max": 25
+      },
+      "pick": "last",
+      "definition": "受教育年限（年）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "b5-v",
+          "regex": "(?:受教育(?:年限)?|教育年限|文化程度)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        },
+        {
+          "id": "edu-b",
+          "regex": "(?<v>\\d{1,2})\\s*年(?:的)?(?:教育|文化)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "受教育(?:年限)?|教育年限|文化程度"
+        ]
+      }
+    },
+    {
+      "id": "C1",
+      "name": "MMSE",
+      "group": "C",
+      "priority": "P0",
+      "type": "score",
+      "scale": "MMSE",
+      "granularity": "timepoint",
+      "range": {
+        "min": 0,
+        "max": 30
+      },
+      "definition": "MMSE总分（每次评定一条）。只取写明的总分，不取条目分、不取参考范围。",
+      "rules": [
+        {
+          "id": "c1-total",
+          "regex": "(?:MMSE|简易精神状态(?:检查|量表)|简易智能精神状态)\\s*(?:量表)?\\s*(?:评分|总分|得分|评定|测评|分值|评估)?\\s*(?:结果)?\\s*[:：为是]?\\s*(?<v>\\d{1,3}(?:\\.\\d)?)\\s*分?"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "MMSE|简易精神状态(?:检查|量表)|简易智能精神状态"
+        ]
+      }
+    },
+    {
+      "id": "C2",
+      "name": "MoCA",
+      "group": "C",
+      "priority": "P0",
+      "type": "score",
+      "scale": "MoCA",
+      "granularity": "timepoint",
+      "range": {
+        "min": 0,
+        "max": 30
+      },
+      "definition": "MoCA总分（每次评定一条）。只取写明的总分，不取条目分、不取参考范围。",
+      "rules": [
+        {
+          "id": "c2-total",
+          "regex": "(?:MoCA|MOCA|蒙特利尔认知评估)\\s*(?:量表)?\\s*(?:评分|总分|得分|评定|测评|分值|评估)?\\s*(?:结果)?\\s*[:：为是]?\\s*(?<v>\\d{1,3}(?:\\.\\d)?)\\s*分?"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "MoCA|MOCA|蒙特利尔认知评估"
+        ]
+      }
+    },
+    {
+      "id": "C3",
+      "name": "CDR",
+      "group": "C",
+      "priority": "P0",
+      "type": "score",
+      "scale": "CDR",
+      "granularity": "timepoint",
+      "range": {
+        "min": 0,
+        "max": 3
+      },
+      "definition": "CDR总分（每次评定一条）。只取写明的总分，不取条目分、不取参考范围。",
+      "rules": [
+        {
+          "id": "cdr",
+          "regex": "CDR(?!\\s*-?\\s*SB)\\s*(?:评分|分级)?\\s*[:：为=]?\\s*(?<v>0\\.5|[0-3])(?!\\d)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "CDR(?!-?SB)|临床痴呆评定量表"
+        ]
+      }
+    },
+    {
+      "id": "C4",
+      "name": "CDR-SB",
+      "group": "C",
+      "priority": "P1",
+      "type": "score",
+      "scale": "CDR-SB",
+      "granularity": "timepoint",
+      "range": {
+        "min": 0,
+        "max": 18
+      },
+      "definition": "CDR-SB总分（每次评定一条）。只取写明的总分，不取条目分、不取参考范围。",
+      "rules": [
+        {
+          "id": "c4-total",
+          "regex": "(?:CDR-?SB|CDR\\s*总和)\\s*(?:量表)?\\s*(?:评分|总分|得分|评定|测评|分值|评估)?\\s*(?:结果)?\\s*[:：为是]?\\s*(?<v>\\d{1,3}(?:\\.\\d)?)\\s*分?"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "CDR-?SB|CDR\\s*总和"
+        ]
+      }
+    },
+    {
+      "id": "C5",
+      "name": "ADL",
+      "group": "C",
+      "priority": "P1",
+      "type": "score",
+      "scale": "ADL",
+      "granularity": "timepoint",
+      "range": {
+        "min": 14,
+        "max": 100
+      },
+      "definition": "ADL总分（每次评定一条）。只取写明的总分，不取条目分、不取参考范围。",
+      "rules": [
+        {
+          "id": "c5-total",
+          "regex": "(?:ADL|日常生活(?:活动)?能力(?:量表)?)\\s*(?:量表)?\\s*(?:评分|总分|得分|评定|测评|分值|评估)?\\s*(?:结果)?\\s*[:：为是]?\\s*(?<v>\\d{1,3}(?:\\.\\d)?)\\s*分?"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "ADL|日常生活(?:活动)?能力(?:量表)?"
+        ]
+      }
+    },
+    {
+      "id": "C6",
+      "name": "NPI",
+      "group": "C",
+      "priority": "P1",
+      "type": "score",
+      "scale": "NPI",
+      "granularity": "timepoint",
+      "range": {
+        "min": 0,
+        "max": 144
+      },
+      "definition": "NPI总分（每次评定一条）。只取写明的总分，不取条目分、不取参考范围。",
+      "rules": [
+        {
+          "id": "c6-total",
+          "regex": "(?:NPI|神经精神(?:问卷|量表))\\s*(?:量表)?\\s*(?:评分|总分|得分|评定|测评|分值|评估)?\\s*(?:结果)?\\s*[:：为是]?\\s*(?<v>\\d{1,3}(?:\\.\\d)?)\\s*分?"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "NPI|神经精神(?:问卷|量表)"
+        ]
+      }
+    },
+    {
+      "id": "C7",
+      "name": "ADAS-Cog",
+      "group": "C",
+      "priority": "P2",
+      "type": "score",
+      "scale": "ADAS-Cog",
+      "granularity": "timepoint",
+      "range": {
+        "min": 0,
+        "max": 85
+      },
+      "definition": "ADAS-Cog总分（每次评定一条）。只取写明的总分，不取条目分、不取参考范围。",
+      "rules": [
+        {
+          "id": "c7-total",
+          "regex": "(?:ADAS-?Cog|阿尔茨海默病评估量表)\\s*(?:量表)?\\s*(?:评分|总分|得分|评定|测评|分值|评估)?\\s*(?:结果)?\\s*[:：为是]?\\s*(?<v>\\d{1,3}(?:\\.\\d)?)\\s*分?"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "ADAS-?Cog|阿尔茨海默病评估量表"
+        ]
+      }
+    },
+    {
+      "id": "C8",
+      "name": "GDS（总体衰退量表）",
+      "group": "C",
+      "priority": "P2",
+      "type": "score",
+      "scale": "GDS（总体衰退量表）",
+      "granularity": "timepoint",
+      "range": {
+        "min": 1,
+        "max": 7
+      },
+      "definition": "GDS（总体衰退量表）总分（每次评定一条）。只取写明的总分，不取条目分、不取参考范围。",
+      "rules": [
+        {
+          "id": "c8-total",
+          "regex": "(?:GDS分期|总体衰退量表)\\s*(?:量表)?\\s*(?:评分|总分|得分|评定|测评|分值|评估)?\\s*(?:结果)?\\s*[:：为是]?\\s*(?<v>\\d{1,3}(?:\\.\\d)?)\\s*分?"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "GDS分期|总体衰退量表"
+        ]
+      }
+    },
+    {
+      "id": "C9",
+      "name": "HAMD",
+      "group": "C",
+      "priority": "P2",
+      "type": "score",
+      "scale": "HAMD",
+      "granularity": "timepoint",
+      "range": {
+        "min": 0,
+        "max": 76
+      },
+      "definition": "HAMD总分（每次评定一条）。只取写明的总分，不取条目分、不取参考范围。",
+      "rules": [
+        {
+          "id": "c9-total",
+          "regex": "(?:HAMD|汉密尔顿抑郁)\\s*(?:量表)?\\s*(?:评分|总分|得分|评定|测评|分值|评估)?\\s*(?:结果)?\\s*[:：为是]?\\s*(?<v>\\d{1,3}(?:\\.\\d)?)\\s*分?"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "HAMD|汉密尔顿抑郁"
+        ]
+      }
+    },
+    {
+      "id": "D1",
+      "name": "记忆力下降",
+      "group": "D",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "近记忆减退、健忘、遗忘。",
+      "recall": {
+        "terms": [
+          "记忆力下降",
+          "记忆力减退",
+          "记忆减退",
+          "记忆差",
+          "健忘",
+          "遗忘",
+          "丢三落四",
+          "近事遗忘",
+          "近记忆力下降"
+        ]
+      }
+    },
+    {
+      "id": "D2",
+      "name": "定向障碍",
+      "group": "D",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "时间、地点、人物定向力障碍。",
+      "recall": {
+        "terms": [
+          "定向障碍",
+          "定向力障碍",
+          "定向力差",
+          "迷路",
+          "走失",
+          "找不到家"
+        ]
+      }
+    },
+    {
+      "id": "D3",
+      "name": "语言障碍",
+      "group": "D",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "找词困难、命名障碍、言语减少等。",
+      "recall": {
+        "terms": [
+          "语言障碍",
+          "找词困难",
+          "命名障碍",
+          "失语",
+          "言语减少",
+          "表达困难"
+        ]
+      }
+    },
+    {
+      "id": "D4",
+      "name": "执行功能障碍",
+      "group": "D",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "计划、计算、判断能力下降。",
+      "recall": {
+        "terms": [
+          "执行功能障碍",
+          "执行功能下降",
+          "计算力下降",
+          "计算能力下降",
+          "判断力下降"
+        ]
+      }
+    },
+    {
+      "id": "D5",
+      "name": "精神病性症状",
+      "group": "D",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "幻觉、妄想（被窃妄想、嫉妒妄想等）。",
+      "recall": {
+        "terms": [
+          "幻觉",
+          "幻视",
+          "幻听",
+          "妄想",
+          "被窃妄想",
+          "被偷窃妄想",
+          "嫉妒妄想"
+        ]
+      }
+    },
+    {
+      "id": "D6",
+      "name": "激越／攻击行为",
+      "group": "D",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "激越、易激惹、攻击行为。",
+      "recall": {
+        "terms": [
+          "激越",
+          "攻击行为",
+          "打人",
+          "骂人",
+          "易激惹",
+          "冲动",
+          "吵闹"
+        ]
+      }
+    },
+    {
+      "id": "D7",
+      "name": "抑郁症状",
+      "group": "D",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "情绪低落、兴趣减退等抑郁症状。",
+      "recall": {
+        "terms": [
+          "抑郁",
+          "情绪低落",
+          "兴趣减退",
+          "心情差"
+        ]
+      }
+    },
+    {
+      "id": "D8",
+      "name": "淡漠",
+      "group": "D",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "淡漠、主动性下降。",
+      "recall": {
+        "terms": [
+          "淡漠",
+          "主动性下降",
+          "懒散",
+          "不愿活动"
+        ]
+      }
+    },
+    {
+      "id": "D9",
+      "name": "睡眠障碍",
+      "group": "D",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "失眠、昼夜颠倒等。",
+      "recall": {
+        "terms": [
+          "睡眠障碍",
+          "失眠",
+          "昼夜颠倒",
+          "睡眠倒错",
+          "夜间吵闹"
+        ]
+      }
+    },
+    {
+      "id": "D10",
+      "name": "日常生活需协助",
+      "group": "D",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "日常生活需他人协助或照护。",
+      "recall": {
+        "terms": [
+          "生活不能自理",
+          "生活需协助",
+          "需人照顾",
+          "需他人照料",
+          "生活部分自理",
+          "生活依赖"
+        ]
+      }
+    },
+    {
+      "id": "E1",
+      "name": "APOE 基因型",
+      "group": "E",
+      "priority": "P0",
+      "type": "enum",
+      "definition": "APOE 基因分型。",
+      "options": [
+        {
+          "value": "ε4/ε4",
+          "terms": [
+            "ε4/ε4",
+            "E4/E4",
+            "ε4ε4"
+          ]
+        },
+        {
+          "value": "ε3/ε4",
+          "terms": [
+            "ε3/ε4",
+            "E3/E4",
+            "ε3ε4"
+          ]
+        },
+        {
+          "value": "ε2/ε4",
+          "terms": [
+            "ε2/ε4",
+            "E2/E4",
+            "ε2ε4"
+          ]
+        },
+        {
+          "value": "ε3/ε3",
+          "terms": [
+            "ε3/ε3",
+            "E3/E3",
+            "ε3ε3"
+          ]
+        },
+        {
+          "value": "ε2/ε3",
+          "terms": [
+            "ε2/ε3",
+            "E2/E3",
+            "ε2ε3"
+          ]
+        },
+        {
+          "value": "ε2/ε2",
+          "terms": [
+            "ε2/ε2",
+            "E2/E2",
+            "ε2ε2"
+          ]
+        }
+      ],
+      "granularity": "patient",
+      "recall": {
+        "regex": [
+          "APOE[^。；\\n]{0,16}"
+        ]
+      }
+    },
+    {
+      "id": "E2",
+      "name": "APOE ε4 携带",
+      "group": "E",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "携带至少一个 APOE ε4 等位基因。",
+      "recall": {
+        "terms": [
+          "ε4携带",
+          "E4携带",
+          "APOE4阳性",
+          "APOE ε4阳性"
+        ]
+      },
+      "granularity": "patient",
+      "rules": [
+        {
+          "id": "e4",
+          "regex": "APOE[^。；\\n]{0,10}(?:ε|E|e)4",
+          "value": "有"
+        }
+      ]
+    },
+    {
+      "id": "E3",
+      "name": "脑脊液 Aβ42",
+      "group": "E",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "pg/mL",
+      "range": {
+        "min": 50,
+        "max": 3000
+      },
+      "definition": "脑脊液 Aβ42（pg/mL）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "e3-v",
+          "regex": "(?:(?:脑脊液|CSF)?\\s*A[βb]\\s*1?-?42(?!\\s*/))[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?:脑脊液|CSF)?\\s*A[βb]\\s*1?-?42(?!\\s*/)"
+        ]
+      }
+    },
+    {
+      "id": "E4",
+      "name": "脑脊液 Aβ42/40",
+      "group": "E",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": null,
+      "range": {
+        "min": 0.01,
+        "max": 0.3
+      },
+      "definition": "脑脊液 Aβ42/40的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "e4-v",
+          "regex": "(?:A[βb]\\s*42\\s*/\\s*(?:A[βb]\\s*)?40)[^。；;\\n\\d]{0,24}?(?<v>0\\.\\d+)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "A[βb]\\s*42\\s*/\\s*(?:A[βb]\\s*)?40"
+        ]
+      }
+    },
+    {
+      "id": "E5",
+      "name": "p-tau181",
+      "group": "E",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "pg/mL",
+      "range": {
+        "min": 0.1,
+        "max": 500
+      },
+      "definition": "p-tau181（pg/mL）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "e5-v",
+          "regex": "(?:p-?tau\\s*-?181|P-?tau181|磷酸化tau(?:蛋白)?181|p-tau)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "p-?tau\\s*-?181|P-?tau181|磷酸化tau(?:蛋白)?181|p-tau"
+        ]
+      }
+    },
+    {
+      "id": "E6",
+      "name": "p-tau217",
+      "group": "E",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "pg/mL",
+      "range": {
+        "min": 0.01,
+        "max": 50
+      },
+      "definition": "p-tau217（pg/mL）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "e6-v",
+          "regex": "(?:p-?tau\\s*-?217|磷酸化tau(?:蛋白)?217)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "p-?tau\\s*-?217|磷酸化tau(?:蛋白)?217"
+        ]
+      }
+    },
+    {
+      "id": "E7",
+      "name": "总 tau（t-tau）",
+      "group": "E",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "pg/mL",
+      "range": {
+        "min": 20,
+        "max": 3000
+      },
+      "definition": "总 tau（t-tau）（pg/mL）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "e7-v",
+          "regex": "(?:t-?tau|总tau(?:蛋白)?)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "t-?tau|总tau(?:蛋白)?"
+        ]
+      }
+    },
+    {
+      "id": "E8",
+      "name": "淀粉样蛋白 PET",
+      "group": "E",
+      "priority": "P0",
+      "type": "enum",
+      "definition": "Aβ-PET 结果（阳性／阴性）。",
+      "options": [
+        {
+          "value": "阳性",
+          "terms": [
+            "Aβ-PET阳性",
+            "淀粉样蛋白PET阳性",
+            "Aβ沉积",
+            "淀粉样蛋白沉积"
+          ]
+        },
+        {
+          "value": "阴性",
+          "terms": [
+            "Aβ-PET阴性",
+            "淀粉样蛋白PET阴性",
+            "未见Aβ沉积",
+            "未见淀粉样蛋白沉积"
+          ]
+        }
+      ],
+      "granularity": "patient",
+      "pick": "last",
+      "model": "always",
+      "recall": {
+        "regex": [
+          "(?:淀粉样蛋白|A[βb]|PiB|AV-?45|florbetapir|florbetaben|flutemetamol)[^。；\\n]{0,6}PET"
+        ]
+      }
+    },
+    {
+      "id": "E9",
+      "name": "tau PET",
+      "group": "E",
+      "priority": "P2",
+      "type": "enum",
+      "definition": "tau-PET 结果（阳性／阴性）。",
+      "options": [
+        {
+          "value": "阳性",
+          "terms": [
+            "tau-PET阳性",
+            "tau沉积"
+          ]
+        },
+        {
+          "value": "阴性",
+          "terms": [
+            "tau-PET阴性",
+            "未见tau沉积"
+          ]
+        }
+      ],
+      "granularity": "patient",
+      "pick": "last",
+      "model": "always",
+      "recall": {
+        "regex": [
+          "tau[^。；\\n]{0,6}PET",
+          "(?:AV-?1451|flortaucipir|MK-?6240|PI-?2620)"
+        ]
+      }
+    },
+    {
+      "id": "F1",
+      "name": "MTA 评分（内侧颞叶萎缩）",
+      "group": "F",
+      "priority": "P0",
+      "type": "score",
+      "scale": "MTA 评分（内侧颞叶萎缩）",
+      "granularity": "timepoint",
+      "range": {
+        "min": 0,
+        "max": 4
+      },
+      "definition": "MTA 评分（内侧颞叶萎缩）总分（每次评定一条）。只取写明的总分，不取条目分、不取参考范围。",
+      "rules": [
+        {
+          "id": "f1-total",
+          "regex": "(?:MTA|内侧颞叶萎缩(?:评分)?|海马萎缩(?:评分)?)\\s*(?:量表)?\\s*(?:评分|总分|得分|评定|测评|分值|评估)?\\s*(?:结果)?\\s*[:：为是]?\\s*(?<v>\\d{1,3}(?:\\.\\d)?)\\s*分?"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "MTA|内侧颞叶萎缩(?:评分)?|海马萎缩(?:评分)?"
+        ]
+      }
+    },
+    {
+      "id": "F2",
+      "name": "Fazekas 评分",
+      "group": "F",
+      "priority": "P1",
+      "type": "score",
+      "scale": "Fazekas 评分",
+      "granularity": "timepoint",
+      "range": {
+        "min": 0,
+        "max": 6
+      },
+      "definition": "Fazekas 评分总分（每次评定一条）。只取写明的总分，不取条目分、不取参考范围。",
+      "rules": [
+        {
+          "id": "f2-total",
+          "regex": "(?:Fazekas)\\s*(?:量表)?\\s*(?:评分|总分|得分|评定|测评|分值|评估)?\\s*(?:结果)?\\s*[:：为是]?\\s*(?<v>\\d{1,3}(?:\\.\\d)?)\\s*分?"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "Fazekas"
+        ]
+      }
+    },
+    {
+      "id": "F3",
+      "name": "海马萎缩",
+      "group": "F",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "MRI 示海马或内侧颞叶萎缩。",
+      "recall": {
+        "terms": [
+          "海马萎缩",
+          "海马体积缩小",
+          "内侧颞叶萎缩",
+          "双侧海马萎缩"
+        ]
+      }
+    },
+    {
+      "id": "F4",
+      "name": "脑白质病变",
+      "group": "F",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "MRI/CT 示脑白质病变、脑白质高信号或脱髓鞘。",
+      "recall": {
+        "terms": [
+          "脑白质病变",
+          "白质高信号",
+          "脑白质疏松",
+          "脱髓鞘",
+          "缺血性白质病变"
+        ]
+      }
+    },
+    {
+      "id": "F5",
+      "name": "FDG-PET 颞顶叶低代谢",
+      "group": "F",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "FDG-PET 示颞顶叶或后扣带回低代谢。",
+      "recall": {
+        "terms": [
+          "颞顶叶低代谢",
+          "后扣带回低代谢",
+          "葡萄糖代谢减低",
+          "代谢减低"
+        ]
+      }
+    },
+    {
+      "id": "G1",
+      "name": "抗痴呆药物",
+      "group": "G",
+      "priority": "P0",
+      "type": "list",
+      "definition": "本次使用的胆碱酯酶抑制剂、美金刚等。",
+      "options": [
+        {
+          "value": "多奈哌齐",
+          "terms": [
+            "多奈哌齐",
+            "安理申",
+            "思博海"
+          ]
+        },
+        {
+          "value": "卡巴拉汀",
+          "terms": [
+            "卡巴拉汀",
+            "利斯的明",
+            "艾斯能"
+          ]
+        },
+        {
+          "value": "加兰他敏",
+          "terms": [
+            "加兰他敏"
+          ]
+        },
+        {
+          "value": "石杉碱甲",
+          "terms": [
+            "石杉碱甲",
+            "哈伯因"
+          ]
+        },
+        {
+          "value": "美金刚",
+          "terms": [
+            "美金刚",
+            "易倍申"
+          ]
+        },
+        {
+          "value": "甘露特钠",
+          "terms": [
+            "甘露特钠",
+            "GV-971",
+            "九期一"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "G2",
+      "name": "抗 Aβ 单抗",
+      "group": "G",
+      "priority": "P0",
+      "type": "list",
+      "definition": "抗淀粉样蛋白单克隆抗体治疗。",
+      "options": [
+        {
+          "value": "仑卡奈单抗",
+          "terms": [
+            "仑卡奈单抗",
+            "仑卡奈",
+            "lecanemab",
+            "乐意保"
+          ]
+        },
+        {
+          "value": "多奈单抗",
+          "terms": [
+            "多奈单抗",
+            "donanemab",
+            "记能达"
+          ]
+        },
+        {
+          "value": "阿杜卡奴单抗",
+          "terms": [
+            "阿杜卡奴单抗",
+            "aducanumab"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "G3",
+      "name": "ARIA（淀粉样蛋白相关影像异常）",
+      "group": "G",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "抗 Aβ 治疗后 ARIA-E（水肿）或 ARIA-H（微出血）。",
+      "recall": {
+        "terms": [
+          "ARIA",
+          "ARIA-E",
+          "ARIA-H",
+          "淀粉样蛋白相关影像异常"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "G4",
+      "name": "抗精神病药",
+      "group": "G",
+      "priority": "P1",
+      "type": "list",
+      "definition": "用于 BPSD 的抗精神病药。",
+      "options": [
+        {
+          "value": "喹硫平",
+          "terms": [
+            "喹硫平",
+            "思瑞康"
+          ]
+        },
+        {
+          "value": "奥氮平",
+          "terms": [
+            "奥氮平",
+            "再普乐"
+          ]
+        },
+        {
+          "value": "利培酮",
+          "terms": [
+            "利培酮",
+            "维思通"
+          ]
+        },
+        {
+          "value": "阿立哌唑",
+          "terms": [
+            "阿立哌唑"
+          ]
+        },
+        {
+          "value": "氟哌啶醇",
+          "terms": [
+            "氟哌啶醇"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "G5",
+      "name": "抗抑郁药",
+      "group": "G",
+      "priority": "P2",
+      "type": "list",
+      "definition": "在用的抗抑郁药。",
+      "options": [
+        {
+          "value": "舍曲林",
+          "terms": [
+            "舍曲林",
+            "左洛复"
+          ]
+        },
+        {
+          "value": "西酞普兰",
+          "terms": [
+            "西酞普兰"
+          ]
+        },
+        {
+          "value": "艾司西酞普兰",
+          "terms": [
+            "艾司西酞普兰",
+            "来士普"
+          ]
+        },
+        {
+          "value": "米氮平",
+          "terms": [
+            "米氮平"
+          ]
+        },
+        {
+          "value": "曲唑酮",
+          "terms": [
+            "曲唑酮"
+          ]
+        },
+        {
+          "value": "帕罗西汀",
+          "terms": [
+            "帕罗西汀"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "G6",
+      "name": "认知训练／康复",
+      "group": "G",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "接受认知训练或认知康复。",
+      "recall": {
+        "terms": [
+          "认知训练",
+          "认知康复",
+          "记忆训练",
+          "认知刺激"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "H1",
+      "name": "痴呆家族史",
+      "group": "H",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "一、二级亲属有痴呆／AD 病史。",
+      "recall": {
+        "terms": [
+          "痴呆",
+          "老年痴呆",
+          "阿尔茨海默",
+          "老年性痴呆",
+          "记忆力下降"
+        ]
+      },
+      "accept": [
+        "家族"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "H2",
+      "name": "高血压",
+      "group": "H",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "高血压病史。",
+      "recall": {
+        "terms": [
+          "高血压"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "H3",
+      "name": "糖尿病",
+      "group": "H",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "糖尿病病史。",
+      "recall": {
+        "terms": [
+          "糖尿病"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "H4",
+      "name": "卒中史",
+      "group": "H",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "既往脑梗死／脑出血。",
+      "recall": {
+        "terms": [
+          "脑梗死",
+          "脑梗塞",
+          "脑出血",
+          "脑卒中",
+          "卒中"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "H5",
+      "name": "听力下降",
+      "group": "H",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "听力减退或使用助听器（可干预危险因素）。",
+      "recall": {
+        "terms": [
+          "听力下降",
+          "听力减退",
+          "耳聋",
+          "助听器",
+          "耳背"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "H6",
+      "name": "抑郁病史",
+      "group": "H",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "既往抑郁症／抑郁状态。",
+      "recall": {
+        "terms": [
+          "抑郁症",
+          "抑郁状态",
+          "抑郁障碍"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "H7",
+      "name": "颅脑外伤史",
+      "group": "H",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "既往颅脑外伤。",
+      "recall": {
+        "terms": [
+          "颅脑外伤",
+          "脑外伤",
+          "头部外伤",
+          "脑挫伤"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "H8",
+      "name": "就诊年龄",
+      "group": "H",
+      "priority": "P0",
+      "type": "derived",
+      "definition": "本次就诊时年龄。",
+      "derive": {
+        "op": "ageAt",
+        "at": "$encounter.start"
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "K1",
+      "name": "TSH",
+      "group": "K",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mIU/L",
+      "range": {
+        "min": 0,
+        "max": 150
+      },
+      "definition": "TSH（mIU/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k1-v",
+          "regex": "(?:TSH|促甲状腺(?:激素|素))[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "TSH|促甲状腺(?:激素|素)"
+        ]
+      }
+    },
+    {
+      "id": "K2",
+      "name": "维生素 B12",
+      "group": "K",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "pg/mL",
+      "range": {
+        "min": 20,
+        "max": 3000
+      },
+      "definition": "维生素 B12（pg/mL）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k2-v",
+          "regex": "(?:维生素\\s*B\\s*12|VitB12|VB12)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "维生素\\s*B\\s*12|VitB12|VB12"
+        ]
+      }
+    },
+    {
+      "id": "K3",
+      "name": "叶酸",
+      "group": "K",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "ng/mL",
+      "range": {
+        "min": 0.1,
+        "max": 60
+      },
+      "definition": "叶酸（ng/mL）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k3-v",
+          "regex": "(?:叶酸)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "叶酸"
+        ]
+      }
+    },
+    {
+      "id": "K4",
+      "name": "同型半胱氨酸",
+      "group": "K",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "μmol/L",
+      "range": {
+        "min": 1,
+        "max": 200
+      },
+      "definition": "同型半胱氨酸（μmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k4-v",
+          "regex": "(?:同型半胱氨酸|Hcy)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "同型半胱氨酸|Hcy"
+        ]
+      }
+    },
+    {
+      "id": "K5",
+      "name": "主诉",
+      "group": "K",
+      "priority": "P1",
+      "type": "text",
+      "definition": "本次就诊主诉原文。",
+      "granularity": "encounter",
+      "pick": "first",
+      "sources": {
+        "sections": [
+          "主诉"
+        ]
+      },
+      "rules": [
+        {
+          "id": "chief",
+          "regex": "(?<v>[^\\n]{2,100})"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "[^\\s]{2,}"
+        ]
+      }
+    }
+  ]
+}

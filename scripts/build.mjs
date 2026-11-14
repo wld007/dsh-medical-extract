@@ -2,7 +2,7 @@
  * Build a versioned install directory: node scripts/build.mjs 0.1.0-dev.1
  * (a new path makes a reinstall load a fresh host module generation).
  */
-import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { cp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -14,7 +14,7 @@ await rm(target, { recursive: true, force: true })
 await mkdir(join(target, 'templates'), { recursive: true })
 for (const file of ['index.js', 'client.js', 'cordis.patch.yml', 'icon.svg', 'README.md', 'LICENSE']) await cp(join(root, file), join(target, file))
 for (const dir of ['lib', 'vendor']) await cp(join(root, dir), join(target, dir), { recursive: true })
-await cp(join(root, 'templates', 'mdd.json'), join(target, 'templates', 'mdd.json'))
+for (const f of (await readdir(join(root, 'templates'))).filter((n) => n.endsWith('.json'))) await cp(join(root, 'templates', f), join(target, 'templates', f))
 const manifest = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'))
 manifest.version = version
 delete manifest.private

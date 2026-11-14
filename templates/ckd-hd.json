@@ -1,0 +1,1792 @@
+{
+  "format": "extract-template/1",
+  "id": "ckd-hd",
+  "name": "慢性肾脏病与血液透析（CKD/HD）",
+  "version": "0.1.0",
+  "domain": "肾脏",
+  "description": "慢性肾脏病与维持性血液透析常用字段：CKD 分期与原发病、透析起始与方式、血管通路、透析处方与充分性、容量、贫血、CKD-MBD、营养与炎症、用药、并发症与结局。",
+  "references": [
+    {
+      "title": "KDIGO 2024 Clinical Practice Guideline for the Evaluation and Management of Chronic Kidney Disease, Kidney Int 2024;105(4S)"
+    },
+    {
+      "title": "KDOQI Clinical Practice Guideline for Hemodialysis Adequacy: 2015 Update, Am J Kidney Dis 2015;66(5):884-930",
+      "url": "https://news.medlive.cn/neph/info-progress/show-113381_161.html"
+    },
+    {
+      "title": "中国血液透析充分性临床实践指南"
+    },
+    {
+      "title": "KDIGO 2017 Clinical Practice Guideline Update for CKD-MBD"
+    }
+  ],
+  "documents": {
+    "excludeRecordTypes": [
+      "门诊收费",
+      "基本信息"
+    ]
+  },
+  "groups": [
+    {
+      "id": "A",
+      "name": "诊断与分期"
+    },
+    {
+      "id": "B",
+      "name": "透析与通路"
+    },
+    {
+      "id": "C",
+      "name": "透析处方与充分性"
+    },
+    {
+      "id": "D",
+      "name": "容量与血压"
+    },
+    {
+      "id": "E",
+      "name": "贫血"
+    },
+    {
+      "id": "F",
+      "name": "矿物质与骨代谢"
+    },
+    {
+      "id": "G",
+      "name": "营养与炎症"
+    },
+    {
+      "id": "H",
+      "name": "用药"
+    },
+    {
+      "id": "I",
+      "name": "并发症与结局"
+    },
+    {
+      "id": "J",
+      "name": "合并症"
+    }
+  ],
+  "fields": [
+    {
+      "id": "A1",
+      "name": "肾脏病相关诊断",
+      "group": "A",
+      "priority": "P0",
+      "type": "list",
+      "granularity": "encounter",
+      "definition": "诊断栏写明的 CKD、尿毒症、肾衰竭等诊断（原文写法）。",
+      "sources": {
+        "sections": [
+          "诊断",
+          "初步诊断",
+          "出院诊断",
+          "入院诊断",
+          "ICD-10 名称",
+          "ICD-10"
+        ]
+      },
+      "rules": [
+        {
+          "id": "dx",
+          "regex": "(?<v>[^\\n，,。；;：:]{0,14}(?:慢性肾脏病|慢性肾病|CKD|尿毒症|肾衰竭|肾功能衰竭|肾功能不全|终末期肾病|ESRD|ESKD)[^\\n，,。；;：:]{0,14})"
+        }
+      ],
+      "recall": {
+        "terms": [
+          "慢性肾脏病",
+          "慢性肾病",
+          "CKD",
+          "尿毒症",
+          "肾衰竭",
+          "肾功能衰竭",
+          "肾功能不全",
+          "终末期肾病",
+          "ESRD",
+          "ESKD"
+        ]
+      }
+    },
+    {
+      "id": "A1c",
+      "name": "ICD-10 编码（N18/N19/Z99.2）",
+      "group": "A",
+      "priority": "P0",
+      "type": "list",
+      "granularity": "encounter",
+      "definition": "CKD 与透析状态编码。",
+      "rules": [
+        {
+          "id": "icd",
+          "regex": "(?<v>(?:N18|N19|Z99\\.2|Z49)(?:\\.\\d{1,3})?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "N1[89]",
+          "Z99\\.2",
+          "Z49"
+        ]
+      }
+    },
+    {
+      "id": "A2",
+      "name": "CKD G 分期",
+      "group": "A",
+      "priority": "P0",
+      "type": "enum",
+      "granularity": "encounter",
+      "pick": "last",
+      "definition": "KDIGO eGFR 分期 G1–G5（或\"CKD 5期\"）。",
+      "options": [
+        {
+          "value": "G1"
+        },
+        {
+          "value": "G2"
+        },
+        {
+          "value": "G3a"
+        },
+        {
+          "value": "G3b"
+        },
+        {
+          "value": "G4"
+        },
+        {
+          "value": "G5"
+        },
+        {
+          "value": "G5D",
+          "terms": [
+            "CKD5D",
+            "CKD 5D",
+            "CKD5D期"
+          ]
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?:CKD|慢性肾脏病|慢性肾病)\\s*(?:G\\s*)?[1-5][abAB]?\\s*D?\\s*期?"
+        ]
+      },
+      "rules": [
+        {
+          "id": "g",
+          "regex": "(?:CKD|慢性肾脏病|慢性肾病)\\s*(?:G\\s*)?(?<v>[1-5][abAB]?\\s*D?)\\s*期?",
+          "map": {
+            "1": "G1",
+            "2": "G2",
+            "3": "G3a",
+            "4": "G4",
+            "5": "G5",
+            "3a": "G3a",
+            "3A": "G3a",
+            "3b": "G3b",
+            "3B": "G3b",
+            "5D": "G5D",
+            "5 D": "G5D"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A3",
+      "name": "原发病",
+      "group": "A",
+      "priority": "P0",
+      "type": "enum",
+      "definition": "导致 CKD 的原发病。",
+      "options": [
+        {
+          "value": "糖尿病肾病",
+          "terms": [
+            "糖尿病肾病",
+            "糖尿病肾脏病",
+            "DKD"
+          ]
+        },
+        {
+          "value": "高血压肾损害",
+          "terms": [
+            "高血压肾损害",
+            "高血压肾病",
+            "良性小动脉性肾硬化",
+            "高血压肾硬化"
+          ]
+        },
+        {
+          "value": "慢性肾小球肾炎",
+          "terms": [
+            "慢性肾小球肾炎",
+            "肾小球肾炎",
+            "IgA肾病",
+            "膜性肾病",
+            "局灶节段性肾小球硬化",
+            "FSGS"
+          ]
+        },
+        {
+          "value": "多囊肾",
+          "terms": [
+            "多囊肾",
+            "多囊肾病",
+            "ADPKD"
+          ]
+        },
+        {
+          "value": "狼疮性肾炎",
+          "terms": [
+            "狼疮性肾炎"
+          ]
+        },
+        {
+          "value": "梗阻性肾病",
+          "terms": [
+            "梗阻性肾病",
+            "尿路梗阻"
+          ]
+        },
+        {
+          "value": "间质性肾炎",
+          "terms": [
+            "间质性肾炎",
+            "慢性间质性肾炎"
+          ]
+        },
+        {
+          "value": "原发病不明",
+          "terms": [
+            "原发病不明",
+            "病因不明"
+          ]
+        }
+      ],
+      "granularity": "patient",
+      "pick": "mode",
+      "sources": {
+        "sections": [
+          "诊断",
+          "初步诊断",
+          "出院诊断",
+          "入院诊断",
+          "ICD-10 名称",
+          "ICD-10",
+          "现病史",
+          "既往史",
+          "病例特点"
+        ]
+      }
+    },
+    {
+      "id": "A4",
+      "name": "eGFR",
+      "group": "A",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mL/min/1.73m²",
+      "range": {
+        "min": 1,
+        "max": 200
+      },
+      "definition": "eGFR（mL/min/1.73m²）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "a4-v",
+          "regex": "(?:eGFR|估算肾小球滤过率|肾小球滤过率)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "eGFR|估算肾小球滤过率|肾小球滤过率"
+        ]
+      }
+    },
+    {
+      "id": "A5",
+      "name": "尿白蛋白/肌酐比值（UACR）",
+      "group": "A",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mg/g",
+      "range": {
+        "min": 0,
+        "max": 30000
+      },
+      "definition": "尿白蛋白/肌酐比值（UACR）（mg/g）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "a5-v",
+          "regex": "(?:UACR|ACR|尿白蛋白(?:\\/|与)?肌酐比(?:值)?)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "UACR|ACR|尿白蛋白(?:\\/|与)?肌酐比(?:值)?"
+        ]
+      }
+    },
+    {
+      "id": "A6",
+      "name": "24 小时尿蛋白定量",
+      "group": "A",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "g/24h",
+      "range": {
+        "min": 0,
+        "max": 30
+      },
+      "definition": "24 小时尿蛋白定量（g/24h）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "a6-v",
+          "regex": "(?:24\\s*(?:小时|h)\\s*尿蛋白(?:定量)?|24hUP)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "24\\s*(?:小时|h)\\s*尿蛋白(?:定量)?|24hUP"
+        ]
+      }
+    },
+    {
+      "id": "B1",
+      "name": "肾脏替代治疗方式",
+      "group": "B",
+      "priority": "P0",
+      "type": "enum",
+      "definition": "当前透析或替代治疗方式。",
+      "options": [
+        {
+          "value": "血液透析",
+          "terms": [
+            "血液透析",
+            "HD",
+            "维持性血液透析",
+            "规律血透",
+            "血透"
+          ]
+        },
+        {
+          "value": "血液透析滤过",
+          "terms": [
+            "血液透析滤过",
+            "HDF",
+            "血液滤过"
+          ]
+        },
+        {
+          "value": "腹膜透析",
+          "terms": [
+            "腹膜透析",
+            "PD",
+            "CAPD",
+            "APD",
+            "腹透"
+          ]
+        },
+        {
+          "value": "肾移植",
+          "terms": [
+            "肾移植",
+            "肾移植术后",
+            "移植肾"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "pick": "last"
+    },
+    {
+      "id": "B2",
+      "name": "开始透析时间",
+      "group": "B",
+      "priority": "P0",
+      "type": "date",
+      "definition": "首次开始规律透析的时间；\"规律血透5年\"取 5 年前。",
+      "granularity": "patient",
+      "pick": "earliest",
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "model": "always",
+      "sources": {
+        "sections": [
+          "主诉",
+          "现病史",
+          "既往史",
+          "入院情况"
+        ]
+      },
+      "recall": {
+        "terms": [
+          "血透",
+          "血液透析",
+          "腹透",
+          "腹膜透析",
+          "透析"
+        ],
+        "regex": [
+          "[\\d一二两三四五六七八九十半]+\\s*个?\\s*(?:年|月|周|星期|天|日|小时|h)\\s*(?:余|多|左右|许)?"
+        ]
+      }
+    },
+    {
+      "id": "B3",
+      "name": "透析龄（月）",
+      "group": "B",
+      "priority": "P0",
+      "type": "derived",
+      "definition": "开始透析至本次就诊的月数。",
+      "derive": {
+        "op": "monthsBetween",
+        "from": "B2",
+        "to": "$encounter.start"
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "B4",
+      "name": "当前血管通路",
+      "group": "B",
+      "priority": "P0",
+      "type": "enum",
+      "definition": "当前使用的血管通路类型。",
+      "options": [
+        {
+          "value": "自体动静脉内瘘",
+          "terms": [
+            "自体动静脉内瘘",
+            "AVF",
+            "动静脉内瘘",
+            "自体内瘘",
+            "内瘘"
+          ]
+        },
+        {
+          "value": "移植物内瘘",
+          "terms": [
+            "移植物内瘘",
+            "AVG",
+            "人工血管内瘘",
+            "人工血管"
+          ]
+        },
+        {
+          "value": "长期导管",
+          "terms": [
+            "长期导管",
+            "带隧道带涤纶套导管",
+            "TCC",
+            "长期透析导管",
+            "半永久导管"
+          ]
+        },
+        {
+          "value": "临时导管",
+          "terms": [
+            "临时导管",
+            "临时透析导管",
+            "无隧道导管",
+            "股静脉置管",
+            "颈内静脉置管"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "pick": "last"
+    },
+    {
+      "id": "B5",
+      "name": "内瘘功能不良／狭窄",
+      "group": "B",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "内瘘狭窄、流量下降、功能不良。",
+      "recall": {
+        "terms": [
+          "内瘘狭窄",
+          "内瘘功能不良",
+          "流量下降",
+          "血流量不足",
+          "震颤减弱",
+          "杂音减弱",
+          "吻合口狭窄"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "B6",
+      "name": "通路血栓／闭塞",
+      "group": "B",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "内瘘或导管血栓、闭塞。",
+      "recall": {
+        "terms": [
+          "内瘘血栓",
+          "内瘘闭塞",
+          "内瘘堵塞",
+          "导管血栓",
+          "导管堵塞",
+          "血栓形成"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "B7",
+      "name": "通路相关干预",
+      "group": "B",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "PTA、内瘘重建、取栓、导管置换等。",
+      "recall": {
+        "terms": [
+          "PTA",
+          "经皮腔内血管成形",
+          "球囊扩张",
+          "内瘘重建",
+          "内瘘修复",
+          "内瘘成形",
+          "导管置换",
+          "换管"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "C1",
+      "name": "spKt/V",
+      "group": "C",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": null,
+      "range": {
+        "min": 0.3,
+        "max": 3
+      },
+      "definition": "spKt/V的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c1-v",
+          "regex": "(?:sp?Kt\\s*/\\s*V)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "sp?Kt\\s*/\\s*V"
+        ]
+      }
+    },
+    {
+      "id": "C2",
+      "name": "尿素下降率（URR）",
+      "group": "C",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "%",
+      "range": {
+        "min": 20,
+        "max": 95
+      },
+      "definition": "尿素下降率（URR）（%）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c2-v",
+          "regex": "(?:URR|尿素下降率|尿素清除率)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "URR|尿素下降率|尿素清除率"
+        ]
+      }
+    },
+    {
+      "id": "C3",
+      "name": "每周透析次数",
+      "group": "C",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "encounter",
+      "unit": "次/周",
+      "range": {
+        "min": 1,
+        "max": 7
+      },
+      "pick": "last",
+      "definition": "每周透析次数（次/周）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c3-v",
+          "regex": "(?:(?:每周|一周|1周))[^。；;\\n\\d]{0,4}?(?<v>[1-7一二三四五六七](?=\\s*次))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?:每周|一周|1周)"
+        ]
+      }
+    },
+    {
+      "id": "C4",
+      "name": "每次透析时长",
+      "group": "C",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "encounter",
+      "unit": "h",
+      "range": {
+        "min": 1,
+        "max": 10
+      },
+      "pick": "last",
+      "definition": "每次透析时长（h）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c4-v",
+          "regex": "(?:(?:每次|透析时间))[^。；;\\n\\d]{0,6}?(?<v>\\d(?:\\.\\d)?(?=\\s*(?:小时|h|H)))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?:每次|透析时间)"
+        ]
+      }
+    },
+    {
+      "id": "C5",
+      "name": "残余尿量",
+      "group": "C",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mL/d",
+      "range": {
+        "min": 0,
+        "max": 5000
+      },
+      "definition": "残余尿量（mL/d）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c5-v",
+          "regex": "(?:(?:残余)?尿量|每日尿量|24\\s*小时尿量)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?:残余)?尿量|每日尿量|24\\s*小时尿量"
+        ]
+      }
+    },
+    {
+      "id": "C6",
+      "name": "抗凝方式",
+      "group": "C",
+      "priority": "P2",
+      "type": "list",
+      "definition": "透析抗凝方式。",
+      "options": [
+        {
+          "value": "普通肝素",
+          "terms": [
+            "普通肝素",
+            "肝素抗凝",
+            "全身肝素化"
+          ]
+        },
+        {
+          "value": "低分子肝素",
+          "terms": [
+            "低分子肝素",
+            "依诺肝素",
+            "那屈肝素",
+            "达肝素"
+          ]
+        },
+        {
+          "value": "无肝素",
+          "terms": [
+            "无肝素",
+            "无抗凝"
+          ]
+        },
+        {
+          "value": "枸橼酸",
+          "terms": [
+            "枸橼酸",
+            "局部枸橼酸抗凝"
+          ]
+        },
+        {
+          "value": "阿加曲班",
+          "terms": [
+            "阿加曲班"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "D1",
+      "name": "干体重",
+      "group": "D",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "kg",
+      "range": {
+        "min": 25,
+        "max": 200
+      },
+      "definition": "干体重（kg）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "d1-v",
+          "regex": "(?:干体重)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "干体重"
+        ]
+      }
+    },
+    {
+      "id": "D2",
+      "name": "透析间期体重增长",
+      "group": "D",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "kg",
+      "range": {
+        "min": 0,
+        "max": 10
+      },
+      "definition": "透析间期体重增长（kg）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "d2-v",
+          "regex": "(?:(?:透析)?间期体重增(?:长|加)|IDWG)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?:透析)?间期体重增(?:长|加)|IDWG"
+        ]
+      }
+    },
+    {
+      "id": "D3",
+      "name": "透析前收缩压",
+      "group": "D",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mmHg",
+      "range": {
+        "min": 60,
+        "max": 280
+      },
+      "definition": "透析前收缩压（mmHg）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "d3-v",
+          "regex": "(?:(?:透前|透析前)?(?:BP|血压)\\s*[:：]?)[^。；;\\n\\d]{0,24}?(?<v>\\d{2,3}(?=\\s*/\\s*\\d{2,3}))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?:透前|透析前)?(?:BP|血压)\\s*[:：]?"
+        ]
+      }
+    },
+    {
+      "id": "D4",
+      "name": "透析中低血压",
+      "group": "D",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "透析过程中低血压。",
+      "recall": {
+        "terms": [
+          "透析中低血压",
+          "透析低血压",
+          "IDH",
+          "透析过程中血压下降"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "D5",
+      "name": "容量负荷过重",
+      "group": "D",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "水肿、胸腔积液、心衰等容量负荷表现。",
+      "recall": {
+        "terms": [
+          "容量负荷过重",
+          "容量超负荷",
+          "水钠潴留",
+          "胸腔积液",
+          "水肿"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "E1",
+      "name": "血红蛋白",
+      "group": "E",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "g/L",
+      "range": {
+        "min": 20,
+        "max": 250
+      },
+      "definition": "血红蛋白（g/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "e1-v",
+          "regex": "(?:血红蛋白|Hb(?!A)|HGB)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "血红蛋白|Hb(?!A)|HGB"
+        ]
+      }
+    },
+    {
+      "id": "E2",
+      "name": "血清铁蛋白",
+      "group": "E",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "ng/mL",
+      "range": {
+        "min": 1,
+        "max": 5000
+      },
+      "definition": "血清铁蛋白（ng/mL）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "e2-v",
+          "regex": "(?:铁蛋白)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "铁蛋白"
+        ]
+      }
+    },
+    {
+      "id": "E3",
+      "name": "转铁蛋白饱和度（TSAT）",
+      "group": "E",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "%",
+      "range": {
+        "min": 1,
+        "max": 100
+      },
+      "definition": "转铁蛋白饱和度（TSAT）（%）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "e3-v",
+          "regex": "(?:TSAT|转铁蛋白饱和度)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "TSAT|转铁蛋白饱和度"
+        ]
+      }
+    },
+    {
+      "id": "E4",
+      "name": "红细胞生成刺激剂／HIF-PHI",
+      "group": "E",
+      "priority": "P0",
+      "type": "list",
+      "definition": "促红素、罗沙司他等。",
+      "options": [
+        {
+          "value": "重组人促红素",
+          "terms": [
+            "重组人促红素",
+            "促红素",
+            "促红细胞生成素",
+            "EPO",
+            "益比奥",
+            "依倍",
+            "利血宝"
+          ]
+        },
+        {
+          "value": "达依泊汀α",
+          "terms": [
+            "达依泊汀α",
+            "达依泊汀"
+          ]
+        },
+        {
+          "value": "培促红素",
+          "terms": [
+            "培促红素"
+          ]
+        },
+        {
+          "value": "罗沙司他",
+          "terms": [
+            "罗沙司他",
+            "爱瑞卓"
+          ]
+        },
+        {
+          "value": "恩那司他",
+          "terms": [
+            "恩那司他"
+          ]
+        },
+        {
+          "value": "达普司他",
+          "terms": [
+            "达普司他"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "E5",
+      "name": "铁剂",
+      "group": "E",
+      "priority": "P1",
+      "type": "list",
+      "definition": "静脉或口服铁剂。",
+      "options": [
+        {
+          "value": "蔗糖铁",
+          "terms": [
+            "蔗糖铁",
+            "维乐福"
+          ]
+        },
+        {
+          "value": "右旋糖酐铁",
+          "terms": [
+            "右旋糖酐铁"
+          ]
+        },
+        {
+          "value": "羧基麦芽糖铁",
+          "terms": [
+            "羧基麦芽糖铁"
+          ]
+        },
+        {
+          "value": "异麦芽糖酐铁",
+          "terms": [
+            "异麦芽糖酐铁"
+          ]
+        },
+        {
+          "value": "多糖铁复合物",
+          "terms": [
+            "多糖铁复合物",
+            "力蜚能"
+          ]
+        },
+        {
+          "value": "琥珀酸亚铁",
+          "terms": [
+            "琥珀酸亚铁",
+            "速力菲"
+          ]
+        },
+        {
+          "value": "硫酸亚铁",
+          "terms": [
+            "硫酸亚铁"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "F1",
+      "name": "血钙",
+      "group": "F",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mmol/L",
+      "range": {
+        "min": 0.8,
+        "max": 4
+      },
+      "definition": "血钙（mmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "f1-v",
+          "regex": "(?:血钙|血清钙|项目：钙|(?<![a-zA-Z])Ca(?![a-zA-Z]))[^。；;\\n\\d]{0,24}?(?<v>\\d\\.\\d{1,2})"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "血钙|血清钙|项目：钙|(?<![a-zA-Z])Ca(?![a-zA-Z])"
+        ]
+      }
+    },
+    {
+      "id": "F2",
+      "name": "血磷",
+      "group": "F",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mmol/L",
+      "range": {
+        "min": 0.2,
+        "max": 5
+      },
+      "definition": "血磷（mmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "f2-v",
+          "regex": "(?:血磷|血清磷|无机磷|项目：磷|(?<![a-zA-Z])P(?![a-zA-Z]))[^。；;\\n\\d]{0,24}?(?<v>\\d\\.\\d{1,2})"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "血磷|血清磷|无机磷|项目：磷|(?<![a-zA-Z])P(?![a-zA-Z])"
+        ]
+      }
+    },
+    {
+      "id": "F3",
+      "name": "iPTH",
+      "group": "F",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "pg/mL",
+      "range": {
+        "min": 1,
+        "max": 5000
+      },
+      "definition": "iPTH（pg/mL）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "f3-v",
+          "regex": "(?:i?PTH|甲状旁腺(?:激素|素))[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "i?PTH|甲状旁腺(?:激素|素)"
+        ]
+      }
+    },
+    {
+      "id": "F4",
+      "name": "碱性磷酸酶",
+      "group": "F",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "U/L",
+      "range": {
+        "min": 5,
+        "max": 3000
+      },
+      "definition": "碱性磷酸酶（U/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "f4-v",
+          "regex": "(?:ALP|AKP|碱性磷酸酶)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "ALP|AKP|碱性磷酸酶"
+        ]
+      }
+    },
+    {
+      "id": "F5",
+      "name": "磷结合剂",
+      "group": "F",
+      "priority": "P0",
+      "type": "list",
+      "definition": "在用磷结合剂。",
+      "options": [
+        {
+          "value": "碳酸钙",
+          "terms": [
+            "碳酸钙",
+            "钙尔奇"
+          ]
+        },
+        {
+          "value": "醋酸钙",
+          "terms": [
+            "醋酸钙"
+          ]
+        },
+        {
+          "value": "司维拉姆",
+          "terms": [
+            "司维拉姆",
+            "碳酸司维拉姆",
+            "盐酸司维拉姆",
+            "诺维乐"
+          ]
+        },
+        {
+          "value": "碳酸镧",
+          "terms": [
+            "碳酸镧",
+            "福斯利诺"
+          ]
+        },
+        {
+          "value": "蔗糖氧化铁",
+          "terms": [
+            "蔗糖氧化铁",
+            "维福瑞"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "F6",
+      "name": "活性维生素 D／拟钙剂",
+      "group": "F",
+      "priority": "P0",
+      "type": "list",
+      "definition": "骨化三醇、帕立骨化醇、西那卡塞、依特卡肽等。",
+      "options": [
+        {
+          "value": "骨化三醇",
+          "terms": [
+            "骨化三醇",
+            "罗盖全"
+          ]
+        },
+        {
+          "value": "阿法骨化醇",
+          "terms": [
+            "阿法骨化醇",
+            "阿法D3"
+          ]
+        },
+        {
+          "value": "帕立骨化醇",
+          "terms": [
+            "帕立骨化醇",
+            "胜普乐"
+          ]
+        },
+        {
+          "value": "西那卡塞",
+          "terms": [
+            "西那卡塞",
+            "盖平"
+          ]
+        },
+        {
+          "value": "依特卡肽",
+          "terms": [
+            "依特卡肽",
+            "帕瑞肽"
+          ]
+        },
+        {
+          "value": "伊伐卡塞",
+          "terms": [
+            "伊伐卡塞"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "F7",
+      "name": "继发性甲旁亢",
+      "group": "F",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "继发性甲状旁腺功能亢进（或行甲状旁腺切除）。",
+      "recall": {
+        "terms": [
+          "继发性甲状旁腺功能亢进",
+          "继发性甲旁亢",
+          "甲旁亢",
+          "SHPT",
+          "甲状旁腺切除"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G1",
+      "name": "血白蛋白",
+      "group": "G",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "g/L",
+      "range": {
+        "min": 10,
+        "max": 60
+      },
+      "definition": "血白蛋白（g/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "g1-v",
+          "regex": "(?:(?:血清)?白蛋白|ALB(?![a-zA-Z]))[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?:血清)?白蛋白|ALB(?![a-zA-Z])"
+        ]
+      }
+    },
+    {
+      "id": "G2",
+      "name": "血钾",
+      "group": "G",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mmol/L",
+      "range": {
+        "min": 1.5,
+        "max": 9
+      },
+      "definition": "血钾（mmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "g2-v",
+          "regex": "(?:血钾|血清钾|项目：钾|(?<![a-zA-Z])K\\+?(?![a-zA-Z]))[^。；;\\n\\d]{0,24}?(?<v>\\d\\.\\d{1,2})"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "血钾|血清钾|项目：钾|(?<![a-zA-Z])K\\+?(?![a-zA-Z])"
+        ]
+      }
+    },
+    {
+      "id": "G3",
+      "name": "C 反应蛋白",
+      "group": "G",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mg/L",
+      "range": {
+        "min": 0,
+        "max": 500
+      },
+      "definition": "C 反应蛋白（mg/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "g3-v",
+          "regex": "(?:CRP|C\\s*反应蛋白|hs-?CRP)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "CRP|C\\s*反应蛋白|hs-?CRP"
+        ]
+      }
+    },
+    {
+      "id": "G4",
+      "name": "透析前血肌酐",
+      "group": "G",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "μmol/L",
+      "range": {
+        "min": 50,
+        "max": 3000
+      },
+      "definition": "透析前血肌酐（μmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "g4-v",
+          "regex": "(?:(?:透前|透析前)?(?:血)?肌酐|Scr|SCr)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?:透前|透析前)?(?:血)?肌酐|Scr|SCr"
+        ]
+      }
+    },
+    {
+      "id": "G5",
+      "name": "β2 微球蛋白",
+      "group": "G",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mg/L",
+      "range": {
+        "min": 0,
+        "max": 200
+      },
+      "definition": "β2 微球蛋白（mg/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "g5-v",
+          "regex": "(?:β\\s*2\\s*-?微球蛋白|β2-?MG|B2M)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "β\\s*2\\s*-?微球蛋白|β2-?MG|B2M"
+        ]
+      }
+    },
+    {
+      "id": "G6",
+      "name": "SGA",
+      "group": "G",
+      "priority": "P2",
+      "type": "score",
+      "scale": "SGA",
+      "granularity": "timepoint",
+      "range": {
+        "min": 1,
+        "max": 7
+      },
+      "definition": "SGA总分（每次评定一条）。只取写明的总分，不取条目分、不取参考范围。",
+      "rules": [
+        {
+          "id": "g6-total",
+          "regex": "(?:SGA|主观综合营养评估)\\s*(?:量表)?\\s*(?:评分|总分|得分|评定|测评|分值|评估)?\\s*(?:结果)?\\s*[:：为是]?\\s*(?<v>\\d{1,3}(?:\\.\\d)?)\\s*分?"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "SGA|主观综合营养评估"
+        ]
+      }
+    },
+    {
+      "id": "H1",
+      "name": "降压药",
+      "group": "H",
+      "priority": "P1",
+      "type": "list",
+      "definition": "在用降压药（按通用名）。",
+      "options": [
+        {
+          "value": "硝苯地平",
+          "terms": [
+            "硝苯地平",
+            "拜新同",
+            "伲福达"
+          ]
+        },
+        {
+          "value": "氨氯地平",
+          "terms": [
+            "氨氯地平",
+            "络活喜"
+          ]
+        },
+        {
+          "value": "非洛地平",
+          "terms": [
+            "非洛地平",
+            "波依定"
+          ]
+        },
+        {
+          "value": "贝尼地平",
+          "terms": [
+            "贝尼地平"
+          ]
+        },
+        {
+          "value": "美托洛尔",
+          "terms": [
+            "美托洛尔",
+            "倍他乐克"
+          ]
+        },
+        {
+          "value": "比索洛尔",
+          "terms": [
+            "比索洛尔",
+            "康忻"
+          ]
+        },
+        {
+          "value": "卡维地洛",
+          "terms": [
+            "卡维地洛"
+          ]
+        },
+        {
+          "value": "阿罗洛尔",
+          "terms": [
+            "阿罗洛尔"
+          ]
+        },
+        {
+          "value": "缬沙坦",
+          "terms": [
+            "缬沙坦"
+          ]
+        },
+        {
+          "value": "厄贝沙坦",
+          "terms": [
+            "厄贝沙坦"
+          ]
+        },
+        {
+          "value": "氯沙坦",
+          "terms": [
+            "氯沙坦"
+          ]
+        },
+        {
+          "value": "特拉唑嗪",
+          "terms": [
+            "特拉唑嗪"
+          ]
+        },
+        {
+          "value": "可乐定",
+          "terms": [
+            "可乐定"
+          ]
+        },
+        {
+          "value": "沙库巴曲缬沙坦",
+          "terms": [
+            "沙库巴曲缬沙坦",
+            "诺欣妥"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "H2",
+      "name": "降钾药",
+      "group": "H",
+      "priority": "P2",
+      "type": "list",
+      "definition": "降钾树脂或环硅酸锆钠。",
+      "options": [
+        {
+          "value": "环硅酸锆钠",
+          "terms": [
+            "环硅酸锆钠",
+            "利倍卓"
+          ]
+        },
+        {
+          "value": "聚苯乙烯磺酸钙",
+          "terms": [
+            "聚苯乙烯磺酸钙",
+            "聚磺苯乙烯"
+          ]
+        },
+        {
+          "value": "帕替罗默",
+          "terms": [
+            "帕替罗默"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "H3",
+      "name": "抗血小板／抗凝药",
+      "group": "H",
+      "priority": "P2",
+      "type": "list",
+      "definition": "在用抗血小板或抗凝药。",
+      "options": [
+        {
+          "value": "阿司匹林",
+          "terms": [
+            "阿司匹林"
+          ]
+        },
+        {
+          "value": "氯吡格雷",
+          "terms": [
+            "氯吡格雷"
+          ]
+        },
+        {
+          "value": "华法林",
+          "terms": [
+            "华法林"
+          ]
+        },
+        {
+          "value": "利伐沙班",
+          "terms": [
+            "利伐沙班"
+          ]
+        },
+        {
+          "value": "阿哌沙班",
+          "terms": [
+            "阿哌沙班"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "I1",
+      "name": "通路相关感染／导管相关血流感染",
+      "group": "I",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "导管或内瘘相关感染、导管相关血流感染。",
+      "recall": {
+        "terms": [
+          "导管相关血流感染",
+          "CRBSI",
+          "导管感染",
+          "隧道感染",
+          "出口感染",
+          "内瘘感染"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "I2",
+      "name": "高钾血症",
+      "group": "I",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "高钾血症。",
+      "recall": {
+        "terms": [
+          "高钾血症",
+          "高血钾"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "I3",
+      "name": "心力衰竭",
+      "group": "I",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "心力衰竭或急性左心衰。",
+      "recall": {
+        "terms": [
+          "心力衰竭",
+          "心衰",
+          "急性左心衰"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "I4",
+      "name": "院内死亡",
+      "group": "I",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "住院期间死亡。",
+      "recall": {
+        "terms": [
+          "死亡",
+          "临床死亡",
+          "宣告死亡",
+          "抢救无效"
+        ]
+      },
+      "granularity": "encounter",
+      "sources": {
+        "sections": [
+          "出院情况",
+          "诊疗经过",
+          "病程记录",
+          "正文"
+        ]
+      }
+    },
+    {
+      "id": "I5",
+      "name": "就诊年龄",
+      "group": "I",
+      "priority": "P0",
+      "type": "derived",
+      "definition": "本次就诊时年龄。",
+      "derive": {
+        "op": "ageAt",
+        "at": "$encounter.start"
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "I6",
+      "name": "主诉",
+      "group": "I",
+      "priority": "P1",
+      "type": "text",
+      "definition": "本次就诊主诉原文。",
+      "granularity": "encounter",
+      "pick": "first",
+      "sources": {
+        "sections": [
+          "主诉"
+        ]
+      },
+      "rules": [
+        {
+          "id": "chief",
+          "regex": "(?<v>[^\\n]{2,100})"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "[^\\s]{2,}"
+        ]
+      }
+    },
+    {
+      "id": "J1",
+      "name": "糖尿病",
+      "group": "J",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "糖尿病病史。",
+      "recall": {
+        "terms": [
+          "糖尿病"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "J2",
+      "name": "高血压",
+      "group": "J",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "高血压病史。",
+      "recall": {
+        "terms": [
+          "高血压"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "J3",
+      "name": "冠心病",
+      "group": "J",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "冠心病或心肌梗死。",
+      "recall": {
+        "terms": [
+          "冠心病",
+          "心肌梗死",
+          "冠状动脉粥样硬化性心脏病"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "J4",
+      "name": "心房颤动",
+      "group": "J",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "心房颤动。",
+      "recall": {
+        "terms": [
+          "心房颤动",
+          "房颤"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "J5",
+      "name": "脑卒中",
+      "group": "J",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "脑梗死、脑出血。",
+      "recall": {
+        "terms": [
+          "脑梗死",
+          "脑出血",
+          "脑卒中"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    }
+  ]
+}

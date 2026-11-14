@@ -1,0 +1,1581 @@
+{
+  "format": "extract-template/1",
+  "id": "t2dm",
+  "name": "2 型糖尿病（T2DM）",
+  "version": "0.1.0",
+  "domain": "内分泌",
+  "description": "糖尿病研究与质控常用字段：诊断与病程、血糖与代谢指标、慢性并发症（视网膜病变、肾病、神经病变、下肢动脉病变、糖尿病足）、大血管病、急性并发症与低血糖、降糖药物（含 SGLT2i、GLP-1RA、胰岛素）、合并症与危险因素。",
+  "references": [
+    {
+      "title": "中国糖尿病防治指南（2024 版），中华糖尿病杂志 2025;17(1)",
+      "url": "https://www.sxcdc.cn/jkfw/jsbz/art/2025/art_a6322e70d224461f900e02e70b2a937c.html"
+    },
+    {
+      "title": "ADA Standards of Care in Diabetes—2025, Diabetes Care 2025;48(Suppl 1)",
+      "url": "https://diabetesjournals.org/care/issue/48/Supplement_1"
+    },
+    {
+      "title": "KDIGO 2022 Clinical Practice Guideline for Diabetes Management in CKD"
+    }
+  ],
+  "documents": {
+    "excludeRecordTypes": [
+      "门诊收费",
+      "基本信息"
+    ]
+  },
+  "groups": [
+    {
+      "id": "A",
+      "name": "诊断与病程"
+    },
+    {
+      "id": "B",
+      "name": "血糖与代谢"
+    },
+    {
+      "id": "C",
+      "name": "微血管并发症"
+    },
+    {
+      "id": "D",
+      "name": "大血管与足"
+    },
+    {
+      "id": "E",
+      "name": "急性并发症与低血糖"
+    },
+    {
+      "id": "F",
+      "name": "降糖治疗"
+    },
+    {
+      "id": "G",
+      "name": "心肾保护与合并用药"
+    },
+    {
+      "id": "H",
+      "name": "合并症与危险因素"
+    },
+    {
+      "id": "K",
+      "name": "其他检验与体征"
+    }
+  ],
+  "fields": [
+    {
+      "id": "A1",
+      "name": "糖尿病相关诊断",
+      "group": "A",
+      "priority": "P0",
+      "type": "list",
+      "granularity": "encounter",
+      "definition": "诊断栏写明的糖尿病及其并发症诊断（原文写法）。",
+      "sources": {
+        "sections": [
+          "诊断",
+          "初步诊断",
+          "出院诊断",
+          "入院诊断",
+          "ICD-10 名称",
+          "ICD-10"
+        ]
+      },
+      "rules": [
+        {
+          "id": "dx",
+          "regex": "(?<v>[^\\n，,。；;：:]{0,14}糖尿病[^\\n，,。；;：:]{0,16})"
+        }
+      ],
+      "recall": {
+        "terms": [
+          "糖尿病"
+        ]
+      }
+    },
+    {
+      "id": "A1c",
+      "name": "ICD-10 编码（E10–E14）",
+      "group": "A",
+      "priority": "P0",
+      "type": "list",
+      "granularity": "encounter",
+      "definition": "糖尿病编码。",
+      "rules": [
+        {
+          "id": "icd",
+          "regex": "(?<v>E1[0-4](?:\\.\\d{1,3})?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "E1[0-4]"
+        ]
+      }
+    },
+    {
+      "id": "A2",
+      "name": "糖尿病类型",
+      "group": "A",
+      "priority": "P0",
+      "type": "enum",
+      "definition": "糖尿病分型。",
+      "options": [
+        {
+          "value": "2型糖尿病",
+          "terms": [
+            "2型糖尿病",
+            "T2DM",
+            "2型",
+            "Ⅱ型糖尿病",
+            "II型糖尿病"
+          ]
+        },
+        {
+          "value": "1型糖尿病",
+          "terms": [
+            "1型糖尿病",
+            "T1DM",
+            "Ⅰ型糖尿病",
+            "I型糖尿病"
+          ]
+        },
+        {
+          "value": "妊娠期糖尿病",
+          "terms": [
+            "妊娠期糖尿病",
+            "GDM"
+          ]
+        },
+        {
+          "value": "特殊类型糖尿病",
+          "terms": [
+            "特殊类型糖尿病",
+            "继发性糖尿病",
+            "类固醇糖尿病",
+            "MODY",
+            "胰源性糖尿病"
+          ]
+        }
+      ],
+      "granularity": "patient",
+      "pick": "mode",
+      "sources": {
+        "sections": [
+          "诊断",
+          "初步诊断",
+          "出院诊断",
+          "入院诊断",
+          "ICD-10 名称",
+          "ICD-10"
+        ]
+      }
+    },
+    {
+      "id": "A3",
+      "name": "糖尿病诊断时间",
+      "group": "A",
+      "priority": "P0",
+      "type": "date",
+      "definition": "首次诊断糖尿病的时间；\"发现血糖升高10年\"取 10 年前。",
+      "granularity": "patient",
+      "pick": "earliest",
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "model": "always",
+      "sources": {
+        "sections": [
+          "主诉",
+          "现病史",
+          "既往史"
+        ]
+      },
+      "recall": {
+        "terms": [
+          "糖尿病",
+          "血糖升高",
+          "血糖高",
+          "发现血糖"
+        ],
+        "regex": [
+          "[\\d一二两三四五六七八九十半]+\\s*个?\\s*(?:年|月|周|星期|天|日|小时|h)\\s*(?:余|多|左右|许)?"
+        ]
+      }
+    },
+    {
+      "id": "A4",
+      "name": "糖尿病病程（月）",
+      "group": "A",
+      "priority": "P0",
+      "type": "derived",
+      "definition": "诊断至本次就诊的月数。",
+      "derive": {
+        "op": "monthsBetween",
+        "from": "A3",
+        "to": "$encounter.start"
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "A5",
+      "name": "诊断年龄",
+      "group": "A",
+      "priority": "P1",
+      "type": "derived",
+      "definition": "糖尿病诊断时年龄。",
+      "derive": {
+        "op": "ageAt",
+        "at": "A3"
+      },
+      "granularity": "patient"
+    },
+    {
+      "id": "A6",
+      "name": "血糖控制不佳",
+      "group": "A",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "医生写明血糖控制不佳／未达标。",
+      "recall": {
+        "terms": [
+          "血糖控制不佳",
+          "血糖控制差",
+          "血糖控制欠佳",
+          "血糖未达标",
+          "血糖波动大"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "B1",
+      "name": "糖化血红蛋白",
+      "group": "B",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "%",
+      "range": {
+        "min": 3,
+        "max": 20
+      },
+      "definition": "糖化血红蛋白（%）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "b1-v",
+          "regex": "(?:HbA1c|HBA1C|糖化血红蛋白|A1C)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "HbA1c|HBA1C|糖化血红蛋白|A1C"
+        ]
+      }
+    },
+    {
+      "id": "B2",
+      "name": "空腹血糖",
+      "group": "B",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mmol/L",
+      "range": {
+        "min": 1,
+        "max": 40
+      },
+      "definition": "空腹血糖（mmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "b2-v",
+          "regex": "(?:空腹血糖|FPG|FBG|空腹葡萄糖|空腹血浆葡萄糖)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "空腹血糖|FPG|FBG|空腹葡萄糖|空腹血浆葡萄糖"
+        ]
+      }
+    },
+    {
+      "id": "B3",
+      "name": "餐后 2 小时血糖",
+      "group": "B",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mmol/L",
+      "range": {
+        "min": 1,
+        "max": 50
+      },
+      "definition": "餐后 2 小时血糖（mmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "b3-v",
+          "regex": "(?:餐后\\s*2\\s*(?:小时|h)\\s*血糖|2hPG|2hPBG|OGTT\\s*2\\s*(?:小时|h))[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "餐后\\s*2\\s*(?:小时|h)\\s*血糖|2hPG|2hPBG|OGTT\\s*2\\s*(?:小时|h)"
+        ]
+      }
+    },
+    {
+      "id": "B4",
+      "name": "空腹 C 肽",
+      "group": "B",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "nmol/L",
+      "range": {
+        "min": 0,
+        "max": 20
+      },
+      "definition": "空腹 C 肽（nmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "b4-v",
+          "regex": "(?:(?:空腹)?C\\s*-?肽)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?:空腹)?C\\s*-?肽"
+        ]
+      }
+    },
+    {
+      "id": "B5",
+      "name": "体重指数（BMI）",
+      "group": "B",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "kg/m²",
+      "range": {
+        "min": 10,
+        "max": 70
+      },
+      "definition": "体重指数（BMI）（kg/m²）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "b5-v",
+          "regex": "(?:BMI|体重指数)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "BMI|体重指数"
+        ]
+      }
+    },
+    {
+      "id": "B6",
+      "name": "LDL-C",
+      "group": "B",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mmol/L",
+      "range": {
+        "min": 0.1,
+        "max": 15
+      },
+      "definition": "LDL-C（mmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "b6-v",
+          "regex": "(?:LDL-C|LDL|低密度脂蛋白(?:胆固醇)?)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "LDL-C|LDL|低密度脂蛋白(?:胆固醇)?"
+        ]
+      }
+    },
+    {
+      "id": "B7",
+      "name": "甘油三酯",
+      "group": "B",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mmol/L",
+      "range": {
+        "min": 0.1,
+        "max": 60
+      },
+      "definition": "甘油三酯（mmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "b7-v",
+          "regex": "(?:TG|甘油三酯|三酰甘油)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "TG|甘油三酯|三酰甘油"
+        ]
+      }
+    },
+    {
+      "id": "B8",
+      "name": "腰围",
+      "group": "B",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "cm",
+      "range": {
+        "min": 40,
+        "max": 200
+      },
+      "definition": "腰围（cm）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "b8-v",
+          "regex": "(?:腰围)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "腰围"
+        ]
+      }
+    },
+    {
+      "id": "C1",
+      "name": "糖尿病视网膜病变",
+      "group": "C",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "糖尿病视网膜病变（含非增殖期／增殖期、黄斑水肿）。",
+      "recall": {
+        "terms": [
+          "糖尿病视网膜病变",
+          "糖尿病性视网膜病变",
+          "视网膜病变",
+          "增殖期视网膜病变",
+          "非增殖期视网膜病变",
+          "糖尿病黄斑水肿"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "C2",
+      "name": "糖尿病肾病",
+      "group": "C",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "糖尿病肾脏病（DKD）。",
+      "recall": {
+        "terms": [
+          "糖尿病肾病",
+          "糖尿病肾脏病",
+          "糖尿病性肾病",
+          "DKD"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "C3",
+      "name": "糖尿病周围神经病变",
+      "group": "C",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "远端对称性多发性神经病变等。",
+      "recall": {
+        "terms": [
+          "周围神经病变",
+          "糖尿病周围神经病",
+          "糖尿病神经病变",
+          "DPN",
+          "四肢麻木",
+          "手脚麻木",
+          "双下肢麻木",
+          "双足麻木",
+          "肢体麻木",
+          "手足麻木"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "C4",
+      "name": "自主神经病变",
+      "group": "C",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "胃轻瘫、体位性低血压、神经源性膀胱等。",
+      "recall": {
+        "terms": [
+          "自主神经病变",
+          "胃轻瘫",
+          "体位性低血压",
+          "神经源性膀胱"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "C5",
+      "name": "尿白蛋白/肌酐比值（UACR）",
+      "group": "C",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mg/g",
+      "range": {
+        "min": 0,
+        "max": 30000
+      },
+      "definition": "尿白蛋白/肌酐比值（UACR）（mg/g）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c5-v",
+          "regex": "(?:UACR|ACR|尿白蛋白(?:\\/|与)?肌酐比(?:值)?|尿微量白蛋白(?:\\/|与)?肌酐)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "UACR|ACR|尿白蛋白(?:\\/|与)?肌酐比(?:值)?|尿微量白蛋白(?:\\/|与)?肌酐"
+        ]
+      }
+    },
+    {
+      "id": "C6",
+      "name": "eGFR",
+      "group": "C",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mL/min/1.73m²",
+      "range": {
+        "min": 1,
+        "max": 200
+      },
+      "definition": "eGFR（mL/min/1.73m²）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c6-v",
+          "regex": "(?:eGFR|估算肾小球滤过率|肾小球滤过率)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "eGFR|估算肾小球滤过率|肾小球滤过率"
+        ]
+      }
+    },
+    {
+      "id": "D1",
+      "name": "冠心病",
+      "group": "D",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "冠心病或心肌梗死。",
+      "recall": {
+        "terms": [
+          "冠心病",
+          "冠状动脉粥样硬化性心脏病",
+          "心肌梗死",
+          "PCI",
+          "冠脉支架"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "D2",
+      "name": "脑卒中",
+      "group": "D",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "脑梗死、脑出血或 TIA。",
+      "recall": {
+        "terms": [
+          "脑梗死",
+          "脑梗塞",
+          "脑出血",
+          "脑卒中",
+          "卒中",
+          "TIA"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "D3",
+      "name": "下肢动脉病变",
+      "group": "D",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "下肢动脉粥样硬化性病变（LEAD/PAD）。",
+      "recall": {
+        "terms": [
+          "下肢动脉病变",
+          "下肢动脉硬化",
+          "下肢动脉狭窄",
+          "下肢动脉闭塞",
+          "PAD",
+          "外周动脉疾病",
+          "间歇性跛行"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "D4",
+      "name": "糖尿病足",
+      "group": "D",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "糖尿病足溃疡、坏疽或截肢。",
+      "recall": {
+        "terms": [
+          "糖尿病足",
+          "足溃疡",
+          "足部溃疡",
+          "坏疽",
+          "截肢",
+          "截趾"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "D5",
+      "name": "心力衰竭",
+      "group": "D",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "心力衰竭。",
+      "recall": {
+        "terms": [
+          "心力衰竭",
+          "心衰",
+          "心功能不全"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "E1",
+      "name": "低血糖事件",
+      "group": "E",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "本次就诊记录的低血糖（症状性或血糖 <3.9 mmol/L）。",
+      "recall": {
+        "terms": [
+          "低血糖",
+          "低血糖反应",
+          "低血糖昏迷",
+          "低血糖发作"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "E2",
+      "name": "严重低血糖",
+      "group": "E",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "需他人帮助的严重低血糖（3 级）。",
+      "recall": {
+        "terms": [
+          "严重低血糖",
+          "低血糖昏迷",
+          "重度低血糖"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "E3",
+      "name": "糖尿病酮症／酮症酸中毒",
+      "group": "E",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "DKA 或酮症。",
+      "recall": {
+        "terms": [
+          "酮症酸中毒",
+          "DKA",
+          "糖尿病酮症",
+          "酮症"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "E4",
+      "name": "高渗高血糖状态",
+      "group": "E",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "HHS／高渗性昏迷。",
+      "recall": {
+        "terms": [
+          "高渗高血糖",
+          "高渗性昏迷",
+          "HHS",
+          "高渗状态"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "F1",
+      "name": "口服降糖药",
+      "group": "F",
+      "priority": "P0",
+      "type": "list",
+      "definition": "在用或出院带的口服降糖药（通用名）。",
+      "options": [
+        {
+          "value": "二甲双胍",
+          "terms": [
+            "二甲双胍",
+            "格华止",
+            "美迪康"
+          ]
+        },
+        {
+          "value": "格列美脲",
+          "terms": [
+            "格列美脲",
+            "亚莫利"
+          ]
+        },
+        {
+          "value": "格列齐特",
+          "terms": [
+            "格列齐特",
+            "达美康"
+          ]
+        },
+        {
+          "value": "格列吡嗪",
+          "terms": [
+            "格列吡嗪",
+            "瑞易宁",
+            "美吡达"
+          ]
+        },
+        {
+          "value": "格列喹酮",
+          "terms": [
+            "格列喹酮",
+            "糖适平"
+          ]
+        },
+        {
+          "value": "瑞格列奈",
+          "terms": [
+            "瑞格列奈",
+            "诺和龙"
+          ]
+        },
+        {
+          "value": "那格列奈",
+          "terms": [
+            "那格列奈"
+          ]
+        },
+        {
+          "value": "阿卡波糖",
+          "terms": [
+            "阿卡波糖",
+            "拜糖平",
+            "卡博平"
+          ]
+        },
+        {
+          "value": "伏格列波糖",
+          "terms": [
+            "伏格列波糖"
+          ]
+        },
+        {
+          "value": "吡格列酮",
+          "terms": [
+            "吡格列酮"
+          ]
+        },
+        {
+          "value": "罗格列酮",
+          "terms": [
+            "罗格列酮"
+          ]
+        },
+        {
+          "value": "西格列汀",
+          "terms": [
+            "西格列汀",
+            "捷诺维"
+          ]
+        },
+        {
+          "value": "沙格列汀",
+          "terms": [
+            "沙格列汀",
+            "安立泽"
+          ]
+        },
+        {
+          "value": "利格列汀",
+          "terms": [
+            "利格列汀",
+            "欧唐宁"
+          ]
+        },
+        {
+          "value": "维格列汀",
+          "terms": [
+            "维格列汀",
+            "佳维乐"
+          ]
+        },
+        {
+          "value": "阿格列汀",
+          "terms": [
+            "阿格列汀"
+          ]
+        },
+        {
+          "value": "达格列净",
+          "terms": [
+            "达格列净",
+            "安达唐"
+          ]
+        },
+        {
+          "value": "恩格列净",
+          "terms": [
+            "恩格列净",
+            "欧唐静"
+          ]
+        },
+        {
+          "value": "卡格列净",
+          "terms": [
+            "卡格列净"
+          ]
+        },
+        {
+          "value": "西格列他钠",
+          "terms": [
+            "西格列他钠"
+          ]
+        },
+        {
+          "value": "多格列艾汀",
+          "terms": [
+            "多格列艾汀"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "F2",
+      "name": "GLP-1 受体激动剂",
+      "group": "F",
+      "priority": "P0",
+      "type": "list",
+      "definition": "在用 GLP-1RA（及双靶点激动剂）。",
+      "options": [
+        {
+          "value": "司美格鲁肽",
+          "terms": [
+            "司美格鲁肽",
+            "诺和泰",
+            "诺和忻",
+            "诺和盈"
+          ]
+        },
+        {
+          "value": "利拉鲁肽",
+          "terms": [
+            "利拉鲁肽",
+            "诺和力"
+          ]
+        },
+        {
+          "value": "度拉糖肽",
+          "terms": [
+            "度拉糖肽",
+            "度易达"
+          ]
+        },
+        {
+          "value": "艾塞那肽",
+          "terms": [
+            "艾塞那肽",
+            "百泌达"
+          ]
+        },
+        {
+          "value": "贝那鲁肽",
+          "terms": [
+            "贝那鲁肽"
+          ]
+        },
+        {
+          "value": "洛塞那肽",
+          "terms": [
+            "洛塞那肽"
+          ]
+        },
+        {
+          "value": "替尔泊肽",
+          "terms": [
+            "替尔泊肽",
+            "穆峰达"
+          ]
+        },
+        {
+          "value": "利司那肽",
+          "terms": [
+            "利司那肽"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "F3",
+      "name": "胰岛素",
+      "group": "F",
+      "priority": "P0",
+      "type": "list",
+      "definition": "在用胰岛素（按种类）。",
+      "options": [
+        {
+          "value": "甘精胰岛素",
+          "terms": [
+            "甘精胰岛素",
+            "来得时",
+            "长秀霖",
+            "优乐灵"
+          ]
+        },
+        {
+          "value": "地特胰岛素",
+          "terms": [
+            "地特胰岛素",
+            "诺和平"
+          ]
+        },
+        {
+          "value": "德谷胰岛素",
+          "terms": [
+            "德谷胰岛素",
+            "诺和达"
+          ]
+        },
+        {
+          "value": "门冬胰岛素",
+          "terms": [
+            "门冬胰岛素",
+            "诺和锐"
+          ]
+        },
+        {
+          "value": "赖脯胰岛素",
+          "terms": [
+            "赖脯胰岛素",
+            "优泌乐"
+          ]
+        },
+        {
+          "value": "谷赖胰岛素",
+          "terms": [
+            "谷赖胰岛素",
+            "艾培达"
+          ]
+        },
+        {
+          "value": "预混胰岛素",
+          "terms": [
+            "预混胰岛素",
+            "门冬胰岛素30",
+            "诺和锐30",
+            "优泌乐25",
+            "优泌乐50",
+            "诺和灵30R",
+            "甘舒霖30R",
+            "精蛋白生物合成人胰岛素"
+          ]
+        },
+        {
+          "value": "人胰岛素",
+          "terms": [
+            "人胰岛素",
+            "诺和灵R",
+            "普通胰岛素",
+            "生物合成人胰岛素"
+          ]
+        },
+        {
+          "value": "德谷门冬双胰岛素",
+          "terms": [
+            "德谷门冬双胰岛素",
+            "诺和佳"
+          ]
+        },
+        {
+          "value": "胰岛素泵",
+          "terms": [
+            "胰岛素泵",
+            "CSII"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "F4",
+      "name": "治疗方案",
+      "group": "F",
+      "priority": "P1",
+      "type": "enum",
+      "definition": "本次的降糖治疗方案类别。",
+      "options": [
+        {
+          "value": "生活方式干预",
+          "terms": [
+            "生活方式干预",
+            "饮食运动控制",
+            "单纯饮食控制"
+          ]
+        },
+        {
+          "value": "口服药",
+          "terms": [
+            "口服药",
+            "口服降糖药治疗"
+          ]
+        },
+        {
+          "value": "胰岛素",
+          "terms": [
+            "胰岛素",
+            "胰岛素治疗",
+            "胰岛素强化治疗"
+          ]
+        },
+        {
+          "value": "口服药联合胰岛素",
+          "terms": [
+            "口服药联合胰岛素",
+            "口服药+胰岛素",
+            "联合胰岛素"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "model": "always",
+      "recall": {
+        "terms": [
+          "降糖",
+          "治疗方案",
+          "胰岛素",
+          "口服"
+        ]
+      }
+    },
+    {
+      "id": "F5",
+      "name": "口服降糖药种数",
+      "group": "F",
+      "priority": "P1",
+      "type": "derived",
+      "definition": "本次就诊记录的不同口服降糖药种数。",
+      "derive": {
+        "op": "countOf",
+        "field": "F1"
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "G1",
+      "name": "他汀类",
+      "group": "G",
+      "priority": "P0",
+      "type": "list",
+      "definition": "在用他汀类。",
+      "options": [
+        {
+          "value": "阿托伐他汀",
+          "terms": [
+            "阿托伐他汀",
+            "立普妥"
+          ]
+        },
+        {
+          "value": "瑞舒伐他汀",
+          "terms": [
+            "瑞舒伐他汀",
+            "可定"
+          ]
+        },
+        {
+          "value": "辛伐他汀",
+          "terms": [
+            "辛伐他汀"
+          ]
+        },
+        {
+          "value": "普伐他汀",
+          "terms": [
+            "普伐他汀"
+          ]
+        },
+        {
+          "value": "匹伐他汀",
+          "terms": [
+            "匹伐他汀"
+          ]
+        },
+        {
+          "value": "氟伐他汀",
+          "terms": [
+            "氟伐他汀"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "G2",
+      "name": "ACEI／ARB",
+      "group": "G",
+      "priority": "P0",
+      "type": "list",
+      "definition": "在用 ACEI 或 ARB。",
+      "options": [
+        {
+          "value": "依那普利",
+          "terms": [
+            "依那普利"
+          ]
+        },
+        {
+          "value": "贝那普利",
+          "terms": [
+            "贝那普利"
+          ]
+        },
+        {
+          "value": "培哚普利",
+          "terms": [
+            "培哚普利"
+          ]
+        },
+        {
+          "value": "缬沙坦",
+          "terms": [
+            "缬沙坦",
+            "代文"
+          ]
+        },
+        {
+          "value": "厄贝沙坦",
+          "terms": [
+            "厄贝沙坦",
+            "安博维"
+          ]
+        },
+        {
+          "value": "氯沙坦",
+          "terms": [
+            "氯沙坦",
+            "科素亚"
+          ]
+        },
+        {
+          "value": "替米沙坦",
+          "terms": [
+            "替米沙坦",
+            "美卡素"
+          ]
+        },
+        {
+          "value": "坎地沙坦",
+          "terms": [
+            "坎地沙坦"
+          ]
+        },
+        {
+          "value": "奥美沙坦",
+          "terms": [
+            "奥美沙坦"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "G3",
+      "name": "抗血小板药",
+      "group": "G",
+      "priority": "P1",
+      "type": "list",
+      "definition": "在用抗血小板药。",
+      "options": [
+        {
+          "value": "阿司匹林",
+          "terms": [
+            "阿司匹林"
+          ]
+        },
+        {
+          "value": "氯吡格雷",
+          "terms": [
+            "氯吡格雷"
+          ]
+        },
+        {
+          "value": "替格瑞洛",
+          "terms": [
+            "替格瑞洛"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "G4",
+      "name": "非奈利酮",
+      "group": "G",
+      "priority": "P2",
+      "type": "list",
+      "definition": "在用非甾体 MRA。",
+      "options": [
+        {
+          "value": "非奈利酮",
+          "terms": [
+            "非奈利酮",
+            "可申"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "H1",
+      "name": "高血压",
+      "group": "H",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "高血压病史。",
+      "recall": {
+        "terms": [
+          "高血压"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "H2",
+      "name": "血脂异常",
+      "group": "H",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "高脂血症／血脂异常。",
+      "recall": {
+        "terms": [
+          "高脂血症",
+          "血脂异常",
+          "高胆固醇血症",
+          "高甘油三酯血症"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "H3",
+      "name": "肥胖",
+      "group": "H",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "肥胖或超重。",
+      "recall": {
+        "terms": [
+          "肥胖",
+          "超重",
+          "中心性肥胖"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "H4",
+      "name": "非酒精性脂肪肝／MASLD",
+      "group": "H",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "脂肪肝、MAFLD、MASLD。",
+      "recall": {
+        "terms": [
+          "脂肪肝",
+          "非酒精性脂肪性肝病",
+          "NAFLD",
+          "MAFLD",
+          "MASLD"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "H5",
+      "name": "糖尿病家族史",
+      "group": "H",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "一级亲属有糖尿病。",
+      "recall": {
+        "terms": [
+          "糖尿病"
+        ]
+      },
+      "accept": [
+        "家族"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "H6",
+      "name": "吸烟",
+      "group": "H",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "吸烟（含已戒）。",
+      "recall": {
+        "terms": [
+          "吸烟",
+          "抽烟"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "H7",
+      "name": "就诊年龄",
+      "group": "H",
+      "priority": "P0",
+      "type": "derived",
+      "definition": "本次就诊时年龄。",
+      "derive": {
+        "op": "ageAt",
+        "at": "$encounter.start"
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "K1",
+      "name": "收缩压",
+      "group": "K",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mmHg",
+      "range": {
+        "min": 60,
+        "max": 280
+      },
+      "definition": "血压记录中的收缩压（每次测量一条）。",
+      "rules": [
+        {
+          "id": "k1-v",
+          "regex": "(?:(?:BP|血压)\\s*[:：]?)[^。；;\\n\\d]{0,24}?(?<v>\\d{2,3}(?=\\s*/\\s*\\d{2,3}))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?:BP|血压)\\s*[:：]?"
+        ]
+      }
+    },
+    {
+      "id": "K2",
+      "name": "肌酐",
+      "group": "K",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "μmol/L",
+      "range": {
+        "min": 10,
+        "max": 2500
+      },
+      "definition": "肌酐（μmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k2-v",
+          "regex": "(?:肌酐|Scr|SCr)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "肌酐|Scr|SCr"
+        ]
+      }
+    },
+    {
+      "id": "K3",
+      "name": "尿酸",
+      "group": "K",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "μmol/L",
+      "range": {
+        "min": 50,
+        "max": 1500
+      },
+      "definition": "尿酸（μmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k3-v",
+          "regex": "(?:尿酸|UA(?![a-zA-Z]))[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "尿酸|UA(?![a-zA-Z])"
+        ]
+      }
+    },
+    {
+      "id": "K4",
+      "name": "体重",
+      "group": "K",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "kg",
+      "range": {
+        "min": 25,
+        "max": 250
+      },
+      "definition": "体重（kg）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k4-v",
+          "regex": "(?:体重)[^。；;\\n\\d]{0,24}?(?<v>\\d{2,3}(?:\\.\\d)?(?=\\s*(?:kg|Kg|KG|公斤)))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "体重"
+        ]
+      }
+    },
+    {
+      "id": "K5",
+      "name": "主诉",
+      "group": "K",
+      "priority": "P1",
+      "type": "text",
+      "definition": "本次就诊主诉原文。",
+      "granularity": "encounter",
+      "pick": "first",
+      "sources": {
+        "sections": [
+          "主诉"
+        ]
+      },
+      "rules": [
+        {
+          "id": "chief",
+          "regex": "(?<v>[^\\n]{2,100})"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "[^\\s]{2,}"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,1566 @@
+{
+  "format": "extract-template/1",
+  "id": "stroke-ais",
+  "name": "急性缺血性卒中（AIS）",
+  "version": "0.1.0",
+  "domain": "神经",
+  "description": "急性缺血性卒中研究与质控常用字段：发病与到院时间、卒中严重程度、病因分型、再灌注治疗与时间节点、并发症、二级预防用药、危险因素、结局量表与关键检验。",
+  "references": [
+    {
+      "title": "中国急性缺血性卒中诊治指南 2023（中华医学会神经病学分会，中华神经科杂志 2024）",
+      "url": "https://case.cdn.medlive.cn/all/info-progress/show-215373_100.html"
+    },
+    {
+      "title": "AHA/ASA Guidelines for the Early Management of Patients With Acute Ischemic Stroke (2019 update)"
+    },
+    {
+      "title": "TOAST classification of subtypes of acute ischemic stroke (Adams 1993)"
+    },
+    {
+      "title": "ECASS II/III symptomatic intracranial hemorrhage definitions"
+    }
+  ],
+  "documents": {
+    "excludeRecordTypes": [
+      "门诊收费",
+      "基本信息"
+    ]
+  },
+  "groups": [
+    {
+      "id": "A",
+      "name": "诊断与分型"
+    },
+    {
+      "id": "B",
+      "name": "时间节点"
+    },
+    {
+      "id": "C",
+      "name": "严重程度与影像"
+    },
+    {
+      "id": "D",
+      "name": "再灌注治疗"
+    },
+    {
+      "id": "E",
+      "name": "并发症"
+    },
+    {
+      "id": "F",
+      "name": "二级预防与出院用药"
+    },
+    {
+      "id": "G",
+      "name": "危险因素与既往史"
+    },
+    {
+      "id": "H",
+      "name": "结局"
+    },
+    {
+      "id": "K",
+      "name": "检验与生命体征"
+    }
+  ],
+  "fields": [
+    {
+      "id": "A1",
+      "name": "卒中相关诊断",
+      "group": "A",
+      "priority": "P0",
+      "type": "list",
+      "granularity": "encounter",
+      "definition": "诊断栏写明的脑梗死／缺血性卒中／TIA 等诊断名称（原文写法）。",
+      "sources": {
+        "sections": [
+          "诊断",
+          "初步诊断",
+          "出院诊断",
+          "入院诊断",
+          "ICD-10 名称",
+          "ICD-10"
+        ]
+      },
+      "rules": [
+        {
+          "id": "dx",
+          "regex": "(?<v>[^\\n，,。；;：:]{0,14}(?:脑梗死|脑梗塞|缺血性卒中|缺血性脑卒中|脑栓塞|短暂性脑缺血发作|TIA)[^\\n，,。；;：:]{0,14})"
+        }
+      ],
+      "recall": {
+        "terms": [
+          "脑梗死",
+          "脑梗塞",
+          "缺血性卒中",
+          "缺血性脑卒中",
+          "脑栓塞",
+          "短暂性脑缺血发作",
+          "TIA"
+        ]
+      }
+    },
+    {
+      "id": "A1c",
+      "name": "ICD-10 编码（I63/G45）",
+      "group": "A",
+      "priority": "P0",
+      "type": "list",
+      "granularity": "encounter",
+      "definition": "脑梗死 I63.x、TIA G45.x 编码。",
+      "rules": [
+        {
+          "id": "icd",
+          "regex": "(?<v>(?:I63|G45)(?:\\.\\d{1,3})?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "I63",
+          "G45"
+        ]
+      }
+    },
+    {
+      "id": "A2",
+      "name": "TOAST 病因分型",
+      "group": "A",
+      "priority": "P0",
+      "type": "enum",
+      "definition": "TOAST 分型：大动脉粥样硬化、心源性栓塞、小血管闭塞、其他明确病因、不明原因。",
+      "options": [
+        {
+          "value": "大动脉粥样硬化",
+          "terms": [
+            "大动脉粥样硬化",
+            "大动脉粥样硬化型"
+          ]
+        },
+        {
+          "value": "心源性栓塞",
+          "terms": [
+            "心源性栓塞",
+            "心源性栓塞型",
+            "心源性脑栓塞"
+          ]
+        },
+        {
+          "value": "小血管闭塞",
+          "terms": [
+            "小血管闭塞",
+            "小动脉闭塞",
+            "小血管闭塞型",
+            "小动脉闭塞型",
+            "腔隙性脑梗死"
+          ]
+        },
+        {
+          "value": "其他明确病因",
+          "terms": [
+            "其他明确病因",
+            "其他明确病因型"
+          ]
+        },
+        {
+          "value": "不明原因",
+          "terms": [
+            "不明原因",
+            "病因不明",
+            "隐源性卒中",
+            "隐源性"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "recall": {
+        "terms": [
+          "TOAST",
+          "分型",
+          "大动脉粥样硬化",
+          "心源性栓塞",
+          "小动脉闭塞",
+          "小血管闭塞",
+          "腔隙性",
+          "隐源性"
+        ]
+      }
+    },
+    {
+      "id": "A3",
+      "name": "OCSP 临床分型",
+      "group": "A",
+      "priority": "P2",
+      "type": "enum",
+      "definition": "牛津郡社区卒中项目分型。",
+      "options": [
+        {
+          "value": "完全前循环梗死",
+          "terms": [
+            "完全前循环梗死",
+            "TACI"
+          ]
+        },
+        {
+          "value": "部分前循环梗死",
+          "terms": [
+            "部分前循环梗死",
+            "PACI"
+          ]
+        },
+        {
+          "value": "后循环梗死",
+          "terms": [
+            "后循环梗死",
+            "POCI"
+          ]
+        },
+        {
+          "value": "腔隙性梗死",
+          "terms": [
+            "腔隙性梗死",
+            "LACI"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "A4",
+      "name": "责任血管",
+      "group": "A",
+      "priority": "P1",
+      "type": "list",
+      "definition": "影像或诊断写明的责任／闭塞血管。",
+      "options": [
+        {
+          "value": "颈内动脉",
+          "terms": [
+            "颈内动脉",
+            "ICA"
+          ]
+        },
+        {
+          "value": "大脑中动脉M1段",
+          "terms": [
+            "大脑中动脉M1段",
+            "M1段",
+            "MCA-M1"
+          ]
+        },
+        {
+          "value": "大脑中动脉M2段",
+          "terms": [
+            "大脑中动脉M2段",
+            "M2段"
+          ]
+        },
+        {
+          "value": "大脑中动脉",
+          "terms": [
+            "大脑中动脉",
+            "MCA"
+          ]
+        },
+        {
+          "value": "大脑前动脉",
+          "terms": [
+            "大脑前动脉",
+            "ACA"
+          ]
+        },
+        {
+          "value": "大脑后动脉",
+          "terms": [
+            "大脑后动脉",
+            "PCA"
+          ]
+        },
+        {
+          "value": "基底动脉",
+          "terms": [
+            "基底动脉",
+            "BA"
+          ]
+        },
+        {
+          "value": "椎动脉",
+          "terms": [
+            "椎动脉",
+            "VA"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "recall": {
+        "terms": [
+          "闭塞",
+          "狭窄",
+          "责任血管",
+          "颈内动脉",
+          "大脑中动脉",
+          "大脑前动脉",
+          "大脑后动脉",
+          "基底动脉",
+          "椎动脉",
+          "M1",
+          "M2"
+        ]
+      }
+    },
+    {
+      "id": "A5",
+      "name": "病灶侧别",
+      "group": "A",
+      "priority": "P2",
+      "type": "enum",
+      "definition": "梗死灶所在半球。",
+      "options": [
+        {
+          "value": "左侧",
+          "terms": [
+            "左侧",
+            "左侧半球",
+            "左侧大脑"
+          ]
+        },
+        {
+          "value": "右侧",
+          "terms": [
+            "右侧",
+            "右侧半球",
+            "右侧大脑"
+          ]
+        },
+        {
+          "value": "双侧",
+          "terms": [
+            "双侧",
+            "双侧半球"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "recall": {
+        "terms": [
+          "梗死",
+          "梗塞",
+          "病灶"
+        ]
+      }
+    },
+    {
+      "id": "A6",
+      "name": "醒后卒中／发病时间不明",
+      "group": "A",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "晨起发现或发病时间不明的卒中。",
+      "recall": {
+        "terms": [
+          "醒后卒中",
+          "晨起发现",
+          "睡醒后发现",
+          "起床时发现",
+          "发病时间不明",
+          "发病时间不详"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "B1",
+      "name": "发病（最后正常）时间",
+      "group": "B",
+      "priority": "P0",
+      "type": "date",
+      "definition": "症状出现或最后看起来正常的时间；相对写法按文书写成时间换算。",
+      "granularity": "encounter",
+      "pick": "earliest",
+      "model": "always",
+      "sources": {
+        "sections": [
+          "主诉",
+          "现病史",
+          "正文",
+          "入院情况"
+        ]
+      },
+      "recall": {
+        "terms": [
+          "发病",
+          "起病",
+          "突发",
+          "最后正常",
+          "出现"
+        ],
+        "regex": [
+          "[\\d一二两三四五六七八九十半]+\\s*个?\\s*(?:年|月|周|星期|天|日|小时|h)\\s*(?:余|多|左右|许)?"
+        ]
+      }
+    },
+    {
+      "id": "B2",
+      "name": "发病至到院时间（小时）",
+      "group": "B",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "encounter",
+      "unit": "h",
+      "range": {
+        "min": 0,
+        "max": 720
+      },
+      "pick": "first",
+      "definition": "病历写明的发病到到院（就诊）时间，单位小时。",
+      "rules": [
+        {
+          "id": "b2-v",
+          "regex": "(?:发病(?:后|至)?(?:到院|入院|就诊|来院)|起病至(?:到院|就诊))[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "发病(?:后|至)?(?:到院|入院|就诊|来院)|起病至(?:到院|就诊)"
+        ]
+      }
+    },
+    {
+      "id": "B3",
+      "name": "DNT（入院至溶栓，分钟）",
+      "group": "B",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "encounter",
+      "unit": "min",
+      "range": {
+        "min": 0,
+        "max": 600
+      },
+      "pick": "first",
+      "definition": "DNT（入院至溶栓，分钟）（min）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "b3-v",
+          "regex": "(?:DNT|入院至(?:静脉)?溶栓(?:时间)?|门-针时间|进门(?:到|至)溶栓)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "DNT|入院至(?:静脉)?溶栓(?:时间)?|门-针时间|进门(?:到|至)溶栓"
+        ]
+      }
+    },
+    {
+      "id": "B4",
+      "name": "DPT（入院至股动脉穿刺，分钟）",
+      "group": "B",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "encounter",
+      "unit": "min",
+      "range": {
+        "min": 0,
+        "max": 900
+      },
+      "pick": "first",
+      "definition": "DPT（入院至股动脉穿刺，分钟）（min）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "b4-v",
+          "regex": "(?:DPT|入院至(?:股动脉)?穿刺|门-穿时间)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "DPT|入院至(?:股动脉)?穿刺|门-穿时间"
+        ]
+      }
+    },
+    {
+      "id": "B5",
+      "name": "发病至溶栓时间（分钟）",
+      "group": "B",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "encounter",
+      "unit": "min",
+      "range": {
+        "min": 0,
+        "max": 1440
+      },
+      "pick": "first",
+      "definition": "发病至溶栓时间（分钟）（min）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "b5-v",
+          "regex": "(?:ONT|发病至溶栓(?:时间)?|OTT)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "ONT|发病至溶栓(?:时间)?|OTT"
+        ]
+      }
+    },
+    {
+      "id": "C1",
+      "name": "NIHSS",
+      "group": "C",
+      "priority": "P0",
+      "type": "score",
+      "scale": "NIHSS",
+      "granularity": "timepoint",
+      "range": {
+        "min": 0,
+        "max": 42
+      },
+      "definition": "NIHSS总分（每次评定一条）。只取写明的总分，不取条目分、不取参考范围。",
+      "rules": [
+        {
+          "id": "c1-total",
+          "regex": "(?:NIHSS|美国国立卫生研究院卒中量表|NIH卒中量表)\\s*(?:量表)?\\s*(?:评分|总分|得分|评定|测评|分值|评估)?\\s*(?:结果)?\\s*[:：为是]?\\s*(?<v>\\d{1,3}(?:\\.\\d)?)\\s*分?"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "NIHSS|美国国立卫生研究院卒中量表|NIH卒中量表"
+        ]
+      }
+    },
+    {
+      "id": "C2",
+      "name": "GCS",
+      "group": "C",
+      "priority": "P2",
+      "type": "score",
+      "scale": "GCS",
+      "granularity": "timepoint",
+      "range": {
+        "min": 3,
+        "max": 15
+      },
+      "definition": "GCS总分（每次评定一条）。只取写明的总分，不取条目分、不取参考范围。",
+      "rules": [
+        {
+          "id": "c2-total",
+          "regex": "(?:GCS|格拉斯哥昏迷(?:评分|量表))\\s*(?:量表)?\\s*(?:评分|总分|得分|评定|测评|分值|评估)?\\s*(?:结果)?\\s*[:：为是]?\\s*(?<v>\\d{1,3}(?:\\.\\d)?)\\s*分?"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "GCS|格拉斯哥昏迷(?:评分|量表)"
+        ]
+      }
+    },
+    {
+      "id": "C3",
+      "name": "ASPECTS",
+      "group": "C",
+      "priority": "P1",
+      "type": "score",
+      "scale": "ASPECTS",
+      "granularity": "timepoint",
+      "range": {
+        "min": 0,
+        "max": 10
+      },
+      "definition": "ASPECTS总分（每次评定一条）。只取写明的总分，不取条目分、不取参考范围。",
+      "rules": [
+        {
+          "id": "c3-total",
+          "regex": "(?:ASPECTS|Alberta卒中项目早期CT评分)\\s*(?:量表)?\\s*(?:评分|总分|得分|评定|测评|分值|评估)?\\s*(?:结果)?\\s*[:：为是]?\\s*(?<v>\\d{1,3}(?:\\.\\d)?)\\s*分?"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "ASPECTS|Alberta卒中项目早期CT评分"
+        ]
+      }
+    },
+    {
+      "id": "C4",
+      "name": "大血管闭塞（LVO）",
+      "group": "C",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "CTA/MRA/DSA 证实的颅内外大血管闭塞（颈内动脉、大脑中动脉 M1/M2、基底动脉等）。",
+      "recall": {
+        "terms": [
+          "大血管闭塞",
+          "LVO",
+          "颈内动脉闭塞",
+          "大脑中动脉闭塞",
+          "M1段闭塞",
+          "M2段闭塞",
+          "基底动脉闭塞",
+          "椎基底动脉闭塞"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "C5",
+      "name": "出血转化",
+      "group": "C",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "影像复查发现的梗死后出血转化（含无症状）。",
+      "recall": {
+        "terms": [
+          "出血转化",
+          "梗死后出血",
+          "出血性转化",
+          "HT",
+          "渗血"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "D1",
+      "name": "静脉溶栓",
+      "group": "D",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "本次给予静脉溶栓（阿替普酶、替奈普酶、尿激酶、瑞替普酶等）。",
+      "recall": {
+        "terms": [
+          "静脉溶栓",
+          "IVT",
+          "阿替普酶",
+          "rt-PA",
+          "rtPA",
+          "替奈普酶",
+          "TNK",
+          "尿激酶",
+          "瑞替普酶",
+          "溶栓治疗"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "D2",
+      "name": "溶栓药物",
+      "group": "D",
+      "priority": "P0",
+      "type": "enum",
+      "definition": "静脉溶栓所用药物。",
+      "options": [
+        {
+          "value": "阿替普酶",
+          "terms": [
+            "阿替普酶",
+            "rt-PA",
+            "rtPA",
+            "爱通立"
+          ]
+        },
+        {
+          "value": "替奈普酶",
+          "terms": [
+            "替奈普酶",
+            "TNK",
+            "rhTNK-tPA",
+            "铭复乐"
+          ]
+        },
+        {
+          "value": "尿激酶",
+          "terms": [
+            "尿激酶"
+          ]
+        },
+        {
+          "value": "瑞替普酶",
+          "terms": [
+            "瑞替普酶"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "pick": "all"
+    },
+    {
+      "id": "D3",
+      "name": "血管内治疗（取栓）",
+      "group": "D",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "本次行机械取栓、动脉溶栓、血管成形或支架等血管内治疗。",
+      "recall": {
+        "terms": [
+          "血管内治疗",
+          "EVT",
+          "机械取栓",
+          "取栓术",
+          "动脉取栓",
+          "支架取栓",
+          "抽吸取栓",
+          "动脉溶栓",
+          "血管内介入"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "D4",
+      "name": "再通程度（mTICI／eTICI）",
+      "group": "D",
+      "priority": "P0",
+      "type": "enum",
+      "definition": "血管内治疗后的再灌注分级。",
+      "options": [
+        {
+          "value": "3",
+          "terms": []
+        },
+        {
+          "value": "2c",
+          "terms": []
+        },
+        {
+          "value": "2b",
+          "terms": []
+        },
+        {
+          "value": "2a",
+          "terms": []
+        },
+        {
+          "value": "1",
+          "terms": []
+        },
+        {
+          "value": "0",
+          "terms": []
+        }
+      ],
+      "granularity": "encounter",
+      "pick": "last",
+      "recall": {
+        "regex": [
+          "[me]?TICI\\s*\\d[abc]?"
+        ]
+      },
+      "rules": [
+        {
+          "id": "tici",
+          "regex": "[me]?TICI\\s*(?:分级)?\\s*[:：为]?\\s*(?<v>3|2c|2b|2a|1|0)"
+        }
+      ]
+    },
+    {
+      "id": "D5",
+      "name": "桥接治疗",
+      "group": "D",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "静脉溶栓后桥接血管内治疗。",
+      "recall": {
+        "terms": [
+          "桥接",
+          "桥接治疗",
+          "溶栓后取栓"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "E1",
+      "name": "症状性颅内出血（sICH）",
+      "group": "E",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "溶栓或取栓后出现、伴临床恶化（如 NIHSS 增加≥4 分）的颅内出血（ECASS 定义）。",
+      "recall": {
+        "terms": [
+          "症状性颅内出血",
+          "sICH",
+          "症状性出血转化",
+          "症状性脑出血"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "E2",
+      "name": "卒中相关性肺炎",
+      "group": "E",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "住院期间新发肺部感染／卒中相关性肺炎。",
+      "recall": {
+        "terms": [
+          "卒中相关性肺炎",
+          "SAP",
+          "肺部感染",
+          "吸入性肺炎",
+          "坠积性肺炎",
+          "肺炎"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "E3",
+      "name": "吞咽障碍",
+      "group": "E",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "吞咽功能障碍（洼田饮水试验异常等）。",
+      "recall": {
+        "terms": [
+          "吞咽障碍",
+          "吞咽困难",
+          "饮水呛咳",
+          "洼田饮水试验"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "E4",
+      "name": "早期神经功能恶化",
+      "group": "E",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "病情进展／早期神经功能恶化（END）。",
+      "recall": {
+        "terms": [
+          "神经功能恶化",
+          "END",
+          "病情进展",
+          "症状加重",
+          "病情加重"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "E5",
+      "name": "恶性脑水肿／去骨瓣减压",
+      "group": "E",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "大面积梗死伴恶性脑水肿或行去骨瓣减压。",
+      "recall": {
+        "terms": [
+          "恶性脑水肿",
+          "脑疝",
+          "去骨瓣减压",
+          "中线移位"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "E6",
+      "name": "深静脉血栓",
+      "group": "E",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "住院期间下肢深静脉血栓。",
+      "recall": {
+        "terms": [
+          "深静脉血栓",
+          "DVT",
+          "下肢静脉血栓"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "F1",
+      "name": "抗血小板药",
+      "group": "F",
+      "priority": "P0",
+      "type": "list",
+      "definition": "本次使用或出院带的抗血小板药（双抗写两条）。",
+      "options": [
+        {
+          "value": "阿司匹林",
+          "terms": [
+            "阿司匹林",
+            "拜阿司匹灵"
+          ]
+        },
+        {
+          "value": "氯吡格雷",
+          "terms": [
+            "氯吡格雷",
+            "波立维",
+            "泰嘉"
+          ]
+        },
+        {
+          "value": "替格瑞洛",
+          "terms": [
+            "替格瑞洛",
+            "倍林达"
+          ]
+        },
+        {
+          "value": "西洛他唑",
+          "terms": [
+            "西洛他唑"
+          ]
+        },
+        {
+          "value": "吲哚布芬",
+          "terms": [
+            "吲哚布芬"
+          ]
+        },
+        {
+          "value": "替罗非班",
+          "terms": [
+            "替罗非班"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "F2",
+      "name": "抗凝药",
+      "group": "F",
+      "priority": "P0",
+      "type": "list",
+      "definition": "本次使用或出院带的抗凝药。",
+      "options": [
+        {
+          "value": "华法林",
+          "terms": [
+            "华法林"
+          ]
+        },
+        {
+          "value": "达比加群",
+          "terms": [
+            "达比加群",
+            "泰毕全"
+          ]
+        },
+        {
+          "value": "利伐沙班",
+          "terms": [
+            "利伐沙班",
+            "拜瑞妥"
+          ]
+        },
+        {
+          "value": "阿哌沙班",
+          "terms": [
+            "阿哌沙班",
+            "艾乐妥"
+          ]
+        },
+        {
+          "value": "艾多沙班",
+          "terms": [
+            "艾多沙班"
+          ]
+        },
+        {
+          "value": "低分子肝素",
+          "terms": [
+            "低分子肝素",
+            "依诺肝素",
+            "那屈肝素",
+            "达肝素"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "F3",
+      "name": "他汀类",
+      "group": "F",
+      "priority": "P0",
+      "type": "list",
+      "definition": "本次使用或出院带的他汀类药物。",
+      "options": [
+        {
+          "value": "阿托伐他汀",
+          "terms": [
+            "阿托伐他汀",
+            "立普妥",
+            "阿乐"
+          ]
+        },
+        {
+          "value": "瑞舒伐他汀",
+          "terms": [
+            "瑞舒伐他汀",
+            "可定"
+          ]
+        },
+        {
+          "value": "辛伐他汀",
+          "terms": [
+            "辛伐他汀"
+          ]
+        },
+        {
+          "value": "普伐他汀",
+          "terms": [
+            "普伐他汀"
+          ]
+        },
+        {
+          "value": "匹伐他汀",
+          "terms": [
+            "匹伐他汀"
+          ]
+        },
+        {
+          "value": "氟伐他汀",
+          "terms": [
+            "氟伐他汀"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "F4",
+      "name": "双联抗血小板（DAPT）",
+      "group": "F",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "阿司匹林联合氯吡格雷或替格瑞洛的双联抗血小板治疗。",
+      "recall": {
+        "terms": [
+          "双抗",
+          "双联抗血小板",
+          "DAPT"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "F5",
+      "name": "出院带药",
+      "group": "F",
+      "priority": "P0",
+      "type": "text",
+      "granularity": "encounter",
+      "pick": "all",
+      "definition": "出院医嘱中的带药（原文）。",
+      "sources": {
+        "sections": [
+          "出院医嘱"
+        ]
+      },
+      "rules": [
+        {
+          "id": "discharge-meds",
+          "regex": "(?<v>[^。；\\n]{4,200})"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "[^\\s]{4,}"
+        ]
+      }
+    },
+    {
+      "id": "G1",
+      "name": "高血压",
+      "group": "G",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "高血压病史或诊断。",
+      "recall": {
+        "terms": [
+          "高血压",
+          "高血压病"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G2",
+      "name": "糖尿病",
+      "group": "G",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "糖尿病病史或诊断。",
+      "recall": {
+        "terms": [
+          "糖尿病",
+          "2型糖尿病",
+          "1型糖尿病"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G3",
+      "name": "心房颤动",
+      "group": "G",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "心房颤动（含阵发性）。",
+      "recall": {
+        "terms": [
+          "心房颤动",
+          "房颤",
+          "AF"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G4",
+      "name": "既往卒中／TIA",
+      "group": "G",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "既往脑梗死、脑出血或 TIA 病史。",
+      "recall": {
+        "terms": [
+          "脑梗死",
+          "脑梗塞",
+          "脑出血",
+          "脑卒中",
+          "卒中",
+          "TIA",
+          "短暂性脑缺血发作"
+        ]
+      },
+      "accept": [
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G5",
+      "name": "冠心病",
+      "group": "G",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "冠心病／心肌梗死病史。",
+      "recall": {
+        "terms": [
+          "冠心病",
+          "冠状动脉粥样硬化性心脏病",
+          "心肌梗死",
+          "心梗",
+          "PCI术后",
+          "冠脉支架"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G6",
+      "name": "血脂异常",
+      "group": "G",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "高脂血症／血脂异常病史。",
+      "recall": {
+        "terms": [
+          "高脂血症",
+          "血脂异常",
+          "高胆固醇血症",
+          "高甘油三酯血症"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G7",
+      "name": "吸烟",
+      "group": "G",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "吸烟（含已戒）。",
+      "recall": {
+        "terms": [
+          "吸烟",
+          "抽烟"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G8",
+      "name": "饮酒",
+      "group": "G",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "饮酒（含已戒）。",
+      "recall": {
+        "terms": [
+          "饮酒",
+          "喝酒",
+          "酗酒"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "H1",
+      "name": "mRS",
+      "group": "H",
+      "priority": "P0",
+      "type": "score",
+      "scale": "mRS",
+      "granularity": "timepoint",
+      "range": {
+        "min": 0,
+        "max": 6
+      },
+      "definition": "mRS总分（每次评定一条）。只取写明的总分，不取条目分、不取参考范围。",
+      "rules": [
+        {
+          "id": "h1-total",
+          "regex": "(?:mRS|改良Rankin(?:量表)?|改良RANKIN)\\s*(?:量表)?\\s*(?:评分|总分|得分|评定|测评|分值|评估)?\\s*(?:结果)?\\s*[:：为是]?\\s*(?<v>\\d{1,3}(?:\\.\\d)?)\\s*分?"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "mRS|改良Rankin(?:量表)?|改良RANKIN"
+        ]
+      }
+    },
+    {
+      "id": "H2",
+      "name": "入院年龄",
+      "group": "H",
+      "priority": "P0",
+      "type": "derived",
+      "definition": "本次就诊时年龄。",
+      "derive": {
+        "op": "ageAt",
+        "at": "$encounter.start"
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "H3",
+      "name": "住院天数",
+      "group": "H",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "encounter",
+      "unit": "天",
+      "range": {
+        "min": 0,
+        "max": 365
+      },
+      "pick": "last",
+      "definition": "住院天数（天）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "h3-v",
+          "regex": "(?:住院(?:天数|日数)|共住院)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        },
+        {
+          "id": "los-b",
+          "regex": "住院(?<v>\\d{1,3})\\s*天"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "住院(?:天数|日数)|共住院"
+        ]
+      }
+    },
+    {
+      "id": "H4",
+      "name": "院内死亡",
+      "group": "H",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "住院期间死亡。",
+      "recall": {
+        "terms": [
+          "死亡",
+          "临床死亡",
+          "宣告死亡",
+          "抢救无效"
+        ]
+      },
+      "granularity": "encounter",
+      "sources": {
+        "sections": [
+          "出院情况",
+          "诊疗经过",
+          "病程记录",
+          "正文"
+        ]
+      }
+    },
+    {
+      "id": "H5",
+      "name": "出院转归",
+      "group": "H",
+      "priority": "P1",
+      "type": "enum",
+      "definition": "出院时转归（原文写法归类）。",
+      "options": [
+        {
+          "value": "治愈",
+          "terms": [
+            "治愈",
+            "痊愈"
+          ]
+        },
+        {
+          "value": "好转",
+          "terms": [
+            "好转",
+            "明显好转",
+            "症状好转"
+          ]
+        },
+        {
+          "value": "未愈",
+          "terms": [
+            "未愈",
+            "无好转"
+          ]
+        },
+        {
+          "value": "死亡",
+          "terms": [
+            "死亡"
+          ]
+        },
+        {
+          "value": "转院",
+          "terms": [
+            "转院",
+            "转上级医院",
+            "转康复医院"
+          ]
+        },
+        {
+          "value": "自动出院",
+          "terms": [
+            "自动出院",
+            "自动离院",
+            "放弃治疗"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "pick": "last",
+      "sources": {
+        "recordTypes": [
+          "出院记录"
+        ]
+      }
+    },
+    {
+      "id": "K1",
+      "name": "入院收缩压",
+      "group": "K",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mmHg",
+      "range": {
+        "min": 60,
+        "max": 280
+      },
+      "definition": "血压记录中的收缩压（每次测量一条）。",
+      "rules": [
+        {
+          "id": "k1-v",
+          "regex": "(?:(?:BP|血压)\\s*[:：]?)[^。；;\\n\\d]{0,24}?(?<v>\\d{2,3}(?=\\s*/\\s*\\d{2,3}))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?:BP|血压)\\s*[:：]?"
+        ]
+      }
+    },
+    {
+      "id": "K2",
+      "name": "LDL-C",
+      "group": "K",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mmol/L",
+      "range": {
+        "min": 0.1,
+        "max": 15
+      },
+      "definition": "LDL-C（mmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k2-v",
+          "regex": "(?:LDL-C|LDL|低密度脂蛋白(?:胆固醇)?)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "LDL-C|LDL|低密度脂蛋白(?:胆固醇)?"
+        ]
+      }
+    },
+    {
+      "id": "K3",
+      "name": "糖化血红蛋白",
+      "group": "K",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "%",
+      "range": {
+        "min": 3,
+        "max": 20
+      },
+      "definition": "糖化血红蛋白（%）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k3-v",
+          "regex": "(?:HbA1c|糖化血红蛋白)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "HbA1c|糖化血红蛋白"
+        ]
+      }
+    },
+    {
+      "id": "K4",
+      "name": "血糖",
+      "group": "K",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mmol/L",
+      "range": {
+        "min": 1,
+        "max": 40
+      },
+      "definition": "血糖（mmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k4-v",
+          "regex": "(?:(?:随机|空腹|入院)?血糖|GLU|葡萄糖)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?:随机|空腹|入院)?血糖|GLU|葡萄糖"
+        ]
+      }
+    },
+    {
+      "id": "K5",
+      "name": "同型半胱氨酸",
+      "group": "K",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "μmol/L",
+      "range": {
+        "min": 1,
+        "max": 200
+      },
+      "definition": "同型半胱氨酸（μmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k5-v",
+          "regex": "(?:同型半胱氨酸|Hcy)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "同型半胱氨酸|Hcy"
+        ]
+      }
+    },
+    {
+      "id": "K6",
+      "name": "INR",
+      "group": "K",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": null,
+      "range": {
+        "min": 0.5,
+        "max": 10
+      },
+      "definition": "INR的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k6-v",
+          "regex": "(?:INR|国际标准化比值)[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "INR|国际标准化比值"
+        ]
+      }
+    },
+    {
+      "id": "K7",
+      "name": "主诉",
+      "group": "K",
+      "priority": "P1",
+      "type": "text",
+      "definition": "本次就诊主诉原文。",
+      "granularity": "encounter",
+      "pick": "first",
+      "sources": {
+        "sections": [
+          "主诉"
+        ]
+      },
+      "rules": [
+        {
+          "id": "chief",
+          "regex": "(?<v>[^\\n]{2,100})"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "[^\\s]{2,}"
+        ]
+      }
+    }
+  ]
+}
