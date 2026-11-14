@@ -1669,7 +1669,6 @@
       "priority": "P2",
       "type": "number",
       "granularity": "timepoint",
-      "unit": null,
       "range": {
         "min": 0,
         "max": 100000

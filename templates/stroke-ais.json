@@ -712,28 +712,22 @@
       "definition": "血管内治疗后的再灌注分级。",
       "options": [
         {
-          "value": "3",
-          "terms": []
+          "value": "3"
         },
         {
-          "value": "2c",
-          "terms": []
+          "value": "2c"
         },
         {
-          "value": "2b",
-          "terms": []
+          "value": "2b"
         },
         {
-          "value": "2a",
-          "terms": []
+          "value": "2a"
         },
         {
-          "value": "1",
-          "terms": []
+          "value": "1"
         },
         {
-          "value": "0",
-          "terms": []
+          "value": "0"
         }
       ],
       "granularity": "encounter",
@@ -1517,7 +1511,6 @@
       "priority": "P2",
       "type": "number",
       "granularity": "timepoint",
-      "unit": null,
       "range": {
         "min": 0.5,
         "max": 10

@@ -1747,24 +1747,19 @@
       "definition": "记录的不良事件最高分级。",
       "options": [
         {
-          "value": "1级",
-          "terms": []
+          "value": "1级"
         },
         {
-          "value": "2级",
-          "terms": []
+          "value": "2级"
         },
         {
-          "value": "3级",
-          "terms": []
+          "value": "3级"
         },
         {
-          "value": "4级",
-          "terms": []
+          "value": "4级"
         },
         {
-          "value": "5级",
-          "terms": []
+          "value": "5级"
         }
       ],
       "granularity": "encounter",

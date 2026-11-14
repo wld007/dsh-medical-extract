@@ -568,7 +568,6 @@
       "priority": "P0",
       "type": "number",
       "granularity": "timepoint",
-      "unit": null,
       "range": {
         "min": 0.3,
         "max": 3

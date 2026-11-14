@@ -377,7 +377,7 @@
           "value": "隐匿起病",
           "terms": [
             "隐匿起病",
-            "隐匿起病、逐渐进展",
+            "隐匿性起病",
             "缓慢起病",
             "慢性起病"
           ]
@@ -953,7 +953,6 @@
       "priority": "P1",
       "type": "number",
       "granularity": "timepoint",
-      "unit": null,
       "range": {
         "min": 0.01,
         "max": 0.3

@@ -7,7 +7,8 @@
 import { execFile } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
-import { join } from 'node:path'
+import { writeFile } from 'node:fs/promises'
+import { isAbsolute, join, resolve as resolvePath } from 'node:path'
 import { createService, SAVABLE } from './lib/service.js'
 
 export const name = 'medical-extract'
@@ -109,6 +110,28 @@ export function apply(ctx, config = {}) {
     render: (args, v) => [{ type: 'text', text: v.saved ? '已保存。' : `未保存，校验问题：\n- ${v.problems.join('\n- ')}` }],
   }))
 
+  ctx.tools.register(tool({
+    name: 'extract_template_excel',
+    description: '抽取模板与 Excel 互转。export：把模板（或空白模板）导出成 xlsx 文件写到 outPath；import：读本机 xlsx（模板、字段、规则三张表，格式同导出），校验后存入用户模板库（同 id 覆盖），校验不通过时返回问题清单（到行到列）、不保存。',
+    parameters: {
+      action: { type: 'string', description: 'export 或 import。', required: true },
+      id: { type: 'string', description: 'export 时：模板 id；省略且 blank 为 true 时导出空白模板。' },
+      blank: { type: 'boolean', description: 'export 时：导出带填写说明的空白模板。' },
+      outPath: { type: 'string', description: 'export 时：写到哪个 .xlsx 文件（绝对路径或相对工作区）。' },
+      path: { type: 'string', description: 'import 时：要导入的 .xlsx 文件路径。' },
+    },
+    execute: async (args) => {
+      if (args.action === 'import') return service.importTemplateXlsx({ path: args.path })
+      if (args.action !== 'export') throw new Error('action 应为 export 或 import')
+      if (!args.outPath) throw new Error('export 需要 outPath')
+      const v = await service.templateXlsx({ id: args.id, blank: Boolean(args.blank) || !args.id })
+      const out = isAbsolute(args.outPath) ? args.outPath : resolvePath(defaultDirectory, args.outPath)
+      await writeFile(out, Buffer.from(v.base64, 'base64'))
+      return { written: out }
+    },
+    render: (args, v) => [{ type: 'text', text: v.written ? `已导出：${v.written}` : v.saved ? `已导入并保存：${v.template.id}（${v.template.name} v${v.template.version}，${v.template.fields} 字段）${v.problems.length ? `\n提示：\n- ${v.problems.join('\n- ')}` : ''}` : `未保存，问题：\n- ${v.problems.join('\n- ')}` }],
+  }))
+
   ctx.inject(['commands'], (cmdCtx) => {
     const usage = '用法：/extract <输入目录或文件> [--template 模板id] [--mode hybrid|model|rules] [--out 输出根目录] [--as-of "YYYY-MM-DD HH:mm"]'
     const dispose = cmdCtx.commands.register({
@@ -145,7 +168,7 @@ export function apply(ctx, config = {}) {
         let body
         try {
           const chunks = []; let size = 0
-          for await (const chunk of req) { size += chunk.length; if (size > 4_000_000) throw new Error('request body too large'); chunks.push(chunk) }
+          for await (const chunk of req) { size += chunk.length; if (size > 16_000_000) throw new Error('request body too large'); chunks.push(chunk) }
           body = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}')
         } catch (error) {
           res.writeHead(400, { 'content-type': 'application/json' }); res.end(JSON.stringify({ error: String(error?.message ?? error) })); return
@@ -193,6 +216,8 @@ export function apply(ctx, config = {}) {
           case 'templates': return service.templates()
           case 'template': return service.template(r.id)
           case 'saveTemplate': return service.saveTemplate(r.template)
+          case 'templateXlsx': return service.templateXlsx({ id: r.id, blank: Boolean(r.blank) })
+          case 'importTemplateXlsx': return service.importTemplateXlsx({ base64: r.base64 })
           case 'reviewQueue': return service.reviewQueue(r.runId, r)
           case 'decide': return service.decide(r.runId, r)
           case 'table': return service.table(r.runId, r)

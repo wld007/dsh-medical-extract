@@ -7,6 +7,9 @@ export const DUR = '[\\d一二两三四五六七八九十半]+\\s*个?\\s*(?:年
 export const DX_SECTIONS = ['诊断', '初步诊断', '出院诊断', '入院诊断', 'ICD-10 名称', 'ICD-10']
 export const HX = ['阳性', '既往']
 
+/** 选项对象：没有写法时不带 terms（与 Excel 导入一致） */
+const option = (value, terms) => (terms.length ? { value, terms } : { value })
+
 /** 有／无／可疑 */
 export function presence(id, name, group, priority, definition, terms, extra = {}) {
   const { regex, ...rest } = extra
@@ -19,12 +22,12 @@ export function presence(id, name, group, priority, definition, terms, extra = {
  */
 export function enumOf(id, name, group, priority, definition, opts, extra = {}) {
   const { selfTerm = true, ...rest } = extra
-  return { id, name, group, priority, type: 'enum', definition, options: opts.map(([value, ...terms]) => ({ value, terms: selfTerm ? [value, ...terms] : terms })), ...rest }
+  return { id, name, group, priority, type: 'enum', definition, options: opts.map(([value, ...terms]) => option(value, selfTerm ? [value, ...terms] : terms)), ...rest }
 }
 
 /** 多值列表（如药物）：opts = [[通用名, 商品名或别名…]] */
 export function listOf(id, name, group, priority, definition, opts, extra = {}) {
-  return { id, name, group, priority, type: 'list', definition, options: opts.map(([value, ...terms]) => ({ value, terms: [value, ...terms] })), ...extra }
+  return { id, name, group, priority, type: 'list', definition, options: opts.map(([value, ...terms]) => option(value, [value, ...terms])), ...extra }
 }
 
 /**
@@ -33,7 +36,7 @@ export function listOf(id, name, group, priority, definition, opts, extra = {}) 
  */
 export function measure(id, name, group, priority, head, { unit = null, range = null, granularity = 'timepoint', definition, pick, gap = 24, alt = [], value = '\\d+(?:\\.\\d+)?', ...rest } = {}) {
   return {
-    id, name, group, priority, type: 'number', granularity, unit, ...(range ? { range } : {}), ...(pick ? { pick } : {}),
+    id, name, group, priority, type: 'number', granularity, ...(unit ? { unit } : {}), ...(range ? { range } : {}), ...(pick ? { pick } : {}),
     definition: definition ?? `${name}${unit ? `（${unit}）` : ''}的测定值，每次测定一条。`,
     rules: [{ id: `${id.toLowerCase()}-v`, regex: `(?:${head})[^。；;\\n\\d]{0,${gap}}?(?<v>${value})` }, ...alt],
     recall: { regex: [head] },

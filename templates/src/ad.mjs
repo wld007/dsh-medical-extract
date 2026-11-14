@@ -43,7 +43,7 @@ export default {
     date('B1', '认知症状首发时间', 'B', 'P0', '记忆或其他认知症状首次出现的时间；"记忆力下降3年"取 3 年前。', { granularity: 'patient', pick: 'earliest', accept: HX, model: 'always', sources: { sections: ['主诉', '现病史'] }, recall: { terms: ['记忆力下降', '记忆力减退', '健忘', '遗忘', '认知下降', '起病', '发病'] } }),
     derived('B2', '起病年龄', 'B', 'P0', '认知症状首发时的年龄。', { op: 'ageAt', at: 'B1' }, { granularity: 'patient' }),
     derived('B3', '病程（月）', 'B', 'P1', '首发至本次就诊的月数。', { op: 'monthsBetween', from: 'B1', to: '$encounter.start' }, { granularity: 'encounter' }),
-    enumOf('B4', '起病方式', 'B', 'P2', '起病与进展方式。', [['隐匿起病', '隐匿起病、逐渐进展', '缓慢起病', '慢性起病'], ['急性起病', '突然起病'], ['阶梯样进展', '阶梯式']], { granularity: 'patient' }),
+    enumOf('B4', '起病方式', 'B', 'P2', '起病与进展方式。', [['隐匿起病', '隐匿性起病', '缓慢起病', '慢性起病'], ['急性起病', '突然起病'], ['阶梯样进展', '阶梯式']], { granularity: 'patient' }),
     measure('B5', '受教育年限', 'B', 'P0', '受教育(?:年限)?|教育年限|文化程度', { unit: '年', range: { min: 0, max: 25 }, granularity: 'patient', pick: 'last', alt: [{ id: 'edu-b', regex: '(?<v>\\d{1,2})\\s*年(?:的)?(?:教育|文化)' }] }),
 
     /* C 认知与功能量表 */

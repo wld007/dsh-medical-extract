@@ -982,11 +982,39 @@ window.__ModuleLoader__.load({
         setView('json')
         setState(`已复制为 ${nid}：改好 id、名称和字段后点「校验并保存到模板库」。`)
       }
+      const download = async (blank) => {
+        try {
+          const v = await call('templateXlsx', blank ? { blank: true } : { id: t.id })
+          const bin = atob(v.base64); const bytes = new Uint8Array(bin.length)
+          for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i)
+          const url = URL.createObjectURL(new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }))
+          const a = document.createElement('a'); a.href = url; a.download = v.name; document.body.appendChild(a); a.click(); a.remove()
+          setTimeout(() => URL.revokeObjectURL(url), 5000)
+        } catch (e) { onError(msg(e)) }
+      }
+      const fileRef = React.useRef(null)
+      const [importing, setImporting] = useState(false)
+      const importFile = async (file) => {
+        if (!file) return
+        setImporting(true); setState('')
+        try {
+          const buf = new Uint8Array(await file.arrayBuffer())
+          let bin = ''; for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode.apply(null, buf.subarray(i, i + 0x8000))
+          const r = await call('importTemplateXlsx', { base64: btoa(bin) })
+          if (r.saved) { list.reload(); setSel(r.template.id); setView('fields'); setState(`已导入「${file.name}」：${r.template.name} v${r.template.version}，${r.template.fields} 个字段，存为我的模板 ${r.template.id}。${r.problems.length ? `\n提示：\n- ${r.problems.join('\n- ')}` : ''}`) }
+          else setState(`「${file.name}」没有导入，请改好后再试：\n- ${r.problems.join('\n- ')}`)
+        } catch (e) { onError(msg(e)) } finally { setImporting(false); if (fileRef.current) fileRef.current.value = '' }
+      }
       const groupName = Object.fromEntries((t?.groups ?? []).map((g) => [g.id, g.name]))
       const nw = { whiteSpace: 'nowrap' }
       return h('div', { className: 'mx-split' },
         h('div', { className: 'mx-frame mx-scroll mx-pad' },
           h('div', { className: 'mx-h' }, h('b', {}, '模板库'), h('span', { className: 'mx-cap' }, 'TEMPLATES')),
+          h('div', { style: { display: 'flex', gap: 6, marginBottom: 4 } },
+            h('button', { className: 'mx-btn sm pri', disabled: importing, onClick: () => fileRef.current?.click(), title: '导入用 Excel 编写的模板（模板、字段、规则三张表；格式同"下载 Excel"）' }, importing ? '导入中…' : '⇪ 导入 Excel'),
+            h('button', { className: 'mx-btn sm', onClick: () => download(true), title: '下载带填写说明的空白 Excel 模板' }, '⇩ 空白模板'),
+            h('input', { ref: fileRef, type: 'file', accept: '.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', style: { display: 'none' }, onChange: (e) => importFile(e.target.files?.[0]) })),
+          state && view === 'fields' ? h('pre', { className: 'mx-md', style: { margin: '6px 0', fontSize: 11, whiteSpace: 'pre-wrap', color: /没有导入/.test(state) ? 'var(--badink)' : 'var(--ink2)' } }, state) : null,
           tplGroups(list.value?.templates ?? []).map(([label, xs]) => h(React.Fragment, { key: label },
             h('div', { className: 'mx-side-sec', style: { marginTop: 10 } }, h('span', {}, label), h('span', {}, String(xs.length))),
             xs.map((x) => h('div', { key: x.id, className: `mx-pi${x.id === id ? ' on' : ''}`, onClick: () => { setSel(x.id); setState('') } },
@@ -998,7 +1026,7 @@ window.__ModuleLoader__.load({
               h('div', { className: 'mx-muted', style: { fontSize: 12 } }, t.description),
               t.references?.length ? h('div', { style: { fontSize: 11, marginTop: 6, lineHeight: 1.7 } }, h('span', { className: 'mx-faint' }, '依据：'),
                 t.references.map((r, i) => h('span', { key: i }, i ? h('span', { className: 'mx-faint' }, '；') : null, r.url ? h('a', { href: r.url, target: '_blank', rel: 'noreferrer', style: { color: 'var(--teal2)' } }, r.title) : r.title))) : null,
-              h('div', { style: { display: 'flex', gap: 4, marginTop: 8 } }, [['fields', `字段 ${t.fields.length}`], ['json', 'JSON（编辑、另存）']].map(([k, l]) => h('button', { key: k, className: `mx-btn sm${view === k ? ' on' : ''}`, onClick: () => setView(k) }, l)), h('span', { className: 'mx-sp' }), h('button', { className: 'mx-btn sm pri', onClick: copyAsMine, title: '以当前模板为底稿，换一个新 id，在 JSON 里改好后保存到我的模板库' }, '＋ 复制为我的模板'))),
+              h('div', { style: { display: 'flex', gap: 4, marginTop: 8 } }, [['fields', `字段 ${t.fields.length}`], ['json', 'JSON（编辑、另存）']].map(([k, l]) => h('button', { key: k, className: `mx-btn sm${view === k ? ' on' : ''}`, onClick: () => setView(k) }, l)), h('span', { className: 'mx-sp' }), h('button', { className: 'mx-btn sm', onClick: () => download(false), title: '把这个模板导出成 Excel，改好后用左侧「导入 Excel」导回来' }, '⇩ 下载 Excel'), h('button', { className: 'mx-btn sm pri', onClick: copyAsMine, title: '以当前模板为底稿，换一个新 id，在 JSON 里改好后保存到我的模板库' }, '＋ 复制为我的模板'))),
             view === 'fields' ? h('div', { className: 'mx-scroll', style: { flex: 1 } }, h('table', {},
               h('thead', {}, h('tr', {}, ['字段', '名称', '组', '优先级', '类型', '粒度', '模型', '定义', '召回／规则'].map((x) => h('th', { key: x, style: nw }, x)))),
               h('tbody', {}, t.fields.map((f) => h('tr', { key: f.id },

@@ -147,7 +147,7 @@ export default {
     { id: 'F4', name: '苯二氮䓬类及助眠药', group: 'F', priority: 'P1', type: 'list', granularity: 'encounter', definition: '在用的苯二氮䓬类与非苯二氮䓬类助眠药。',
       options: drugs([['劳拉西泮', '罗拉'], ['阿普唑仑'], ['氯硝西泮'], ['地西泮', '安定'], ['奥沙西泮'], ['艾司唑仑', '舒乐安定'], ['唑吡坦', '思诺思'], ['佐匹克隆'], ['右佐匹克隆']]) },
     { id: 'F5', name: '换药或停药原因', group: 'F', priority: 'P0', type: 'enum', granularity: 'encounter', pick: 'all', model: 'always', definition: '抗抑郁药换药、减药或停药的原因。',
-      options: [{ value: '疗效不佳', terms: ['疗效欠佳', '疗效不佳', '效果不佳', '效果差', '无明显改善'] }, { value: '不良反应', terms: ['不良反应', '副作用', '副反应', '不能耐受', '难以耐受'] }, { value: '依从性差', terms: ['自行停药', '依从性差'] }, { value: '病情缓解', terms: ['病情稳定', '缓解后减量'] }, { value: '其他', terms: [] }],
+      options: [{ value: '疗效不佳', terms: ['疗效欠佳', '疗效不佳', '效果不佳', '效果差', '无明显改善'] }, { value: '不良反应', terms: ['不良反应', '副作用', '副反应', '不能耐受', '难以耐受'] }, { value: '依从性差', terms: ['自行停药', '依从性差'] }, { value: '病情缓解', terms: ['病情稳定', '缓解后减量'] }, { value: '其他' }],
       recall: { terms: ['换用', '改用', '换为', '停用', '停药', '减量', '换药'] } },
     { id: 'F6', name: '出院带药', group: 'F', priority: 'P0', type: 'text', granularity: 'encounter', pick: 'all', definition: '出院医嘱里的带药（药名、剂量、用法原文）。', sources: { sections: ['出院医嘱'] }, rules: [{ id: 'discharge-meds', regex: '(?<v>[^。；\\n]{4,200})' }], recall: { regex: ['[^\\s]{4,}'] } },
     { id: 'F7', name: '服药依从性', group: 'F', priority: 'P1', type: 'enum', granularity: 'encounter', pick: 'last', definition: '病人服药依从性。',
