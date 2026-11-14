@@ -95,7 +95,7 @@ export function apply(ctx, config = {}) {
     parameters: { id: { type: 'string', description: '模板 id；省略则列出全部。' } },
     execute: async (args) => (args.id ? service.template(args.id) : service.templates()),
     render: (args, v) => {
-      if (v.templates) return [{ type: 'text', text: v.templates.map((t) => `${t.id}  ${t.name} v${t.version}  ${t.fields} 字段  ${t.origin === 'builtin' ? '自带' : '用户'}`).join('\n') || '没有模板。' }]
+      if (v.templates) return [{ type: 'text', text: v.templates.map((t) => `${t.id}  ${t.name} v${t.version}  ${t.fields} 字段  ${t.origin === 'builtin' ? `内置 · ${t.domain ?? ''}` : '我的模板'}`).join('\n') || '没有模板。' }]
       const t = v.template
       return [{ type: 'text', text: [`${t.id} ${t.name} v${t.version}：${t.description}`, ...t.fields.map((f) => `- ${f.id} ${f.name}（${f.type}，${f.granularity ?? 'encounter'}，${f.priority ?? 'P1'}）：${f.definition}`), ...(v.problems.length ? ['校验问题：', ...v.problems] : [])].join('\n') }]
     },
