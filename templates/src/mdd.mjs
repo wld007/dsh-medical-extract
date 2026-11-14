@@ -50,20 +50,20 @@ export default {
   fields: [
     /* ---------------------------------------------------------- A 诊断与分型 */
     { id: 'A1', name: '抑郁相关诊断', group: 'A', priority: 'P0', type: 'list', definition: '诊断栏或诊断记录里写明的抑郁相关诊断名称（原文写法）。', sources: { sections: DX_SECTIONS }, rules: [{ id: 'dx', regex: '(?<v>[^\\n，,。；;：:]{0,16}(?:抑郁|心境障碍)[^\\n，,。；;：:]{0,16})' }], recall: { terms: ['抑郁', '心境障碍'] }, granularity: 'encounter' },
-    { id: 'A1c', name: 'ICD-10 编码（F30–F39）', group: 'A', priority: 'P0', type: 'list', definition: '诊断编码中 F30–F39（心境障碍）的编码。', rules: [{ id: 'icd', regex: '(?<v>F3\\d(?:\\.\\d{1,2})?)' }], recall: { regex: ['F3\\d'] }, granularity: 'encounter' },
+    { id: 'A1c', name: 'ICD-10 编码（F30–F39）', group: 'A', priority: 'P0', type: 'list', definition: '诊断编码中 F30–F39（心境障碍）的编码。', rules: [{ id: 'icd', regex: '(?<![A-Za-z0-9])(?<v>F3\\d(?:\\.\\d{1,2})?)(?![0-9A-Za-z])' }], recall: { regex: ['(?<![A-Za-z0-9])F3\\d'] }, granularity: 'encounter' },
     {
       id: 'A2', name: '发作类型', group: 'A', priority: 'P0', type: 'enum', definition: '本次诊断是单次发作还是复发性抑郁障碍。', granularity: 'encounter',
       options: [{ value: '单次发作', terms: ['单次发作', '首次发作', '首发抑郁'] }, { value: '复发性', terms: ['复发性抑郁', '复发性', '反复发作', '再次发作'] }],
-      rules: [{ id: 'icd-f32', regex: 'F32(?:\\.\\d+)?', value: '单次发作' }, { id: 'icd-f33', regex: 'F33(?:\\.\\d+)?', value: '复发性' }],
+      rules: [{ id: 'icd-f32', regex: '(?<![A-Za-z0-9])F32(?:\\.\\d+)?(?![0-9A-Za-z])', value: '单次发作' }, { id: 'icd-f33', regex: '(?<![A-Za-z0-9])F33(?:\\.\\d+)?(?![0-9A-Za-z])', value: '复发性' }],
       sources: { sections: [...DX_SECTIONS, '现病史'] },
     },
     {
       id: 'A3', name: '当前发作严重程度', group: 'A', priority: 'P0', type: 'enum', definition: '当前抑郁发作的严重程度（轻度、中度、重度）。', granularity: 'encounter',
       options: [{ value: '轻度', terms: ['轻度抑郁', '轻度发作', '目前为轻度'] }, { value: '中度', terms: ['中度抑郁', '中度发作', '目前为中度'] }, { value: '重度', terms: ['重度抑郁', '重度发作', '目前为重度', '重性抑郁'] }],
-      rules: [{ id: 'icd-mild', regex: 'F3[23]\\.0', value: '轻度' }, { id: 'icd-moderate', regex: 'F3[23]\\.1', value: '中度' }, { id: 'icd-severe', regex: 'F3[23]\\.[23]', value: '重度' }],
+      rules: [{ id: 'icd-mild', regex: '(?<![A-Za-z0-9])F3[23]\\.0(?![0-9])', value: '轻度' }, { id: 'icd-moderate', regex: '(?<![A-Za-z0-9])F3[23]\\.1(?![0-9])', value: '中度' }, { id: 'icd-severe', regex: '(?<![A-Za-z0-9])F3[23]\\.[23](?![0-9])', value: '重度' }],
       sources: { sections: DX_SECTIONS },
     },
-    presence('A4', '伴精神病性症状', 'A', 'P0', '诊断写明伴精神病性症状（或编码 F32.3/F33.3）。', ['精神病性症状'], { rules: [{ id: 'icd-psychotic', regex: 'F3[23]\\.3', value: '有' }], sources: { sections: DX_SECTIONS }, granularity: 'encounter' }),
+    presence('A4', '伴精神病性症状', 'A', 'P0', '诊断写明伴精神病性症状（或编码 F32.3/F33.3）。', ['精神病性症状'], { rules: [{ id: 'icd-psychotic', regex: '(?<![A-Za-z0-9])F3[23]\\.3(?![0-9])', value: '有' }], sources: { sections: DX_SECTIONS }, granularity: 'encounter' }),
     {
       id: 'A6', name: '特征标注', group: 'A', priority: 'P1', type: 'list', definition: '医生明确写出的 DSM-5 特征标注。', granularity: 'encounter',
       options: [{ value: '焦虑痛苦', terms: ['焦虑痛苦', '伴焦虑痛苦', '焦虑性抑郁'] }, { value: '混合特征', terms: ['混合特征', '伴混合特征'] }, { value: '忧郁特征', terms: ['忧郁特征', '伴忧郁特征', '内源性'] },

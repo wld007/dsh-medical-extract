@@ -28,7 +28,7 @@ export default {
   fields: [
     /* A 诊断与分期 */
     { id: 'A1', name: '肾脏病相关诊断', group: 'A', priority: 'P0', type: 'list', granularity: 'encounter', definition: '诊断栏写明的 CKD、尿毒症、肾衰竭等诊断（原文写法）。', sources: { sections: DX }, rules: [{ id: 'dx', regex: '(?<v>[^\\n，,。；;：:]{0,14}(?:慢性肾脏病|慢性肾病|CKD|尿毒症|肾衰竭|肾功能衰竭|肾功能不全|终末期肾病|ESRD|ESKD)[^\\n，,。；;：:]{0,14})' }], recall: { terms: ['慢性肾脏病', '慢性肾病', 'CKD', '尿毒症', '肾衰竭', '肾功能衰竭', '肾功能不全', '终末期肾病', 'ESRD', 'ESKD'] } },
-    { id: 'A1c', name: 'ICD-10 编码（N18/N19/Z99.2）', group: 'A', priority: 'P0', type: 'list', granularity: 'encounter', definition: 'CKD 与透析状态编码。', rules: [{ id: 'icd', regex: '(?<v>(?:N18|N19|Z99\\.2|Z49)(?:\\.\\d{1,3})?)' }], recall: { regex: ['N1[89]', 'Z99\\.2', 'Z49'] } },
+    { id: 'A1c', name: 'ICD-10 编码（N18/N19/Z99.2）', group: 'A', priority: 'P0', type: 'list', granularity: 'encounter', definition: 'CKD 与透析状态编码。', rules: [{ id: 'icd', regex: '(?<![A-Za-z0-9])(?<v>(?:N18|N19|Z99\\.2|Z49)(?:\\.\\d{1,3})?)(?![0-9A-Za-z])' }], recall: { regex: ['(?<![A-Za-z0-9])(?:(?:N18|N19|Z99\\.2|Z49)(?:\\.\\d{1,3})?)(?![0-9A-Za-z])'] } },
     { id: 'A2', name: 'CKD G 分期', group: 'A', priority: 'P0', type: 'enum', granularity: 'encounter', pick: 'last', definition: 'KDIGO eGFR 分期 G1–G5（或"CKD 5期"）。',
       options: [{ value: 'G1' }, { value: 'G2' }, { value: 'G3a' }, { value: 'G3b' }, { value: 'G4' }, { value: 'G5' }, { value: 'G5D', terms: ['CKD5D', 'CKD 5D', 'CKD5D期'] }],
       recall: { regex: ['(?:CKD|慢性肾脏病|慢性肾病)\\s*(?:G\\s*)?[1-5][abAB]?\\s*D?\\s*期?'] },

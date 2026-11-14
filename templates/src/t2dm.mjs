@@ -27,7 +27,7 @@ export default {
   fields: [
     /* A 诊断与病程 */
     { id: 'A1', name: '糖尿病相关诊断', group: 'A', priority: 'P0', type: 'list', granularity: 'encounter', definition: '诊断栏写明的糖尿病及其并发症诊断（原文写法）。', sources: { sections: DX }, rules: [{ id: 'dx', regex: '(?<v>[^\\n，,。；;：:]{0,14}糖尿病[^\\n，,。；;：:]{0,16})' }], recall: { terms: ['糖尿病'] } },
-    { id: 'A1c', name: 'ICD-10 编码（E10–E14）', group: 'A', priority: 'P0', type: 'list', granularity: 'encounter', definition: '糖尿病编码。', rules: [{ id: 'icd', regex: '(?<v>E1[0-4](?:\\.\\d{1,3})?)' }], recall: { regex: ['E1[0-4]'] } },
+    { id: 'A1c', name: 'ICD-10 编码（E10–E14）', group: 'A', priority: 'P0', type: 'list', granularity: 'encounter', definition: '糖尿病编码。', rules: [{ id: 'icd', regex: '(?<![A-Za-z0-9])(?<v>E1[0-4](?:\\.\\d{1,3})?)(?![0-9A-Za-z])' }], recall: { regex: ['(?<![A-Za-z0-9])(?:E1[0-4](?:\\.\\d{1,3})?)(?![0-9A-Za-z])'] } },
     enumOf('A2', '糖尿病类型', 'A', 'P0', '糖尿病分型。', [['2型糖尿病', 'T2DM', '2型', 'Ⅱ型糖尿病', 'II型糖尿病'], ['1型糖尿病', 'T1DM', 'Ⅰ型糖尿病', 'I型糖尿病'], ['妊娠期糖尿病', 'GDM'], ['特殊类型糖尿病', '继发性糖尿病', '类固醇糖尿病', 'MODY', '胰源性糖尿病']], { granularity: 'patient', pick: 'mode', sources: { sections: DX } }),
     date('A3', '糖尿病诊断时间', 'A', 'P0', '首次诊断糖尿病的时间；"发现血糖升高10年"取 10 年前。', { granularity: 'patient', pick: 'earliest', accept: HX, model: 'always', sources: { sections: ['主诉', '现病史', '既往史'] }, recall: { terms: ['糖尿病', '血糖升高', '血糖高', '发现血糖'], regex: [DUR] } }),
     derived('A4', '糖尿病病程（月）', 'A', 'P0', '诊断至本次就诊的月数。', { op: 'monthsBetween', from: 'A3', to: '$encounter.start' }, { granularity: 'encounter' }),

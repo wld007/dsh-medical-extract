@@ -28,7 +28,7 @@ export default {
   fields: [
     /* A 诊断与分型 */
     { id: 'A1', name: '心衰相关诊断', group: 'A', priority: 'P0', type: 'list', granularity: 'encounter', definition: '诊断栏写明的心力衰竭诊断（原文写法）。', sources: { sections: DX }, rules: [{ id: 'dx', regex: '(?<v>[^\\n，,。；;：:]{0,14}(?:心力衰竭|心衰|心功能不全)[^\\n，,。；;：:]{0,14})' }], recall: { terms: ['心力衰竭', '心衰', '心功能不全'] } },
-    { id: 'A1c', name: 'ICD-10 编码（I50/I11.0/I13）', group: 'A', priority: 'P0', type: 'list', granularity: 'encounter', definition: '心衰相关编码。', rules: [{ id: 'icd', regex: '(?<v>(?:I50|I11\\.0|I13\\.[02])(?:\\.\\d{1,3})?)' }], recall: { regex: ['I50', 'I11\\.0', 'I13'] } },
+    { id: 'A1c', name: 'ICD-10 编码（I50/I11.0/I13）', group: 'A', priority: 'P0', type: 'list', granularity: 'encounter', definition: '心衰相关编码。', rules: [{ id: 'icd', regex: '(?<![A-Za-z0-9])(?<v>(?:I50|I11\\.0|I13\\.[02])(?:\\.\\d{1,3})?)(?![0-9A-Za-z])' }], recall: { regex: ['(?<![A-Za-z0-9])(?:(?:I50|I11\\.0|I13\\.[02])(?:\\.\\d{1,3})?)(?![0-9A-Za-z])'] } },
     enumOf('A2', '心衰分型（按 LVEF）', 'A', 'P0', '射血分数降低（HFrEF）、轻度降低（HFmrEF）、保留（HFpEF）、改善（HFimpEF）。', [
       ['HFrEF', '射血分数降低的心衰', '射血分数降低型心力衰竭', '射血分数降低的心力衰竭'], ['HFmrEF', '射血分数轻度降低', '射血分数中间值'], ['HFpEF', '射血分数保留的心衰', '射血分数保留型心力衰竭', '射血分数保留的心力衰竭'], ['HFimpEF', '射血分数改善'],
     ], { granularity: 'encounter', pick: 'last' }),

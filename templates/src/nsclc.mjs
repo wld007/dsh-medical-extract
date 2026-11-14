@@ -36,7 +36,7 @@ export default {
   fields: [
     /* A 诊断与病理 */
     { id: 'A1', name: '肺癌相关诊断', group: 'A', priority: 'P0', type: 'list', granularity: 'encounter', definition: '诊断栏写明的肺癌诊断（原文写法）。', sources: { sections: DX }, rules: [{ id: 'dx', regex: '(?<v>[^\\n，,。；;：:]{0,14}(?:肺癌|肺腺癌|肺鳞癌|肺鳞状细胞癌|非小细胞肺癌|肺恶性肿瘤|NSCLC)[^\\n，,。；;：:]{0,18})' }], recall: { terms: ['肺癌', '肺腺癌', '肺鳞癌', '肺鳞状细胞癌', '非小细胞肺癌', '肺恶性肿瘤', 'NSCLC'] } },
-    { id: 'A1c', name: 'ICD-10 编码（C34）', group: 'A', priority: 'P0', type: 'list', granularity: 'encounter', definition: '肺恶性肿瘤编码。', rules: [{ id: 'icd', regex: '(?<v>C34(?:\\.\\d{1,3})?)' }], recall: { regex: ['C34'] } },
+    { id: 'A1c', name: 'ICD-10 编码（C34）', group: 'A', priority: 'P0', type: 'list', granularity: 'encounter', definition: '肺恶性肿瘤编码。', rules: [{ id: 'icd', regex: '(?<![A-Za-z0-9])(?<v>C34(?:\\.\\d{1,3})?)(?![0-9A-Za-z])' }], recall: { regex: ['(?<![A-Za-z0-9])(?:C34(?:\\.\\d{1,3})?)(?![0-9A-Za-z])'] } },
     enumOf('A2', '组织学类型', 'A', 'P0', 'WHO 组织学类型。', [['腺癌', '肺腺癌', '浸润性腺癌'], ['鳞状细胞癌', '鳞癌', '肺鳞癌'], ['腺鳞癌'], ['大细胞癌'], ['肉瘤样癌'], ['小细胞癌', '小细胞肺癌', 'SCLC'], ['非小细胞肺癌（未分型）', 'NSCLC-NOS', '非小细胞癌']], { granularity: 'patient', pick: 'mode', sources: { sections: [...DX, ...PATH] } }),
     enumOf('A3', '原发灶侧别', 'A', 'P1', '原发肿瘤所在肺。', [['左肺', '左上肺', '左下肺', '左肺上叶', '左肺下叶'], ['右肺', '右上肺', '右中肺', '右下肺', '右肺上叶', '右肺中叶', '右肺下叶'], ['双肺']], { granularity: 'patient', pick: 'mode', sources: { sections: [...DX, ...PATH] } }),
     date('A4', '病理确诊时间', 'A', 'P0', '病理或细胞学确诊肺癌的时间。', { granularity: 'patient', pick: 'earliest', accept: HX, model: 'always', sources: { sections: ['现病史', '既往史', '诊疗经过', '病例特点'] }, recall: { terms: ['确诊', '病理', '穿刺', '活检', '术后病理'] } }),

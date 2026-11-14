@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { readFile, readdir, stat, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, readdir, stat, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { writeMddPatients, synthNdjson } from './fixtures/mdd.mjs'
 import { readCsv, readEvidence, runToEnd, service, tmp } from './helpers.mjs'
@@ -186,4 +186,33 @@ test('输入保护：输出不能在输入里；模板不存在报错', async ()
   await assert.rejects(svc.start({ inputDir: input, outputRoot: join(root, 'out'), template: 'nope' }), /找不到模板/)
   await writeFile(join(root, 'empty.txt'), '')
   await svc.dispose()
+})
+
+test('通用 json：数据元编码列名、病人按目录、多列正文、文件名作文书类型、按值认时间列', async () => {
+  const root = await tmp()
+  const input = join(root, 'export')
+  // 虚构：两位病人，各一个文件夹；列名是数据元编码，正文分在多列
+  for (const [pt, hpi] of [['证件-AAA', '患者3月前出现情绪低落，否认自杀观念。'], ['证件-BBB', '患者1年前出现心情差，有消极念头。']]) {
+    await mkdir(join(input, pt, '住院病历与病程'), { recursive: true })
+    await writeFile(join(input, pt, '住院病历与病程', 'C0102_0515_02住院病程记录首次病程记录.json'), JSON.stringify([
+      { _id: `${pt}-1`, _SOURCE_DB: 'hisdb01', WS05_10_133_01: `病例特点：${hpi}`, WS05_01_070_02: '诊疗计划：予舍曲林50mg qd。', WS06_00_298_01: '20240310143000', JGID: '医院-000009' },
+      { _id: `${pt}-2`, _SOURCE_DB: 'hisdb01', WS05_10_133_01: '病例特点：HAMD-17 评分 24分。', WS05_01_070_02: '', WS06_00_298_01: '20240311090000', JGID: '医院-000009' },
+    ]))
+  }
+  const svc = service({ extractMode: 'rules' })
+  const run = await runToEnd(svc, { inputDir: input, outputRoot: join(root, 'out') })
+  await svc.dispose()
+  assert.equal(run.status, 'completed', run.error)
+  const m = Object.values(run.plan.mappings)[0]
+  assert.deepEqual(m.text, ['WS05_10_133_01', 'WS05_01_070_02'])
+  assert.equal(m.time, 'WS06_00_298_01')
+  assert.equal(run.totals.documents, 4)
+  assert.equal(run.totals.patients, 2)
+  const ev = await readEvidence(join(root, 'out', 'export', 'evidence'))
+  assert.ok(ev.every((v) => v.recordType === '住院病程记录首次病程记录'))
+  assert.ok(ev.every((v) => v.written?.startsWith('2024-03-1')))
+  assert.ok(ev.some((v) => v.field === 'F1' && v.value === '舍曲林'))
+  assert.ok(ev.some((v) => v.field === 'E1' && v.value === 24))
+  const P = Object.fromEntries((await readCsv(join(root, 'out', 'export', 'wide_patient.csv'))).map((r) => [r.patient, r]))
+  assert.deepEqual(Object.keys(P).sort(), ['证件-AAA', '证件-BBB'])
 })

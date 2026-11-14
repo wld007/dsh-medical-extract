@@ -28,7 +28,7 @@ export default {
   fields: [
     /* A 诊断与分型 */
     { id: 'A1', name: '卒中相关诊断', group: 'A', priority: 'P0', type: 'list', granularity: 'encounter', definition: '诊断栏写明的脑梗死／缺血性卒中／TIA 等诊断名称（原文写法）。', sources: { sections: DX }, rules: [{ id: 'dx', regex: '(?<v>[^\\n，,。；;：:]{0,14}(?:脑梗死|脑梗塞|缺血性卒中|缺血性脑卒中|脑栓塞|短暂性脑缺血发作|TIA)[^\\n，,。；;：:]{0,14})' }], recall: { terms: ['脑梗死', '脑梗塞', '缺血性卒中', '缺血性脑卒中', '脑栓塞', '短暂性脑缺血发作', 'TIA'] } },
-    { id: 'A1c', name: 'ICD-10 编码（I63/G45）', group: 'A', priority: 'P0', type: 'list', granularity: 'encounter', definition: '脑梗死 I63.x、TIA G45.x 编码。', rules: [{ id: 'icd', regex: '(?<v>(?:I63|G45)(?:\\.\\d{1,3})?)' }], recall: { regex: ['I63', 'G45'] } },
+    { id: 'A1c', name: 'ICD-10 编码（I63/G45）', group: 'A', priority: 'P0', type: 'list', granularity: 'encounter', definition: '脑梗死 I63.x、TIA G45.x 编码。', rules: [{ id: 'icd', regex: '(?<![A-Za-z0-9])(?<v>(?:I63|G45)(?:\\.\\d{1,3})?)(?![0-9A-Za-z])' }], recall: { regex: ['(?<![A-Za-z0-9])(?:(?:I63|G45)(?:\\.\\d{1,3})?)(?![0-9A-Za-z])'] } },
     enumOf('A2', 'TOAST 病因分型', 'A', 'P0', 'TOAST 分型：大动脉粥样硬化、心源性栓塞、小血管闭塞、其他明确病因、不明原因。', [
       ['大动脉粥样硬化', '大动脉粥样硬化型'], ['心源性栓塞', '心源性栓塞型', '心源性脑栓塞'], ['小血管闭塞', '小动脉闭塞', '小血管闭塞型', '小动脉闭塞型', '腔隙性脑梗死'],
       ['其他明确病因', '其他明确病因型'], ['不明原因', '病因不明', '隐源性卒中', '隐源性'],

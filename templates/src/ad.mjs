@@ -28,7 +28,7 @@ export default {
   fields: [
     /* A 诊断与分期 */
     { id: 'A1', name: '认知障碍相关诊断', group: 'A', priority: 'P0', type: 'list', granularity: 'encounter', definition: '诊断栏写明的痴呆、AD、MCI 等认知障碍诊断名称（原文写法）。', sources: { sections: DX }, rules: [{ id: 'dx', regex: '(?<v>[^\\n，,。；;：:]{0,14}(?:痴呆|阿尔茨海默|阿尔采末|老年性痴呆|认知障碍|认知功能障碍|认知损害|MCI|AD)[^\\n，,。；;：:]{0,14})' }], recall: { terms: ['痴呆', '阿尔茨海默', '认知障碍', '认知功能障碍', '认知损害', 'MCI'] } },
-    { id: 'A1c', name: 'ICD-10 编码（F00–F03/G30/G31）', group: 'A', priority: 'P0', type: 'list', granularity: 'encounter', definition: '痴呆相关编码。', rules: [{ id: 'icd', regex: '(?<v>(?:F0[0-3]|G30|G31)(?:\\.\\d{1,3})?)' }], recall: { regex: ['F0[0-3]', 'G3[01]'] } },
+    { id: 'A1c', name: 'ICD-10 编码（F00–F03/G30/G31）', group: 'A', priority: 'P0', type: 'list', granularity: 'encounter', definition: '痴呆相关编码。', rules: [{ id: 'icd', regex: '(?<![A-Za-z0-9])(?<v>(?:F0[0-3]|G30|G31)(?:\\.\\d{1,3})?)(?![0-9A-Za-z])' }], recall: { regex: ['(?<![A-Za-z0-9])(?:(?:F0[0-3]|G30|G31)(?:\\.\\d{1,3})?)(?![0-9A-Za-z])'] } },
     enumOf('A2', '认知障碍病因类型', 'A', 'P0', '临床诊断的病因类型。', [
       ['阿尔茨海默病', '阿尔茨海默病性痴呆', 'AD痴呆', '阿尔茨海默症', '老年性痴呆'], ['血管性痴呆', '血管性认知障碍', 'VaD', 'VCI'], ['混合性痴呆', '混合型痴呆'],
       ['路易体痴呆', 'DLB', '路易体'], ['额颞叶痴呆', 'FTD', '额颞叶变性'], ['帕金森病痴呆', 'PDD'], ['其他'],
