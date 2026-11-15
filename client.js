@@ -774,7 +774,6 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
 
     function Pipeline({ run, goto, openPatient }) {
       const stations = stationsOf(run)
-      const hot = stations.filter((s) => s.state === 'run' || s.state === 'hold')
       // 没选工序时右列是批次概览（同匿名化插件）；点楼、标签或底部质检进工序详情
       const [selK, setSelK] = useState(null)
       const k = selK ?? -1
@@ -785,8 +784,8 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
           h('div', { className: 'mx-frame mx-hero' },
             h('div', { className: 'mx-hero-cap' },
               h('span', { className: 'mx-cap', style: { color: 'var(--ink2)' } }, '处理流程'),
-              h('span', { className: 'mx-sp' }),
-              run.status === 'failed' ? h('span', { className: 'mx-live bad' }, h('i'), '批次失败') : run.status === 'cancelled' ? h('span', { className: 'mx-live bad' }, h('i'), '已取消') : hot.length ? h('span', { className: 'mx-live' }, h('i'), hot.map((s) => `${s.nm} ${STATE_LABEL[s.state]}`).join(' · ')) : h('span', { className: 'mx-live ok' }, h('i'), '全部完成')),
+              // 右上角原来的状态提示（「核验·复查 待复核」等）删掉：页头批次框、屋顶标签、底部处理结果都有同样的信息
+            ),
             run.status === 'failed' && run.error ? h('div', { className: 'mx-err mx-hero-err' }, h('b', {}, '批次失败：'), String(run.error).split('\n')[0].replace(/^Error:\s*/, '')) : null,
             h(PlantScene, { run, stations, sel: k, onSel: setSelK, goto }),
             h(AlertsOverlay, { run, stations, goto, onSel: setSelK })),
