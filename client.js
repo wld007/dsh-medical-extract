@@ -225,19 +225,6 @@ window.__ModuleLoader__.load({
 .mx-al-item:disabled{cursor:default}.mx-al-item:not(:disabled):hover{background:var(--panel2)}
 .mx-al-item>i{width:7px;height:7px;border-radius:50%}.mx-al-item b{display:block;font-weight:600;font-size:11.5px}.mx-al-item small{display:block;color:var(--ink3);font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mx-al-more{align-self:flex-end;font-size:11px;padding-top:4px}
-.mx-legend-fold{position:absolute;z-index:1;left:14px;bottom:10px;font-size:10px;color:var(--ink3);background:color-mix(in srgb,var(--panel) 85%,transparent);border:1px solid var(--line2);border-radius:5px;padding:3px 8px}
-.mx-lf-h{background:none;border:0;padding:0;font:inherit;color:var(--ink2);cursor:pointer;display:flex;gap:4px}
-.mx-lf-b{display:flex;flex-direction:column;gap:4px;padding:6px 0 3px}.mx-lf-b div{display:flex;align-items:center;gap:6px}
-.mx-legend-fold .sw{width:12px;height:8px;display:inline-block;border-radius:1px}
-.mx-legend-fold .sw.hot{background:var(--teal);box-shadow:0 0 5px var(--teal)}.mx-legend-fold .sw.clay{background:#c9c4d6}.mx-legend-fold .sw.box{background:#e9e6f0;border-top:2px solid var(--teal)}.mx-legend-fold .sw.red{background:var(--bad)}.mx-legend-fold .sw.vio{background:var(--vio);box-shadow:0 0 5px var(--vio)}
-.mx-legend-fold .sw.flow{height:2px;background:repeating-linear-gradient(90deg,var(--ink2) 0 4px,transparent 4px 7px)}
-.mx-hud.br{right:14px;top:36px;display:flex;flex-direction:column;gap:4px;font-size:10px;color:var(--ink3)}
-.mx-hud.br div{display:flex;align-items:center;gap:6px;justify-content:flex-end}
-.mx-hud .sw{width:12px;height:8px;display:inline-block;border-radius:1px}
-.mx-hud .sw.hot{background:var(--teal);box-shadow:0 0 5px var(--teal)}.mx-hud .sw.clay{background:#c9c4d6}
-.mx-hud .sw.sel{border:1.5px solid var(--teal);border-right:0;border-bottom:0;background:transparent}
-.mx-hud .sw.box{background:#e9e6f0;border-top:2px solid var(--teal)}.mx-hud .sw.red{background:var(--bad)}.mx-hud .sw.vio{background:var(--vio);box-shadow:0 0 5px var(--vio)}
-.mx-hud .sw.flow{height:2px;background:repeating-linear-gradient(90deg,var(--ink2) 0 4px,transparent 4px 7px)}
 .mx-act{position:relative}
 .mx-new{border-color:var(--fill);background:var(--fill);color:#fff;font-weight:600}
 .mx-new:hover:not(:disabled){filter:brightness(1.06)}
@@ -643,8 +630,7 @@ window.__ModuleLoader__.load({
               run.status === 'failed' ? h('span', { className: 'mx-live bad' }, h('i'), '批次失败') : run.status === 'cancelled' ? h('span', { className: 'mx-live bad' }, h('i'), '已取消') : hot.length ? h('span', { className: 'mx-live' }, h('i'), hot.map((s) => `${s.nm} ${STATE_LABEL[s.state]}`).join(' · ')) : h('span', { className: 'mx-live ok' }, h('i'), '全部完成')),
             run.status === 'failed' && run.error ? h('div', { className: 'mx-err mx-hero-err' }, h('b', {}, '批次失败：'), String(run.error).split('\n')[0].replace(/^Error:\s*/, '')) : null,
             h(PlantScene, { run, stations, sel: k, onSel: setSelK, goto }),
-            h(AlertsOverlay, { run, stations, goto, onSel: setSelK }),
-            h(LegendFold)),
+            h(AlertsOverlay, { run, stations, goto, onSel: setSelK })),
           h('div', { className: 'mx-frame mx-bottom' },
             h(ProgressPanel, { run }),
             h(ResultsPanel, { run, stations, onSel: setSelK, goto }),
@@ -761,6 +747,8 @@ window.__ModuleLoader__.load({
           g.push(h('path', { key: `dr${k}`, d: `M${d0[0].toFixed(1)} ${d0[1].toFixed(1)} Q${((d0[0] + d1[0]) / 2).toFixed(1)} ${(d0[1] - 6).toFixed(1)} ${d1[0].toFixed(1)} ${d1[1].toFixed(1)}`, fill: 'none', stroke: A, strokeWidth: 1.2, strokeDasharray: '2 4', opacity: 0.75 }))
         }
         els.push(h('g', { key: 'busg', pointerEvents: 'none' }, g))
+        // 悬停说明（原图例里「紫色流线」那条）：透明粗线只用来接住鼠标
+        els.push(h('polyline', { key: 'bushit', points: pts([a, b, c]), fill: 'none', stroke: 'transparent', strokeWidth: 12, pointerEvents: 'stroke' }, h('title', {}, '字段规格：模板里每个字段的召回词、规则和值类型，下发到每道工序')))
       }
       // E1 读入楼：窗户＝分片进度
       {
@@ -878,7 +866,7 @@ window.__ModuleLoader__.load({
           }
           const top = iso(pi + 19, pj + 11, Math.ceil(shown / 6) * 9 + 10)
           const shownN = k === 5 ? run.totals.review : n
-          els.push(h('g', { key: `q${k}`, ...click(k) }, g,
+          els.push(h('g', { key: `q${k}`, ...click(k) }, h('title', {}, k === 5 ? `待复核 ${fmt(run.totals.review)} 项，每箱 10 项；点开核验工序，再去复核` : `等待读入的分片 ${fmt(n)} 个，每箱一个分片`), g,
             h('text', { x: top[0], y: top[1], textAnchor: 'middle', fill: A, fontSize: 17, fontWeight: 700, fontFamily: MONO, stroke: C.card, strokeWidth: 3.5, paintOrder: 'stroke' }, fmt(shownN)),
             h('text', { x: top[0], y: top[1] + 13, textAnchor: 'middle', fill: P.ink, fontSize: 10, stroke: C.card, strokeWidth: 3, paintOrder: 'stroke' }, `排队 · ${label[k]}`)))
         })
@@ -1009,19 +997,6 @@ window.__ModuleLoader__.load({
     }
 
     /* ------------------------------------------------------------- alerts */
-    /** 图例：左下角，可收起。第一次打开产线页时展开，之后默认收起（记在本机） */
-    function LegendFold() {
-      const KEY = 'medical-extract.legendSeen'
-      const [open, setOpen] = useState(() => { try { return !localStorage.getItem(KEY) } catch { return true } })
-      useEffect(() => { try { localStorage.setItem(KEY, '1') } catch { /* 无痕模式 */ } }, [])
-      return h('div', { className: `mx-legend-fold${open ? ' open' : ''}` },
-        h('button', { type: 'button', className: 'mx-lf-h', onClick: () => setOpen(!open), 'aria-expanded': open ? 'true' : 'false' }, '图例', h('span', {}, open ? '▾' : '▸')),
-        open ? h('div', { className: 'mx-lf-b' },
-          h('div', {}, h('i', { className: 'sw hot' }), '运行中／待复核'), h('div', {}, h('i', { className: 'sw clay' }), '已完成'),
-          h('div', {}, h('i', { className: 'sw box' }), '箱子＝一个分片'), h('div', {}, h('i', { className: 'sw red' }), '红色＝验收门未过'),
-          h('div', {}, h('i', { className: 'sw vio' }), '青灯＝提取模型／核验模型'), h('div', {}, h('i', { className: 'sw flow' }), '紫色流线＝字段规格下发')) : null)
-    }
-
     /** 待办告警（同匿名化插件）：产线右上角，最严重的在前，最多 3 条（其余「再看 N 条」），点一条直接去处理；可收起 */
     function AlertsOverlay({ run, stations, goto, onSel }) {
       const [fold, setFold] = useState(false)
