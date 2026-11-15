@@ -227,6 +227,32 @@ window.__ModuleLoader__.load({
 .mx-dz p span{flex:none}
 .mx-dz p b{flex:none;font-weight:600}
 .mx-dz p small{color:var(--ink3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.mx-mdv-bar{display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line);padding-top:8px;padding-bottom:8px}
+.mx-mdv-bar span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--mono);font-size:11px}
+.mx-mdv{font-size:13px;line-height:21px;color:var(--ink);max-width:960px;min-width:0}
+.mx-mdv h1{font-size:18px;margin:6px 0 12px;padding-bottom:6px;border-bottom:2px solid var(--teal)}
+.mx-mdv h2{font-size:15px;margin:20px 0 8px;padding-left:8px;border-left:3px solid var(--teal)}
+.mx-mdv h3{font-size:13.5px;margin:16px 0 6px}
+.mx-mdv h4{font-size:13px;margin:12px 0 4px}
+.mx-mdv p{margin:6px 0}
+.mx-mdv ul,.mx-mdv ol{margin:4px 0 8px;padding-left:20px}
+.mx-mdv li{margin:2px 0;word-break:break-word}
+.mx-mdv blockquote{margin:8px 0;padding:6px 10px;border-left:3px solid var(--warn);background:color-mix(in srgb,var(--warn) 7%,transparent);color:var(--ink2)}
+.mx-mdv code{font-family:var(--mono);font-size:11.5px;padding:1px 4px;border-radius:4px;background:var(--tealdim);word-break:break-all}
+.mx-mdv-tw{overflow-x:auto;margin:6px 0 10px}
+.mx-mdv table{border-collapse:collapse;font-size:12.5px;min-width:50%}
+.mx-mdv th{text-align:left;font-weight:600;background:var(--tealdim);padding:5px 10px;border:1px solid var(--line)}
+.mx-mdv td{padding:4px 10px;border:1px solid var(--line);vertical-align:top;word-break:break-word}
+.mx-mdv table.kv th{font-weight:400;color:var(--ink2);background:var(--panel2);white-space:nowrap;width:1%}
+.mx-mdv-layout{display:grid;grid-template-columns:minmax(0,960px) 240px;gap:28px;align-items:start}
+.mx-mdv-toc{position:sticky;top:0;max-height:calc(100vh - 240px);overflow:auto;display:flex;flex-direction:column;gap:1px;padding:4px 0 4px 12px;border-left:1px solid var(--line)}
+.mx-mdv-toc-h{font-size:11px;font-weight:600;letter-spacing:1px;color:var(--ink3);padding:2px 6px 6px}
+.mx-mdv-toc-i{display:block;width:100%;padding:3px 6px;border:0;border-radius:4px;background:none;color:var(--ink2);font:inherit;font-size:12px;text-align:left;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mx-mdv-toc-i.l2{font-weight:600;color:var(--ink);margin-top:4px}
+.mx-mdv-toc-i.l3{padding-left:16px}
+.mx-mdv-toc-i:hover{background:var(--tealdim)}
+.mx-mdv-toc-i.on{color:var(--teal2);background:var(--tealdim);box-shadow:inset 2px 0 0 var(--teal)}
+@media (max-width:1100px){.mx-mdv-layout{grid-template-columns:minmax(0,1fr)}.mx-mdv-toc{display:none}}
 .mx-res-line{display:flex;justify-content:center;align-items:baseline;gap:6px;font-size:11.5px;color:var(--ink2)}
 .mx-res-line b{font-family:var(--mono);font-weight:600;color:var(--ink)}
 .mx-res-line span{color:var(--ink3)}
@@ -2665,10 +2691,87 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
           h('table', {}, h('tbody', {}, v.errors.map((c, i) => h('tr', { key: i }, h('td', { className: 'mx-num mx-faint' }, fmtTime(c.at)), h('td', {}, c.role), h('td', {}, c.model), h('td', { className: 'mx-bad' }, c.error)))))) : null)
     }
 
+    /* 报告：Markdown 渲染（同匿名化插件）——标题、表格、列表、引用、粗体、行内代码；只生成 React 元素，不注入 HTML */
+    function inlineMd(text, keyBase) {
+      const out = []
+      const pattern = /(`[^`]+`|\*\*[^*]+\*\*)/g
+      let last = 0; let m; let i = 0
+      while ((m = pattern.exec(text))) {
+        if (m.index > last) out.push(text.slice(last, m.index))
+        const tk = m[0]
+        out.push(tk.startsWith('`') ? h('code', { key: `${keyBase}-${i}` }, tk.slice(1, -1)) : h('strong', { key: `${keyBase}-${i}` }, tk.slice(2, -2)))
+        last = m.index + tk.length; i++
+      }
+      if (last < text.length) out.push(text.slice(last))
+      return out
+    }
+    function markdownBlocks(lines) {
+      const blocks = []; let i = 0
+      const cells = (line) => line.trim().replace(/^\||\|$/g, '').split('|').map((c) => c.trim())
+      while (i < lines.length) {
+        const line = lines[i]; const key = `b${i}`
+        if (!line.trim()) { i++; continue }
+        const hd = /^(#{1,4})\s+(.*)$/.exec(line)
+        if (hd) { blocks.push(h(`h${hd[1].length}`, { key, id: `mx-md-l${i}` }, inlineMd(hd[2], key))); i++; continue }
+        if (line.trim().startsWith('|') && /^\s*\|?\s*:?-{3,}/.test(lines[i + 1] ?? '')) {
+          const head = cells(line); const rows = []
+          i += 2
+          while (i < lines.length && lines[i].trim().startsWith('|')) { rows.push(cells(lines[i])); i++ }
+          // 两列「项 | 值」的表画成键值表，第一列不加粗底色
+          const kvTable = head.length === 2 && /^(项|项目)$/.test(head[0])
+          blocks.push(h('div', { key, className: 'mx-mdv-tw' }, h('table', { className: kvTable ? 'kv' : '' },
+            kvTable ? null : h('thead', {}, h('tr', {}, head.map((c, ci) => h('th', { key: ci }, inlineMd(c, `${key}h${ci}`))))),
+            h('tbody', {}, rows.map((r, ri) => h('tr', { key: ri }, r.map((c, ci) => h(kvTable && ci === 0 ? 'th' : 'td', { key: ci }, inlineMd(c, `${key}r${ri}c${ci}`)))))))))
+          continue
+        }
+        if (line.startsWith('>')) {
+          const q = []
+          while (i < lines.length && lines[i].startsWith('>')) { q.push(lines[i].replace(/^>\s?/, '')); i++ }
+          blocks.push(h('blockquote', { key }, inlineMd(q.join(' '), key))); continue
+        }
+        if (/^\s*[-*]\s+/.test(line) || /^\s*\d+\.\s+/.test(line)) {
+          const ordered = /^\s*\d+\.\s+/.test(line); const items = []
+          while (i < lines.length && (ordered ? /^\s*\d+\.\s+/ : /^\s*[-*]\s+/).test(lines[i])) { items.push(h('li', { key: i }, inlineMd(lines[i].replace(/^\s*(?:[-*]|\d+\.)\s+/, ''), `${key}i${i}`))); i++ }
+          blocks.push(h(ordered ? 'ol' : 'ul', { key }, items)); continue
+        }
+        const para = []
+        while (i < lines.length && lines[i].trim() && !/^(#{1,4}\s|>|\s*[-*]\s|\s*\d+\.\s|\s*\|)/.test(lines[i])) { para.push(lines[i]); i++ }
+        if (!para.length) { para.push(line); i++ }
+        blocks.push(h('p', { key }, inlineMd(para.join(' '), key)))
+      }
+      return blocks
+    }
     function Report({ run }) {
       const d = useAsync(() => call('report', { runId: run.id }), [run.id, run.status])
-      return h('div', { className: 'mx-frame mx-scroll mx-pad', style: { flex: 1 } },
-        d.value ? h(React.Fragment, {}, h('div', { className: 'mx-faint', style: { marginBottom: 8 } }, d.value.path), h('div', { className: 'mx-md' }, d.value.markdown)) : h('div', { className: 'mx-faint' }, d.error ?? '加载中…'))
+      const [copied, setCopied] = useState(false)
+      const [active, setActive] = useState(null)
+      const boxRef = React.useRef(null)
+      const text = d.value?.markdown ?? ''
+      const lines = React.useMemo(() => String(text).split(/\r?\n/), [text])
+      const blocks = React.useMemo(() => markdownBlocks(lines), [lines])
+      const toc = React.useMemo(() => lines.map((l, i) => [l, i]).filter(([l]) => /^#{2,3}\s/.test(l)).map(([l, i]) => ({ i, level: /^###/.test(l) ? 3 : 2, title: l.replace(/^#{2,3}\s+/, '').replace(/[`*]/g, '') })), [lines])
+      // 目录高亮滚到顶部的那一节
+      useEffect(() => {
+        const box = boxRef.current; if (!box || toc.length < 2) return undefined
+        let fr = 0
+        const on = () => { cancelAnimationFrame(fr); fr = requestAnimationFrame(() => {
+          const top = box.getBoundingClientRect().top + 24; let hit = null
+          for (const it of toc) { const n = document.getElementById(`mx-md-l${it.i}`); if (n && n.getBoundingClientRect().top <= top) hit = it.i; else if (n) break }
+          setActive(hit)
+        }) }
+        on(); box.addEventListener('scroll', on, { passive: true })
+        return () => { box.removeEventListener('scroll', on); cancelAnimationFrame(fr) }
+      }, [toc])
+      if (!d.value) return h('div', { className: 'mx-frame mx-empty', style: { flex: 1 } }, d.error ?? '加载中…')
+      return h('div', { className: 'mx-frame mx-col', style: { flex: 1, minHeight: 0 } },
+        h('div', { className: 'mx-pad mx-mdv-bar' },
+          h('span', { className: 'mx-faint', title: d.value.path }, d.value.path),
+          h('button', { className: 'mx-btn sm', onClick: () => { navigator.clipboard?.writeText(d.value.path).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500) }).catch(() => {}) } }, copied ? '已复制' : '复制路径')),
+        h('div', { className: 'mx-scroll mx-pad', ref: boxRef, style: { flex: 1 } },
+          h('div', { className: toc.length >= 2 ? 'mx-mdv-layout' : '' },
+            h('div', { className: 'mx-mdv' }, blocks),
+            toc.length >= 2 ? h('nav', { className: 'mx-mdv-toc', 'aria-label': '目录' }, h('div', { className: 'mx-mdv-toc-h' }, '目录'),
+              toc.map((it) => h('button', { key: it.i, type: 'button', title: it.title, className: `mx-mdv-toc-i l${it.level}${active === it.i ? ' on' : ''}`, onClick: () => document.getElementById(`mx-md-l${it.i}`)?.scrollIntoView({ block: 'start', behavior: 'smooth' }) }, it.title))) : null)))
     }
 
     /* --------------------------------------------------------------- settings */
