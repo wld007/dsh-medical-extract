@@ -1,4 +1,4 @@
-// 产线标签的几种表现方式（效果图）：把 client.js 里的 PlantScene 原样拿来，只替换“标签卡”一段，渲染成静态 SVG 再截图。
+// 流水线标签的几种表现方式（效果图）：把 client.js 里的 PlantScene 原样拿来，只替换“标签卡”一段，渲染成静态 SVG 再截图。
 //   node design/tags.mjs   → design/tags-<方案>.png
 // 不改 client.js；假数据只用虚构数字。
 import fs from 'node:fs'

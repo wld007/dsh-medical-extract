@@ -22,7 +22,7 @@ DeepSeek Harness 插件。给一份**提取模板**（字段清单），从病�
 
 ## 用法
 
-- **左侧栏「病历文书提取」**：有产线、模板、宽表、原文标注、复核、模型调用、报告几页。
+- **左侧栏「病历文书提取」**：有流水线、模板、宽表、原文标注、复核、模型调用、报告几页。
 - **聊天框**：`/extract <输入目录或文件> [--template mdd] [--mode hybrid|model] [--out 输出根目录] [--as-of "YYYY-MM-DD HH:mm"]`
 - **Agent 工具**：`extract_start`、`extract_status`、`extract_report`、`extract_runs`、`extract_cancel`、`extract_templates`、`extract_save_template`。
 
@@ -34,7 +34,7 @@ DeepSeek Harness 插件。给一份**提取模板**（字段清单），从病�
   - 一个文件夹一位病人的导出（匿名化插件的输出就是这样）自动认出来，病人取文件夹名。
   - 格式还没定的表，默认先按通用读法读（自动猜正文、时间列），设置 `heldTables: skip` 则先跳过。
 
-## 产线
+## 流水线
 
 | 环节 | 做什么 | 质检 |
 |---|---|---|

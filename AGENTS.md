@@ -2,7 +2,7 @@
 
 ## 开始前
 
-1. 读 `docs/brief.md`（定位与产线）和 `docs/template.md`（模板格式，引擎与模板之间的契约）。
+1. 读 `docs/brief.md`（定位与流水线）和 `docs/template.md`（模板格式，引擎与模板之间的契约）。
 2. 插件家族的共同约定见 `../dsh-medical-event/docs/family.md`。实现方式（Node、`index.js`、`lib/`、`client.js`、`cordis.patch.yml`、`scripts/build.mjs`）和页面风格都参照 `../dsh-medical-event`。
 
 ## 必须遵守

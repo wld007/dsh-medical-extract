@@ -31,7 +31,7 @@ window.__ModuleLoader__.load({
     }
 
     /* ---------------------------------------------------------------- style */
-    // 主题与 2.5D 产线沿用病历事件还原（类名前缀 me- → mx-）
+    // 主题与 2.5D 流水线沿用病历事件还原（类名前缀 me- → mx-）
     const CSS = `.mx{--mono:"SF Mono","JetBrains Mono",Menlo,monospace;
   height:100%;box-sizing:border-box;background:var(--bg);color:var(--ink);font:12.5px -apple-system,"PingFang SC","Helvetica Neue",sans-serif;display:flex;flex-direction:column;gap:8px;padding:8px 10px 10px;color-scheme:dark;overflow:hidden}
 .mx.mx-dark{--bg:#0c0b12;--panel:#12111b;--panel2:#181624;--panel3:#201d2e;--line:#221f31;--line2:#332e48;--ink:#ebe8f4;--ink2:#a49fba;--ink3:#6b6683;--teal:#8f6ef5;--teal2:#c9b8ff;--tealdim:rgba(143,110,245,.14);--fill:#6d4ae0;--ok:#62c27e;--warn:#f0a63a;--bad:#e5484d;--badink:#ff8a8d;--vio:#4cc9e0;--fact:#6cb4ff;--judge:#f38bc8;--decide:#4fd1a5;--visit:#8681a0;--tick:#514c68;--arrow:#423d58;--cell-ok:#62c27e;--top:#100f18;--st1:#161423;--st2:#100f18;--shade:rgba(12,11,18,.65);--sel:#ebe8f4;color-scheme:dark}
@@ -151,7 +151,7 @@ window.__ModuleLoader__.load({
 .mx-mp-note{padding:6px 8px;font-size:12px;color:var(--dsw-alias-label-secondary,var(--ink2))}.mx-mp-note.bad{color:var(--bad,#cf3a3f)}
 .mx-grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}.mx-grid2>*{min-width:0}
 .mx-pop .mx-grid2.tm{grid-template-columns:minmax(0,1fr) max-content}
-/* ---- 产线：等轴测工厂＋HUD 面板（参考工业监控大屏） ---- */
+/* ---- 流水线：等轴测工厂＋HUD 面板（参考工业监控大屏） ---- */
 .mx.mx-dark{--lift:0 1px 0 rgba(255,255,255,.025) inset,0 12px 26px -22px #000}
 .mx.mx-light{--lift:0 1px 0 rgba(255,255,255,.8) inset,0 10px 22px -20px rgba(40,20,80,.32)}
 .mx-frame{box-shadow:var(--lift);border-radius:4px}
@@ -162,7 +162,7 @@ window.__ModuleLoader__.load({
 .mx-scene text{pointer-events:none}
 .mx-scene:focus{outline:none}.mx-scene:focus-visible{outline:1px dashed color-mix(in srgb,var(--teal) 60%,transparent);outline-offset:-2px;border-radius:3px}
 .mx-hero{position:relative;padding:10px 12px 8px;min-height:560px;background:radial-gradient(120% 90% at 45% 55%,var(--panel2),var(--bg) 75%);display:flex;flex-direction:column;min-height:420px}
-/* 产线页布局（同匿名化插件）：左＝产线＋底部三栏，右＝工序详情拉到底 */
+/* 流水线页布局（同匿名化插件）：左＝流水线＋底部三栏，右＝工序详情拉到底 */
 .mx-line{flex:1;min-width:0;min-height:640px;display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:8px}
 .mx-line-left{min-width:0;min-height:0;display:flex;flex-direction:column;gap:8px}
 .mx-line .mx-hero{flex:1;min-height:360px}
@@ -662,8 +662,8 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       const lineStatus = run?.status ?? 'idle'
       const dark = useHostDark()
       const heldFormats = run?.format?.held ?? 0
-      // 按流程顺序（同匿名化插件的分组）：产线｜模板 E0  格式 E1　复核 E6  结果表 E7  原文标注（从结果表看出处）　模型调用 报告（全程记录）
-      const tabs = [['line', '◈ 产线'], ['template', '模板', run?.template?.fields, 'sep'], ...(run?.format ? [['formats', '格式', heldFormats]] : []), ['files', '文件', run?.totals?.unitErrors, 'gap'], ['source', '复核', run?.humanReview ? run.humanReview.todo : run?.totals?.review], ['calls', '模型调用', null, 'gap'], ['report', '报告']]
+      // 按流程顺序（同匿名化插件的分组）：流水线｜模板 E0  格式 E1　复核 E6  结果表 E7  原文标注（从结果表看出处）　模型调用 报告（全程记录）
+      const tabs = [['line', '◈ 流水线'], ['template', '模板', run?.template?.fields, 'sep'], ...(run?.format ? [['formats', '格式', heldFormats]] : []), ['files', '文件', run?.totals?.unitErrors, 'gap'], ['source', '复核', run?.humanReview ? run.humanReview.todo : run?.totals?.review], ['calls', '模型调用', null, 'gap'], ['report', '报告']]
       return h(ThemeCtx.Provider, { value: dark ? PAL.dark : PAL.light }, h('div', { className: `mx ${dark ? 'mx-dark' : 'mx-light'}` },
         h('style', {}, CSS),
         h('header', { className: 'mx-frame mx-top' },
@@ -835,7 +835,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       // 没选工序时右列是批次概览（同匿名化插件）；点楼、标签或底部质检进工序详情
       const [selK, setSelK] = useState(null)
       const k = selK ?? -1
-      // 布局同匿名化插件：左列＝2.5D 产线（撑满）＋底部「进展｜结果｜监控」；右列＝所选工序的详情，拉到底
+      // 布局同匿名化插件：左列＝2.5D 流水线（撑满）＋底部「进展｜结果｜监控」；右列＝所选工序的详情，拉到底
       return h('div', { className: 'mx-scroll', style: { flex: 1, display: 'flex' } },
         h('div', { className: 'mx-line' },
           h('div', { className: 'mx-line-left' },
@@ -881,7 +881,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
     }
 
     /**
-     * 产线主视图：后方的模板塔（E0）经说明总线把字段说明下发到每道工序；
+     * 流水线主视图：后方的模板塔（E0）经说明总线把字段说明下发到每道工序；
      * E1 读入楼 → E2–E6 五栋工序楼 → E7 交付堆场；箱子＝一个数据块；提取模型挂在提取楼旁，核验模型挂在核验楼旁。
      */
     const STATION_LABEL = { format: '格式识别', extract: '提取', verify: '核验', adjudicate: '复查' }
@@ -1319,7 +1319,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
     }
 
     /* ------------------------------------------------------------- alerts */
-    /** 待办告警（同匿名化插件）：产线右上角，最严重的在前，最多 3 条（其余「再看 N 条」），点一条直接去处理；可收起 */
+    /** 待办告警（同匿名化插件）：流水线右上角，最严重的在前，最多 3 条（其余「再看 N 条」），点一条直接去处理；可收起 */
     function AlertsOverlay({ run, stations, goto, onSel }) {
       const [fold, setFold] = useState(false)
       const [all, setAll] = useState(false)
