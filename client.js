@@ -848,6 +848,25 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         // 悬停说明（原图例里「紫色流线」那条）：透明粗线只用来接住鼠标
         els.push(h('polyline', { key: 'bushit', points: pts([a, b, c]), fill: 'none', stroke: 'transparent', strokeWidth: 12, pointerEvents: 'stroke' }, h('title', {}, '字段规格：模板里每个字段的召回词、规则和值类型，下发到每道工序')))
       }
+      // 复判回环：核验 → 提取。分歧由两个模型轮流复判（回到提取那一步重读原文），人工裁定按稳定编号存、重跑沿用。
+      // 起止点在楼背后的空地正中（楼和总线之间、与楼左右居中），向后穿过规格总线拱起；画在总线之后、楼之前
+      {
+        const LJ = BUSJ / 2; const LZ = H + 10
+        // 在画面上和楼左右居中：往后挪（j 变小）画面会右移，用 i 抵回去
+        const shiftI = -(JX[0] * (LJ - D / 2)) / IX[0]
+        const i1 = bay0(4) + bw / 2 + shiftI; const i0 = bay0(2) + bw / 2 + shiftI
+        const a = iso(i1, LJ, LZ); const b = iso(i0, LJ, LZ)
+        const c1 = iso(i1 - 10, BUSJ - 70, BUSZ + 110); const c2 = iso(i0 + 10, BUSJ - 70, BUSZ + 110)
+        const d = `M${a[0].toFixed(1)} ${a[1].toFixed(1)} C${c1[0].toFixed(1)} ${c1[1].toFixed(1)} ${c2[0].toFixed(1)} ${c2[1].toFixed(1)} ${b[0].toFixed(1)} ${b[1].toFixed(1)}`
+        const mid = [(a[0] + 3 * c1[0] + 3 * c2[0] + b[0]) / 8, (a[1] + 3 * c1[1] + 3 * c2[1] + b[1]) / 8]
+        els.push(h('g', { key: 'loop' },
+          h('title', {}, `分歧复判：核验分歧回到提取，由两个模型轮流重读原文复判，至多 ${run.maxRounds ?? 3} 轮；仍不一致的交人工\n人工裁定按稳定编号保存，重跑沿用`),
+          h('circle', { cx: a[0], cy: a[1], r: 2.6, fill: P.ink2 }),
+          h('path', { d, fill: 'none', stroke: P.ink2, strokeWidth: 1.4, strokeDasharray: '5 5', markerEnd: 'url(#mx-arr)' }),
+          h('path', { d, fill: 'none', stroke: 'transparent', strokeWidth: 12 }),
+          h('text', { x: mid[0], y: mid[1] - 8, textAnchor: 'middle', fill: P.ink2, fontSize: 10, ...halo }, `分歧复判至多 ${run.maxRounds ?? 3} 轮 · 人工裁定重跑沿用`)))
+        bb.push([mid[0] - 110, mid[1] - 22], [mid[0] + 110, mid[1] - 22])
+      }
       // E1 读入楼：窗户＝分片进度
       {
         const s = stations[0]; const g = []
@@ -1056,23 +1075,6 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         els.push(h('g', { key: `house${hi}`, ...click(8 + hi), style: { cursor: 'pointer' } }, h('title', {}, `${hs.model ?? hs.label}（${hs.roleText}）\n窗户＝并发名额（共 ${cap} 个${per > 1 ? `，每窗 ${per} 个` : ''}），亮着的＝在途${live ? ` ${live.inflight}` : ''}\n屋顶的箱子＝排队的请求${live ? ` ${live.waiting}` : ''}${recentFail ? '\n红窗＝最近 10 秒有调用失败' : ''}\n点开看模型状态`), g))
         bb.push(iso(mi - 6, mj + mb + 6), iso(mi - 170, mj + mb + 44), iso(mi + ma + 6, mj + mb + 6))
       })
-      // 复判回环：核验 → 提取。分歧由两个模型轮流复判（回到提取那一步重读原文），人工裁定按稳定编号存、重跑沿用。
-      // 从核验楼顶居中处起，向后上方穿过规格总线，在总线后面拱起，再穿回来落到提取楼顶居中处；画在楼之后、屋顶标签之前
-      {
-        const i1 = bay0(4) + bw / 2; const i0 = bay0(2) + bw / 2
-        const a = iso(i1, D / 2, H + 2); const b = iso(i0, D / 2, H + 2)
-        const c1 = iso(i1 - 10, BUSJ - 70, BUSZ + 120); const c2 = iso(i0 + 10, BUSJ - 70, BUSZ + 120)
-        const d = `M${a[0].toFixed(1)} ${a[1].toFixed(1)} C${c1[0].toFixed(1)} ${c1[1].toFixed(1)} ${c2[0].toFixed(1)} ${c2[1].toFixed(1)} ${b[0].toFixed(1)} ${b[1].toFixed(1)}`
-        // 三次贝塞尔 t=0.5 处
-        const mid = [(a[0] + 3 * c1[0] + 3 * c2[0] + b[0]) / 8, (a[1] + 3 * c1[1] + 3 * c2[1] + b[1]) / 8]
-        els.push(h('g', { key: 'loop' },
-          h('title', {}, `分歧复判：核验分歧回到提取，由两个模型轮流重读原文复判，至多 ${run.maxRounds ?? 3} 轮；仍不一致的交人工\n人工裁定按稳定编号保存，重跑沿用`),
-          h('circle', { cx: a[0], cy: a[1], r: 2.6, fill: P.ink2 }),
-          h('path', { d, fill: 'none', stroke: P.ink2, strokeWidth: 1.4, strokeDasharray: '5 5', markerEnd: 'url(#mx-arr)' }),
-          h('path', { d, fill: 'none', stroke: 'transparent', strokeWidth: 12 }),
-          h('text', { x: mid[0], y: mid[1] - 8, textAnchor: 'middle', fill: P.ink2, fontSize: 10, ...halo }, `分歧复判至多 ${run.maxRounds ?? 3} 轮 · 人工裁定重跑沿用`)))
-        bb.push([mid[0] - 110, mid[1] - 22], [mid[0] + 110, mid[1] - 22])
-      }
       // 屋顶标签：贴在每栋楼顶上方的胶囊，不用引线；只放两字工序名＋关键数＋单位，验收门一个色点；选中＝实心
       // 细节（阶段名、说明、各行数）在悬停提示和右侧阶段面板里
       const textW = (str, fs, mono) => [...String(str)].reduce((w, ch) => w + (/[\u2E80-\uFFFF]/.test(ch) ? fs : fs * (mono ? 0.62 : 0.56)), 0)
