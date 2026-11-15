@@ -246,3 +246,51 @@ test('复判：核验分歧两个模型轮流复判，一致的自动解决（�
   assert.equal((await svc.reviewQueue(run.id)).counts.open, run.totals.review)
   await svc.dispose()
 })
+
+test('复核：按字段×两边结论分组，整组裁定；应用裁定立即重新汇总，交人工的都裁定了批次转为完成；重跑沿用', async () => {
+  const root = await tmp()
+  const input = await writeMddPatients(join(root, 'in'))
+  // 提取模型什么都不答、复判也坚持：规则票处处不一致，交人工（最终「未提及」⇄ 规则票的值）
+  const mute = { model: 'mute', async chat() { return { content: '{"values":[],"reason":"原文没写"}', ms: 1 } } }
+  const svc = await service({ extractMode: 'hybrid' }, { chatImpl: { extract: mute } })
+  const run = await runToEnd(svc, { inputDir: input, outputRoot: join(root, 'out') })
+  assert.equal(run.status, 'review', run.error)
+  const g = await svc.reviewGroups(run.id)
+  assert.equal(g.counts.todo, run.totals.review)
+  assert.equal(g.groups.reduce((s, x) => s + x.n, 0), run.totals.review)
+  assert.ok(g.groups.every((x) => x.kind === 'rule' && x.patterns.every((p) => p.final === '未提及')))
+  // 一组按规则票改判：落到格子，应用后宽表就是规则票的值
+  const top = g.groups.find((x) => x.patterns.some((p) => p.n > 1)) ?? g.groups[0]
+  const p = top.patterns[0]
+  const r = await svc.decideGroup(run.id, { field: top.field, kind: top.kind, pattern: p.pattern, decision: 'useVerify' })
+  assert.equal(r.decided, p.n)
+  assert.equal((await svc.reviewGroups(run.id)).dirty, true)
+  // 已裁定的不再出现在「待裁定」，在「已裁定」里
+  const todo = await svc.reviewQueue(run.id, { status: 'todo', field: top.field, pattern: p.pattern })
+  assert.equal(todo.total, 0)
+  const done = await svc.reviewQueue(run.id, { status: 'decided' })
+  assert.equal(done.total, p.n); assert.ok(done.items.every((it) => it.decision?.decision === 'useVerify'))
+  const a = await svc.applyDecisions(run.id)
+  assert.equal(a.status, 'review'); assert.equal(a.todo, run.totals.review - p.n)
+  const level = (await svc.template('mdd')).template.fields.find((f) => f.id === top.field).granularity
+  const rows = await readCsv(join(root, 'out', 'in', level === 'patient' ? 'wide_patient.csv' : 'wide_encounter.csv'))
+  assert.ok(rows.some((row) => String(row[top.field]).includes(p.verify)), `${top.field} 应有 ${p.verify}`)
+  assert.equal((await svc.reviewGroups(run.id)).dirty, false)
+  // 其余逐条维持；应用后批次完成
+  for (const it of (await svc.reviewQueue(run.id, { status: 'todo', limit: 1000 })).items) await svc.decide(run.id, { kind: 'review', target: it.id, decision: 'confirm' })
+  const b = await svc.applyDecisions(run.id)
+  assert.equal(b.todo, 0); assert.equal(b.status, 'completed')
+  assert.equal((await svc.status(run.id)).run.status, 'completed')
+  const man = JSON.parse(await readFile(join(root, 'out', 'in', 'manifest.json'), 'utf8'))
+  assert.equal(man.counts.reviewOpen, 0); assert.ok(man.decisionsAppliedAt)
+  // 撤销一条：回到待裁定
+  const one = (await svc.reviewQueue(run.id, { status: 'decided', limit: 1 })).items[0]
+  await svc.decide(run.id, { kind: 'review', target: one.id, decision: 'clear' })
+  assert.equal((await svc.reviewGroups(run.id)).counts.todo, 1)
+  await svc.decide(run.id, { kind: 'review', target: one.id, decision: 'confirm' })
+  // 重跑：裁定按稳定编号沿用，直接完成
+  const run2 = await runToEnd(svc, { inputDir: input, outputRoot: join(root, 'out') })
+  assert.equal(run2.status, 'completed', run2.error)
+  assert.equal(run2.humanReview.todo, 0)
+  await svc.dispose()
+})
