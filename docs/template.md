@@ -13,7 +13,7 @@
   "name": "抑郁障碍（MDD）",
   "version": "0.1.0",
   "description": "一句话说明用途",
-  "documents": { "recordTypes": [], "excludeRecordTypes": ["检验", "门诊收费"] },
+  "documents": { "recordTypes": [], "excludeRecordTypes": ["护理记录"] },
   "groups": [{ "id": "A", "name": "诊断与分型" }],
   "lexicon": { "negation": [], "uncertain": [], "history": [], "family": [], "plan": [] },
   "fields": []
@@ -25,7 +25,7 @@
 | `format` | 是 | 固定 `extract-template/1` |
 | `id` | 是 | `^[a-z][a-z0-9-]*$`，模板库内唯一 |
 | `name`、`version`、`description` | 是 | 版本用 semver；报告、manifest 会记下 |
-| `documents` | 否 | 全模板的文书类型过滤（`recordTypes` 为空＝全部）；字段级 `sources` 再细分 |
+| `documents` | 否 | 全模板的文书类型过滤（`recordTypes` 为空＝全部；`excludeRecordTypes` 排除）；字段级 `sources` 再细分。只对文书起作用：检验、医嘱、处方、诊断明细、收费等结构化记录本来就不进抽取，不必排除 |
 | `groups` | 否 | 字段分组（界面、宽表列顺序） |
 | `lexicon` | 否 | 追加到通用断言词表的词（见 §4），不替换 |
 | `domain` | 否 | 学科／病种分类（界面分组用），如 `精神`、`神经`、`心血管` |

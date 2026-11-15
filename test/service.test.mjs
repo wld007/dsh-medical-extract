@@ -22,6 +22,8 @@ test('p_doc 导出，仅规则：宽表取值、证据逐字、源文件不变',
   await svc.dispose()
   assert.equal(run.status, 'completed', run.error)
   assert.deepEqual(await hashTree(input), before)
+  // 诊断、检验、人口等结构化表只计数，不出文书
+  assert.ok(run.totals.structured > 0)
   const out = join(root, 'out', 'in')
   const P = Object.fromEntries((await readCsv(join(out, 'wide_patient.csv'))).map((r) => [r.patient, r]))
   const E = Object.fromEntries((await readCsv(join(out, 'wide_encounter.csv'))).map((r) => [r.encounter, r]))
@@ -39,6 +41,7 @@ test('p_doc 导出，仅规则：宽表取值、证据逐字、源文件不变',
   // 门诊作废记录（INVLD_FLG=1）不读
   const ev = await readEvidence(join(out, 'evidence'))
   assert.ok(!ev.some((v) => v.quote === '无殊。'))
+  assert.ok(!ev.some((v) => ['检验', '诊断记录', '基本信息', '手术记录'].includes(v.recordType)))
   // 时间点：HAMD 版本
   const tp = await readCsv(join(out, 'timepoints.csv'))
   assert.deepEqual(tp.filter((r) => r.patient === 'MDD-B' && r.field === 'E1').map((r) => [r.value, r.variant]), [['26', 'HAMD-24'], ['14', 'HAMD-24']])

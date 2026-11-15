@@ -21,13 +21,6 @@
       "title": "RECIST 1.1；CTCAE v5.0"
     }
   ],
-  "documents": {
-    "excludeRecordTypes": [
-      "门诊收费",
-      "收费",
-      "基本信息"
-    ]
-  },
   "groups": [
     {
       "id": "A",

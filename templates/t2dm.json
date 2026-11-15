@@ -18,13 +18,6 @@
       "title": "KDIGO 2022 Clinical Practice Guideline for Diabetes Management in CKD"
     }
   ],
-  "documents": {
-    "excludeRecordTypes": [
-      "门诊收费",
-      "收费",
-      "基本信息"
-    ]
-  },
   "groups": [
     {
       "id": "A",

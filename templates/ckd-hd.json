@@ -20,13 +20,6 @@
       "title": "KDIGO 2017 Clinical Practice Guideline Update for CKD-MBD"
     }
   ],
-  "documents": {
-    "excludeRecordTypes": [
-      "门诊收费",
-      "收费",
-      "基本信息"
-    ]
-  },
   "groups": [
     {
       "id": "A",

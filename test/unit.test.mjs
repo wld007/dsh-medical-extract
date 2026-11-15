@@ -9,6 +9,14 @@ import { extractDocument, optionsIn } from '../lib/engine/extract.js'
 import { pickCell } from '../lib/engine/rollup.js'
 import { sameConclusion } from '../lib/engine/shard.js'
 import { parseInstant } from '../lib/util.js'
+import { isNarrativeTable } from '../lib/source/narrative.js'
+
+test('文书判定兜底：叙述性文字才算文书', () => {
+  assert.equal(isNarrativeTable([{ a: '患者情绪低落3月，睡眠差，食欲减退，否认自杀观念。' }, { a: '患者情绪较前好转，睡眠改善。' }]), true)
+  assert.equal(isNarrativeTable([{ item: '血红蛋白量', v: '98', u: 'g/L' }, { item: '平均红细胞血红蛋白量', v: '30.1' }]), false)
+  assert.equal(isNarrativeTable([{ item: '阿莫西林胶囊', cat: '西药费', n: '2' }, { item: '心理测验（汉密尔顿抑郁量表）', cat: '检查费' }]), false)
+  assert.equal(isNarrativeTable([{ name: '抑郁发作', icd: 'F32.1' }, { name: '焦虑状态', icd: 'F41.9' }]), false)
+})
 
 const lex = buildLexicon()
 const mdd = JSON.parse(await readFile(new URL('../templates/mdd.json', import.meta.url), 'utf8'))

@@ -20,7 +20,6 @@ export default {
     { title: '中国血液透析充分性临床实践指南' },
     { title: 'KDIGO 2017 Clinical Practice Guideline Update for CKD-MBD' },
   ],
-  documents: { excludeRecordTypes: ['门诊收费', '收费', '基本信息'] },
   groups: [
     { id: 'A', name: '诊断与分期' }, { id: 'B', name: '透析与通路' }, { id: 'C', name: '透析处方与充分性' }, { id: 'D', name: '容量与血压' },
     { id: 'E', name: '贫血' }, { id: 'F', name: '矿物质与骨代谢' }, { id: 'G', name: '营养与炎症' }, { id: 'H', name: '用药' }, { id: 'I', name: '并发症与结局' }, { id: 'J', name: '合并症' },

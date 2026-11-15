@@ -508,7 +508,7 @@ window.__ModuleLoader__.load({
       const st = (no, nm, sub, bigv, unit, rows, state, frac) => ({ no, ab: AB[no], nm, sub, big: bigv, unit, rows, state, frac })
       const methods = t.byMethod ?? {}
       return [
-        st('E1', '读入·切栏目', run.plan?.format ?? '规划输入', big(t.documents), '文书', [['分片', `${run.shards.done}/${run.shards.total}`, ''], ['速率', run.rate ? `${fmt(run.rate)}/秒` : '—', '']], stOf('E3'), shardFrac),
+        st('E1', '读入·切栏目', run.plan?.format ?? '规划输入', big(t.documents), '文书', [['分片', `${run.shards.done}/${run.shards.total}`, ''], ['结构化记录（不抽取）', t.structured == null ? '—' : big(t.structured), ''], ['速率', run.rate ? `${fmt(run.rate)}/秒` : '—', '']], stOf('E3'), shardFrac),
         st('E2', '候选召回', '按文书类型、栏目过滤；召回词与正则', big(t.recalled), '字段·文书', [['跳过（截至时刻）', fmt(t.skipped), '']], stOf('E3'), shardFrac),
         st('E3', '取值·模型补抽', '规则定值；定不了的片段送模型，引语回原文核对', big(t.values), '值', [gateRow('①', '验收①', `${fmt(t.quoteFail)} 丢弃`), ['规则', big(methods.rule), ''], ['模型', big((methods.model ?? 0) + (methods['model+rule'] ?? 0)), ''], ['模型调用', `${big(t.calls)}（缓存 ${big(t.cached)}）`, '']], stOf('E3'), shardFrac),
         st('E4', '归一·断言', '单位、日期、选项规范名；否认／既往／家族／计划', fmt(t.invalid + t.outOfRange), '不合规', [gateRow('②', '验收②')], stOf('E3'), shardFrac),
@@ -855,7 +855,7 @@ window.__ModuleLoader__.load({
     /* 每道工序：做什么 → 产出什么（引擎的通用工序说明，不含病种内容） */
     const STEP_HELP = {
       E0: ['载入抽取模板并校验：字段、取值类型、选项、召回词与规则', '字段规格，下发给后面每道工序'],
-      E1: ['识别输入格式，切成分片并行处理；每份文书按栏目切开，截至时刻以后写成的文书跳过', '文书与栏目'],
+      E1: ['识别输入格式，切成分片并行处理；只留下文书（病历类），检验、医嘱、收费等结构化记录不进抽取，只取人口与就诊信息；文书按栏目切开，截至时刻以后写成的跳过', '文书与栏目'],
       E2: ['按字段限定的文书类型、栏目过滤，再用召回词和正则找出可能有值的句子', '候选：字段 × 文书'],
       E3: ['规则能定的直接取值；定不了的片段送抽取模型，模型给的引语回原文逐字核对，对不上就丢弃', '值：每个都带原文引语、起止位置和出处（规则编号或模型）'],
       E4: ['统一单位、日期和选项写法；判断否认、既往、家族史、计划；类型、选项或值域不对的标为不合规', '规范值与断言'],
@@ -925,7 +925,7 @@ window.__ModuleLoader__.load({
         action = ['模板', 'template']
       } else if (id === 'E1') {
         ring = h(Ring, { v: s.frac, label: `${Math.round((s.frac ?? 0) * 100)}%`, sub: shards, hot })
-        stats = [['文书', big(t.documents)], ['速率', run.rate ? `${fmt(run.rate)} 份/秒` : '—'], ['跳过（截至时刻）', fmt(t.skipped)], ['输入格式', run.plan?.format ?? '—']]
+        stats = [['文书', big(t.documents)], ['结构化记录（不抽取）', t.structured == null ? '—' : big(t.structured)], ['速率', run.rate ? `${fmt(run.rate)} 份/秒` : '—'], ['跳过（截至时刻）', fmt(t.skipped)], ['输入格式', run.plan?.format ?? '—']]
         if (run.format) {
           parts.push(sec('格式识别', h(Split, { parts: [['采用', run.format.adopted ?? 0, 'var(--teal)'], ['待确认', run.format.held ?? 0, 'var(--warn)'], ['跳过', run.format.ignored ?? 0, 'var(--line2)']] }), `${fmt((run.format.adopted ?? 0) + (run.format.held ?? 0) + (run.format.ignored ?? 0))} 张表`))
           if (run.format.held) action = [`去确认 ${run.format.held} 张表`, 'formats']

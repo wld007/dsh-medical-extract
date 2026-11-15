@@ -17,13 +17,6 @@
       "title": "2022 AHA/ACC/HFSA Guideline for the Management of Heart Failure"
     }
   ],
-  "documents": {
-    "excludeRecordTypes": [
-      "门诊收费",
-      "收费",
-      "基本信息"
-    ]
-  },
   "groups": [
     {
       "id": "A",

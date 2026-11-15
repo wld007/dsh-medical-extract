@@ -69,7 +69,10 @@ test('格式识别：两模型一致自动采用，按规格出文书（栏目�
   assert.equal(d1.value, '无'); assert.equal(d1.recordType, '病程记录'); assert.equal(d1.section, '病情记录'); assert.equal(d1.written, '2024-03-10 14:30')
   assert.ok(ev.some((v) => v.field === 'F1' && v.value === '舍曲林' && v.section === '诊疗计划'))
   assert.ok(ev.some((v) => v.field === 'E1' && v.value === 24 && v.section === '病例特点'))
-  // 检验渲染成"项目：…，结果：…"，平均红细胞血红蛋白量不进主表正文以外的东西
+  // 只从文书里抽：检验表（结构化）不出文书，只计数
+  assert.equal(run.totals.documents, 4)
+  assert.equal(run.totals.structured, 4)
+  assert.ok(!ev.some((v) => v.recordType === '检验'))
   const fmts = await svc.formats(run.id)
   assert.deepEqual(fmts.tables.map((t) => t.status).sort(), ['agreed', 'agreed'])
   await svc.dispose()
@@ -118,6 +121,32 @@ test('格式识别：不配模型只有规则草稿（待确认）；借用病�
   assert.ok(run2.format.tables.every((t) => t.borrowedFrom === '病历事件还原'))
   assert.ok((await mine.all()).length === 2)
   await fresh.dispose()
+})
+
+test('没开格式识别：按叙述性判断，病程表是文书、检验表是结构化记录', async () => {
+  const root = await tmp()
+  const input = await writeCoded(join(root, 'export'))
+  const svc = createService({ config: { extractMode: 'rules', template: 'mdd', workers: 1, formatRecognition: false }, stateDir: join(root, 'state', 'medical-extract') })
+  const run = await runToEnd(svc, { inputDir: input, outputRoot: join(root, 'out') })
+  assert.ok(['completed', 'review'].includes(run.status), run.error)
+  assert.equal(run.totals.documents, 4)
+  assert.equal(run.totals.structured, 4)
+  await svc.dispose()
+})
+
+test('只有结构化记录的输入：没有文书，给出提示', async () => {
+  const root = await tmp()
+  const d = join(root, 'export', '证件-AAAAAA', '检验'); await mkdir(d, { recursive: true })
+  await writeFile(join(d, 'C0102_0303_0201住院检验常规报告.json'), JSON.stringify([
+    { _id: 'L1', WS04_30_020_01: '血红蛋白量', WS04_30_009_03: '98', WS04_30_016_01: 'g/L', WS06_00_926_01: ts('2024-03-11 08:00') },
+    { _id: 'L2', WS04_30_020_01: '血钾', WS04_30_009_03: '3.9', WS04_30_016_01: 'mmol/L', WS06_00_926_01: ts('2024-03-11 08:00') },
+  ]))
+  const svc = createService({ config: { extractMode: 'rules', template: 'mdd', workers: 1, formatRecognition: false }, stateDir: join(root, 'state', 'medical-extract') })
+  const run = await runToEnd(svc, { inputDir: join(root, 'export'), outputRoot: join(root, 'out') })
+  assert.equal(run.totals.documents, 0)
+  assert.equal(run.totals.structured, 2)
+  assert.ok(run.warnings.some((w) => w.includes('没有文书')))
+  await svc.dispose()
 })
 
 test('数据元对照表：编码忽略分隔符；中文名进画像', async () => {

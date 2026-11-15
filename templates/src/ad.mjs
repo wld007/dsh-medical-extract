@@ -20,7 +20,6 @@ export default {
     { title: 'Revised criteria for diagnosis and staging of Alzheimer’s disease: Alzheimer’s Association Workgroup (2024)' },
     { title: 'NIA-AA Research Framework (2018)' },
   ],
-  documents: { excludeRecordTypes: ['门诊收费', '收费', '基本信息'] },
   groups: [
     { id: 'A', name: '诊断与分期' }, { id: 'B', name: '起病与病程' }, { id: 'C', name: '认知与功能量表' }, { id: 'D', name: '症状' },
     { id: 'E', name: '生物标志物' }, { id: 'F', name: '影像' }, { id: 'G', name: '治疗' }, { id: 'H', name: '危险因素与共病' }, { id: 'K', name: '检验' },
