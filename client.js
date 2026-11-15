@@ -952,6 +952,8 @@ window.__ModuleLoader__.load({
         const V = P.vio; const on = !!hs.model
         const [mi, mj] = HOUSE_AT[Math.min(hi, 1)]; const ma = 74; const mb = 44; const mh = 30
         const live = last ? { inflight: last[2 + hs.slot] ?? 0, waiting: last[4 + hs.slot] ?? 0, st: last.slice(10 + hs.slot * 4, 14 + hs.slot * 4) } : null
+        // 最近 10 秒有调用失败（含重试后仍失败）：一扇窗闪红
+        const recentFail = (() => { if (!running) return false; const ps = (run.series ?? []).filter((p) => p.length >= 20); if (ps.length < 2) return false; const z = ps.at(-1); const old = ps.filter((p) => z[0] - p[0] <= 10000)[0] ?? ps.at(-2); return (z[18 + hs.slot] ?? 0) > (old[18 + hs.slot] ?? 0) })()
         const g = []; const pipes = []
         g.push(...isoBox('mp', mi - 6, mj - 6, -3, ma + 12, mb + 12, 3, { top: C.pad, left: C.padL, right: C.padR }))
         // 管子（画在排队箱子和数字下面，不压字）：这个模型用在哪几道工序（格式识别只在通用文件、做了格式识别时画）
@@ -967,11 +969,32 @@ window.__ModuleLoader__.load({
           const mid = [(a[0] + b[0]) / 2, Math.max(a[1], b[1]) - 10]
           pipes.push(h('path', { key: `h${hi}p${st}`, d: `M${a[0].toFixed(1)} ${a[1].toFixed(1)} Q${mid[0].toFixed(1)} ${mid[1].toFixed(1)} ${b[0].toFixed(1)} ${b[1].toFixed(1)}`, fill: 'none', stroke: hot || used ? V : C.left2, strokeWidth: hot ? 2.4 : used ? 1.7 : 1.3, strokeDasharray: hot ? '3 5' : '2 5', className: hot ? 'mx-flow' : undefined, filter: hot ? 'url(#mx-glow)' : undefined, opacity: hot ? 1 : used ? 0.7 : 0.4 }, h('title', {}, `${STATION_LABEL[st]}${on ? `：调用 ${fmt(hs.calls[st] ?? 0)} 次${live ? ` · 在途 ${live.st[stI] ?? 0}` : ''}` : ''}`)))
         })
-        g.push(...isoBox('mb', mi, mj, 0, ma, mb, mh, CL))
-        // 窗户：6 格，按在途数／上限点亮；不在运行时，用过的模型留一格常亮
-        const nWin = 6; const lit = !on ? 0 : live ? Math.min(nWin, Math.ceil((live.inflight / Math.max(1, hs.max)) * nWin)) : 0
-        for (let w = 0; w < nWin; w++) { const wi = mi + 6 + w * 11; const isLit = w < lit; g.push(leftPatch(`mw${w}`, wi, wi + 7, mj + mb, 9, 20, { fill: isLit ? V : C.win, opacity: isLit ? 0.95 : 0.55, filter: isLit ? 'url(#mx-glow)' : undefined })) }
-        g.push(...isoBox('mbk', mi + 52, mj + 14, mh, 11, 11, 8, on && (live?.inflight ?? 0) > 0 ? { top: shade(V, 0.3), left: V, right: shade(V, -0.3), props: { filter: 'url(#mx-glow)' } } : CL2))
+        g.push(...isoBox('mb', mi, mj, 0, ma, mb, mh, on ? CL : CL2))
+        // 窗户＝并发名额：一扇窗一个名额（上限多时两排；再多则一扇窗代表几个名额），亮几扇＝在途几个
+        const cap = on ? Math.max(1, hs.max) : 8
+        const per = cap <= 32 ? 1 : Math.ceil(cap / 32)
+        const nWin = Math.ceil(cap / per); const rowsW = nWin > 12 ? 2 : 1; const perRow = Math.ceil(nWin / rowsW)
+        const litWin = on && live ? Math.min(nWin, Math.ceil(live.inflight / per)) : 0
+        const ww = (ma - 8) / perRow; const wGap = Math.min(3, ww * 0.3); const wh = rowsW === 2 ? 8 : 15
+        for (let k2 = 0; k2 < nWin; k2++) {
+          const row = Math.floor(k2 / perRow); const col = k2 % perRow
+          const wi = mi + 4 + col * ww; const z0 = rowsW === 2 ? (row === 0 ? 18 : 6) : 7
+          const isLit = k2 < litWin; const isRed = recentFail && k2 === Math.max(0, litWin - 1)
+          g.push(leftPatch(`mw${k2}`, wi, wi + ww - wGap, mj + mb, z0, z0 + wh, { fill: isRed ? P.bad : isLit ? V : C.win, opacity: isLit || isRed ? 0.95 : 0.55, filter: isLit || isRed ? 'url(#mx-glow)' : undefined, className: isRed ? 'mx-pulse' : undefined }))
+        }
+        // 屋顶的箱子＝排队的请求：一箱一个，从中间往外、一层层往上堆，最多 12 箱，多的在箱堆上方写数字
+        const nQ = on && live ? live.waiting : 0
+        const QMAX = 12; const shownQ = Math.min(QMAX, nQ)
+        const QA = { top: shade(P.warn, 0.35), left: P.warn, right: shade(P.warn, -0.3), edge: shade(P.warn, -0.45) }
+        const slots2 = [[2, 1], [1, 1], [3, 1], [2, 0], [1, 0], [3, 0], [0, 1], [4, 1], [0, 0], [4, 0]]
+        const qb = []
+        for (let q = 0; q < shownQ; q++) {
+          const lv = q < 10 ? 0 : 1; const [cx, cy] = lv === 0 ? slots2[q] : [[2, 1], [2, 0]][q - 10]
+          qb.push({ ci: mi + 6 + cx * 13, cj: mj + 6 + cy * 16, z: mh + lv * 8, q })
+        }
+        qb.sort((x, y) => x.z - y.z || depthOf(x.ci, x.cj) - depthOf(y.ci, y.cj)).forEach(({ ci, cj, z, q }) => g.push(...isoBox(`qb${q}`, ci, cj, z, 10, 12, 7, QA)))
+        if (nQ > QMAX || (nQ > 0 && nQ > shownQ)) { const tp = iso(mi + ma / 2, mj + mb / 2, mh + 26); g.push(h('text', { key: 'qn', x: tp[0], y: tp[1], textAnchor: 'middle', fill: P.warn, fontSize: 13, fontWeight: 700, fontFamily: MONO, ...halo }, fmt(nQ))) }
+        if (on && per > 1) { const tp = iso(mi + ma, mj + mb, 4); g.push(h('text', { key: 'per', x: tp[0] + 4, y: tp[1], fill: P.ink3, fontSize: 8.5, ...halo }, `每窗＝${per} 个`)) }
         if (sel === 8 + hi) g.push(h('polygon', { key: 'selroof', points: pts([iso(mi + 2, mj + 2, mh + 0.5), iso(mi + ma - 2, mj + 2, mh + 0.5), iso(mi + ma - 2, mj + mb - 2, mh + 0.5), iso(mi + 2, mj + mb - 2, mh + 0.5)]), fill: 'none', stroke: A, strokeWidth: 1.4, strokeDasharray: '5 4' }))
         const lt = iso(mi - 8, mj + mb + 12)
         const name = hs.model ? shortModel(hs.model) : hs.label
@@ -980,7 +1003,7 @@ window.__ModuleLoader__.load({
           h('text', { key: 't2', x: lt[0], y: lt[1] + 17, textAnchor: 'end', fill: P.ink2, fontSize: 9.5, ...halo }, hs.roleText),
           h('text', { key: 't3', x: lt[0], y: lt[1] + 30, textAnchor: 'end', fill: live?.inflight ? V : P.ink3, fontSize: 9.5, fontWeight: live?.inflight ? 600 : 400, ...halo }, sub))
         els.splice(underQueue, 0, ...pipes)
-        els.push(h('g', { key: `house${hi}`, ...click(8 + hi), style: { cursor: 'pointer' } }, h('title', {}, `${hs.model ?? hs.label}（${hs.roleText}）：点开看模型状态`), g))
+        els.push(h('g', { key: `house${hi}`, ...click(8 + hi), style: { cursor: 'pointer' } }, h('title', {}, `${hs.model ?? hs.label}（${hs.roleText}）\n窗户＝并发名额（共 ${cap} 个${per > 1 ? `，每窗 ${per} 个` : ''}），亮着的＝在途${live ? ` ${live.inflight}` : ''}\n屋顶的箱子＝排队的请求${live ? ` ${live.waiting}` : ''}${recentFail ? '\n红窗＝最近 10 秒有调用失败' : ''}\n点开看模型状态`), g))
         bb.push(iso(mi - 6, mj + mb + 6), iso(mi - 170, mj + mb + 44), iso(mi + ma + 6, mj + mb + 6))
       })
       // 复判与裁定：核验楼里两个模型轮流复判；人工裁定按稳定编号存，重跑沿用
