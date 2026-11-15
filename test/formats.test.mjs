@@ -76,7 +76,7 @@ test('格式识别：两模型一致自动采用，按规格出文书（栏目�
     const brief = JSON.parse(p.slice(p.lastIndexOf('表画像：') + 5))
     for (const f of brief.字段) for (const x of f.样例 ?? []) assert.ok(x.length <= 21, `样例过长：${x}`)
   }
-  const ev = await readEvidence(join(root, 'out', 'export', 'evidence'))
+  const ev = await readEvidence(join(root, 'out', 'output', 'export', 'evidence'))
   const d1 = ev.find((v) => v.field === 'D1' && v.patient === '证件-AAAAAA')
   assert.equal(d1.value, '无'); assert.equal(d1.recordType, '病程记录'); assert.equal(d1.section, '病情记录'); assert.equal(d1.written, '2024-03-10 14:30')
   assert.ok(ev.some((v) => v.field === 'F1' && v.value === '舍曲林' && v.section === '诊疗计划'))
@@ -106,7 +106,7 @@ test('格式识别：分歧暂扣，先按通用读法；人工裁定后重跑�
   assert.equal((await svc.formats(run.id)).changed, true)
   const run2 = await runToEnd(svc, { inputDir: input, outputRoot: join(root, 'out') })
   assert.equal(run2.format.held, 0)
-  const ev = await readEvidence(join(root, 'out', 'export', 'evidence'))
+  const ev = await readEvidence(join(root, 'out', 'output', 'export', 'evidence'))
   assert.ok(ev.some((v) => v.recordType === '病程记录' && v.section === '病例特点'))
   await svc.dispose()
 })
