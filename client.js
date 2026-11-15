@@ -655,10 +655,18 @@ window.__ModuleLoader__.load({
         if (gid) {
           const g = gateOf(gid)
           const gc = !g ? P.ink3 : g.skipped ? P.ink2 : g.pass ? P.ok : P.bad
-          const gi = (i0 + i1) / 2; const lt = iso(gi, cj + 12, 54)
+          // 整段传送带顶面染色（绿＝通过、红＝未过），出口接缝一个带编号的圆点；文字只在未过时出现
+          const top = pts([iso(i0, cj, 32), iso(i1, cj, 32), iso(i1, cj + 24, 32), iso(i0, cj + 24, 32)])
+          const e0 = iso(i0, cj + 24, 32); const e1 = iso(i1, cj + 24, 32)
+          const dp = iso((i0 + i1) / 2, cj + 12, 32)
+          const fail = g && !g.pass && !g.skipped
           gate = h('g', { key: 'gate' },
-            h('polyline', { points: pts([iso(gi, cj - 2, 32), iso(gi, cj - 2, 46), iso(gi, cj + 26, 46), iso(gi, cj + 26, 32)]), fill: 'none', stroke: gc, strokeWidth: 2.2, strokeLinejoin: 'round' }),
-            h('text', { x: lt[0], y: lt[1], textAnchor: 'middle', fill: gc, fontSize: 10, fontFamily: MONO, ...halo }, h('title', {}, g ? `${g.label}：${g.detail}` : '验收门：批次结束时判定'), `${gid} ${!g ? '—' : g.skipped ? '跳过' : g.pass ? '通过' : '未过'}`))
+            h('title', {}, g ? `${g.label}：${g.skipped ? '跳过' : g.pass ? '通过' : '未过'}${g.detail ? `（${g.detail}）` : ''}` : '验收门：批次结束时判定'),
+            h('polygon', { points: top, fill: gc, opacity: g ? 0.3 : 0.12 }),
+            h('line', { x1: e0[0], y1: e0[1], x2: e1[0], y2: e1[1], stroke: gc, strokeWidth: 2, strokeLinecap: 'round', opacity: g ? 0.95 : 0.5 }),
+            h('circle', { cx: dp[0], cy: dp[1], r: 7, fill: gc, stroke: C.card, strokeWidth: 1.5 }),
+            h('text', { x: dp[0], y: dp[1] + 3.3, textAnchor: 'middle', fill: '#fff', fontSize: 9, fontWeight: 700, fontFamily: MONO }, gid.charCodeAt(0) - 0x245f),
+            fail ? h('text', { x: dp[0] + 11, y: dp[1] - 6, fill: P.bad, fontSize: 10.5, fontWeight: 600, ...halo }, '未过') : null)
         }
         return h('g', { key },
           isoBox('c', i0, cj, 14, i1 - i0, 24, 18, CL2),
@@ -784,43 +792,29 @@ window.__ModuleLoader__.load({
           h('path', { d: `M${a[0].toFixed(1)} ${a[1].toFixed(1)} Q${mx.toFixed(1)} ${my.toFixed(1)} ${b[0].toFixed(1)} ${b[1].toFixed(1)}`, fill: 'none', stroke: P.ink2, strokeWidth: 1.4, strokeDasharray: '5 5', markerEnd: 'url(#mx-arr)' }),
           h('text', { x: mx, y: my - 8, textAnchor: 'middle', fill: P.ink2, fontSize: 10, ...halo }, '裁定按稳定编号存 · 重跑沿用')))
       }
-      // 标签卡
-      const anchor = (k) => (k === 0 ? iso(42, 58, 112) : k === 6 ? iso(yard + 75, 70, 40) : k === 7 ? iso(TW.i + TW.a - 6, TW.j + 6, TW.hh + 22) : iso(bay0(k) + bw / 2, D / 2, H + 30))
-      const gateFill = { ok: P.ok, warn: P.warn, '': P.ink3 }
-      const maxCh = 34 + Math.max(...stations.map((s) => 3 + s.rows.length)) * 18
-      // 模板塔最高：它的小标签贴着塔顶，大卡放在塔右侧（那里本来空着），不把画布顶部往上撑
-      stations.forEach((s, k) => { const [x, y] = anchor(k); if (k === 7) bb.push([x + 30, y - 82], [x + 142, y - 46], [x + 44, y - 30], [x + 240, y - 30 + maxCh]); else bb.push([x + 30, y - 106], [x + 142, y - 70], [x + 70, y - 80 - maxCh], [x + 266, y - 80]) })
+      // 屋顶标签：贴在每栋楼顶上方的胶囊，不用引线；只放编号＋关键数＋单位，验收门一个色点；选中＝实心
+      // 细节（阶段名、说明、各行数）在悬停提示和右侧阶段面板里
+      const textW = (str, fs, mono) => [...String(str)].reduce((w, ch) => w + (/[\u2E80-\uFFFF]/.test(ch) ? fs : fs * (mono ? 0.62 : 0.56)), 0)
+      const gateDot = { ok: P.ok, warn: P.bad, '': P.ink3 }
+      const anchor = (k) => (k === 0 ? iso(42, 58, 122) : k === 6 ? iso(yard + 75, 40, 66) : k === 7 ? iso(TW.i + TW.a / 2, TW.j + TW.b / 2, TW.hh + 46) : iso(bay0(k) + bw / 2, D / 2, H + 36))
       stations.forEach((s, k) => {
-        if (k === sel) return
         const [x, y] = anchor(k)
-        const hotS = s.state === 'hold' || s.state === 'run'
-        const cw = 112; const ch = 36; const cx = x + 30; const cy = y - (k === 7 ? 46 : 70) - ch
-        const [, gv, gc] = s.rows[0] ?? []
+        const on = k === sel; const hotS = s.state === 'hold' || s.state === 'run'
+        const g = s.rows.find((r) => /^验收/.test(r[0]))
+        const w = 9 + textW(s.no, 9, true) + 6 + textW(s.big, 12.5, true) + (s.unit ? textW(s.unit, 9.5) + 3 : 0) + (g ? 13 : 0) + 9
+        const hh = 21; const x0 = x - w / 2; const y0 = y - hh - 5
+        const bg = on ? A : C.card; const line = hotS || on ? A : C.cardLine
+        bb.push([x0, y0], [x0 + w, y])
         els.push(h('g', { key: `tag${k}`, ...click(k) },
-          h('polyline', { points: pts([[x, y], [x, y - (k === 7 ? 14 : 20)], [cx, cy + ch]]), fill: 'none', stroke: hotS ? A : C.grid, strokeOpacity: hotS ? 0.8 : 0.35 }),
-          h('circle', { cx: x, cy: y, r: 1.8, fill: hotS ? A : C.grid, opacity: hotS ? 1 : 0.5 }),
-          h('rect', { x: cx, y: cy, width: cw, height: ch, rx: 2, fill: C.card, stroke: hotS ? A : C.cardLine, strokeOpacity: hotS ? 0.8 : 1 }),
-          h('text', { x: cx + 7, y: cy + 13, fill: hotS ? A : P.ink3, fontSize: 8.5, fontFamily: MONO, letterSpacing: 0.5 }, s.no, h('tspan', { fill: P.ink2, dx: 5, fontFamily: 'inherit' }, s.nm)),
-          h('text', { x: cx + 7, y: cy + 29, fill: P.ink, fontSize: 12.5, fontWeight: 600, fontFamily: MONO }, s.big, s.unit ? h('tspan', { fontSize: 8.5, fontWeight: 400, fill: P.ink3, dx: 3 }, s.unit) : null),
-          gv ? h('text', { x: cx + cw - 7, y: cy + 29, textAnchor: 'end', fill: gateFill[gc] ?? P.ink3, fontSize: 9, fontFamily: MONO }, String(gv).slice(0, 10)) : null))
+          h('title', {}, [`${s.no} ${s.nm}：${s.sub}`, ...s.rows.map(([l, v]) => `${l}：${v}`)].join('\n')),
+          h('rect', { x: x0, y: y0, width: w, height: hh, rx: hh / 2, fill: bg, stroke: line, strokeWidth: hotS ? 1.4 : 1 }),
+          h('path', { d: `M${x - 4} ${y0 + hh - 0.5}L${x} ${y - 1}L${x + 4} ${y0 + hh - 0.5}Z`, fill: bg, stroke: line, strokeWidth: 1 }),
+          h('rect', { x: x - 4.6, y: y0 + hh - 2, width: 9.2, height: 2.4, fill: bg }),
+          h('text', { x: x0 + 9, y: y0 + 14.5, fill: on ? '#fff' : hotS ? A : P.ink3, fontSize: 9, fontFamily: MONO, fontWeight: 600 }, s.no,
+            h('tspan', { dx: 6, fill: on ? '#fff' : P.ink, fontSize: 12.5, fontWeight: 700 }, s.big),
+            s.unit ? h('tspan', { dx: 3, fill: on ? 'rgba(255,255,255,.75)' : P.ink3, fontSize: 9.5, fontWeight: 400, fontFamily: 'inherit' }, s.unit) : null),
+          g ? h('circle', { cx: x0 + w - 12, cy: y0 + hh / 2, r: 3.6, fill: gateDot[g[2]] ?? P.ink3, stroke: on ? '#fff' : 'none', strokeWidth: 1 }) : null))
       })
-      {
-        const s = stations[sel]; const [x, y] = anchor(sel)
-        const rows = [[s.unit || '状态', s.big, ''], ...s.rows, ['完成', `${Math.round((s.frac ?? 0) * 100)}%`, ''], ['状态', STATE_LABEL[s.state], s.state === 'done' ? 'ok' : s.state === 'idle' ? '' : 'warn']]
-        const cw = 196; const ch = 34 + rows.length * 18
-        const side = sel === 7
-        const cx = side ? x + 44 : x + 70; const cy = side ? y - 30 : y - 80 - ch
-        const fill = { ok: P.ok, warn: P.warn, '': P.ink }
-        els.push(h('g', { key: 'card', className: 'mx-cardin' },
-          h('polyline', { points: pts(side ? [[x, y], [cx, y]] : [[x, y], [x, y - 22], [cx, cy + ch]]), fill: 'none', stroke: A, strokeWidth: 1 }),
-          h('circle', { cx: x, cy: y, r: 3, fill: A, filter: 'url(#mx-glow)' }),
-          h('rect', { x: cx, y: cy, width: cw, height: ch, rx: 3, fill: C.card, stroke: C.cardLine }),
-          h('rect', { x: cx, y: cy, width: 2, height: ch, fill: A }),
-          h('text', { x: cx + 14, y: cy + 20, fill: P.ink, fontSize: 12, fontWeight: 700, fontFamily: MONO, letterSpacing: 1 }, s.no, h('tspan', { fill: P.ink2, fontWeight: 400, dx: 8, fontSize: 11.5, fontFamily: 'inherit' }, s.nm)),
-          rows.map(([l, v, cls], i) => h('g', { key: i },
-            h('text', { x: cx + 14, y: cy + 42 + i * 18, fill: P.ink3, fontSize: 10.5 }, l),
-            h('text', { x: cx + cw - 12, y: cy + 42 + i * 18, textAnchor: 'end', fill: fill[cls] ?? P.ink, fontSize: 12, fontFamily: MONO }, String(v))))))
-      }
       for (const [i, j, a, b, z] of [[-60, 44, 60, 24, 8], [0, 8, 84, 100, 112], [h0, 0, hallEnd - h0, D, H + 70], [yard, 6, 150, 160, 30], [bay0(3) + 20, D + 110, 90, 60, 30]]) {
         for (const [di, dj] of [[0, 0], [a, 0], [a, b], [0, b]]) bb.push(iso(i + di, j + dj, 0), iso(i + di, j + dj, z))
       }
