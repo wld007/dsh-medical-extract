@@ -858,17 +858,17 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         const shiftI = -(JX[0] * (LJ - D / 2)) / IX[0]
         const i1 = bay0(4) + bw / 2 + shiftI; const i0 = bay0(2) + bw / 2 + shiftI
         const a = iso(i1, LJ, LZ); const b = iso(i0, LJ, LZ)
-        const c1 = iso(i1 - 10, BUSJ - 50, BUSZ + 50); const c2 = iso(i0 + 10, BUSJ - 50, BUSZ + 50)
+        const c1 = iso(i1 - 10, BUSJ - 40, BUSZ + 25); const c2 = iso(i0 + 10, BUSJ - 40, BUSZ + 25)
         const d = `M${a[0].toFixed(1)} ${a[1].toFixed(1)} C${c1[0].toFixed(1)} ${c1[1].toFixed(1)} ${c2[0].toFixed(1)} ${c2[1].toFixed(1)} ${b[0].toFixed(1)} ${b[1].toFixed(1)}`
         const mid = [(a[0] + 3 * c1[0] + 3 * c2[0] + b[0]) / 8, (a[1] + 3 * c1[1] + 3 * c2[1] + b[1]) / 8]
         // 整根线在画面上右移一点（离开提取标签）
-        els.push(h('g', { key: 'loop', transform: 'translate(16 0)' },
+        els.push(h('g', { key: 'loop', transform: 'translate(34 0)' },
           h('title', {}, `分歧复判：核验分歧回到提取，由两个模型轮流重读原文复判，至多 ${run.maxRounds ?? 3} 轮；仍不一致的交人工\n人工裁定按稳定编号保存，重跑沿用`),
           h('circle', { cx: a[0], cy: a[1], r: 2.6, fill: P.ink2 }),
           h('path', { d, fill: 'none', stroke: P.ink2, strokeWidth: 1.4, strokeDasharray: '5 5', markerEnd: 'url(#mx-arr)' }),
           h('path', { d, fill: 'none', stroke: 'transparent', strokeWidth: 12 }),
           h('text', { x: mid[0], y: mid[1] - 12, textAnchor: 'middle', fill: P.ink2, fontSize: 10, ...halo }, `分歧复判至多 ${run.maxRounds ?? 3} 轮 · 人工裁定重跑沿用`)))
-        bb.push([mid[0] - 94, mid[1] - 26], [mid[0] + 126, mid[1] - 26])
+        bb.push([mid[0] - 76, mid[1] - 26], [mid[0] + 144, mid[1] - 26])
       }
       // E1 读入楼：窗户＝分片进度
       {
