@@ -20,8 +20,12 @@
         verifyModel: ''
         disableThinking: true
         timeoutMs: 120000
-        # 全局同时进行的模型请求数（所有工作线程共用）
+        # 提取模型并发：同时进行的请求数（所有工作线程与格式识别共用）
         modelConcurrency: 8
+        # 核验模型并发；和提取模型同端点、同模型时共用 modelConcurrency
+        verifyConcurrency: 8
+        # 复判轮次上限（1–6）：核验分歧两个模型轮流复判，至多这么多轮，仍不一致交人工
+        maxRounds: 3
         # 分派：每个提取任务最多多少字（更长的文书按栏目分段）、多少个字段
         readMaxChars: 6000
         readMaxFields: 30

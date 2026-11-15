@@ -79,6 +79,8 @@ function fakeModel(name = 'fake') {
     async chat(messages) {
       calls++
       const prompt = messages.at(-1).content
+      // 复判提示：坚持"原文没有写"（空答案）
+      if (prompt.includes('要判断的字段')) return { content: '{"values":[],"reason":"坚持"}', usage: { prompt_tokens: 10, completion_tokens: 10 }, ms: 1 }
       // 两种提示：通读（原文：<<<…>>>）与旧流程的片段（原文片段：S1: …）
       const fields = JSON.parse(prompt.match(/要抽取的字段：\n(.*?)\n原文(?:片段)?：/s)[1])
       const whole = prompt.match(/原文：\n<<<\n([\s\S]*)\n>>>/)
@@ -220,4 +222,27 @@ test('通用 json：数据元编码列名、病人按目录、多列正文、文
   assert.ok(ev.some((v) => v.field === 'E1' && v.value === 24))
   const P = Object.fromEntries((await readCsv(join(root, 'out', 'export', 'wide_patient.csv'))).map((r) => [r.patient, r]))
   assert.deepEqual(Object.keys(P).sort(), ['证件-AAA', '证件-BBB'])
+})
+
+test('复判：核验分歧两个模型轮流复判，一致的自动解决（不进复核单，可筛出抽查）；验收门④按复判前', async () => {
+  const root = await tmp()
+  const input = await writeMddPatients(join(root, 'in'))
+  const extract = fakeModel('fake-a')
+  // 核验模型：通读时什么都不答（和提取模型处处分歧）；复判时也坚持"原文没写"
+  const verify = { model: 'fake-b', calls: 0, async chat() { this.calls++; return { content: '{"values":[],"reason":"原文没写"}', ms: 1 } } }
+  const svc = await service({ extractMode: 'model', verifySampleRate: 1, maxRounds: 3 }, { chatImpl: { extract, verify } })
+  const run = await runToEnd(svc, { inputDir: input, outputRoot: join(root, 'out') })
+  assert.ok(['completed', 'review'].includes(run.status), run.error)
+  // 提取模型复判时（fakeModel 对复判提示回空）改口成"原文没写"，和核验模型一致 → 第 1 轮解决
+  assert.ok(run.totals.adjResolved > 0)
+  assert.ok(run.totals.adjByRound[0] > 0)
+  const g4 = run.gates.find((g) => g.id === '④')
+  assert.match(g4.label, /复判前/); assert.match(g4.detail, /复判自动解决/)
+  assert.equal(g4.pass, false) // 复判前处处不一致
+  assert.ok(run.needsDefinition.length > 0)
+  const q = await svc.reviewQueue(run.id, { status: 'resolved' })
+  assert.ok(q.counts.resolved > 0); assert.equal(q.items.length > 0, true)
+  assert.ok(q.items.every((it) => it.resolved && it.rounds.length >= 1))
+  assert.equal((await svc.reviewQueue(run.id)).counts.open, run.totals.review)
+  await svc.dispose()
 })

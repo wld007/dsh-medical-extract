@@ -179,18 +179,23 @@ test('读入·清洗：图片与二进制丢掉、HTML／RTF 转文字（图片�
   assert.equal(cleanValue('血压 130/80mmHg，否认胸痛。'), '血压 130/80mmHg，否认胸痛。')
 })
 
-test('全局模型并发：多个限流器共用一个计数，不超过上限', async () => {
-  const { sharedLimiter, readGate, GATE_BYTES } = await import('../lib/engine/shard.js')
+test('模型闸门：每个模型各自的上限；同端点同模型共用一个；按工序计数', async () => {
+  const { gateLimiter, readGate, modelSlots, GATE_BYTES } = await import('../lib/engine/gate.js')
+  const two = modelSlots({ baseURL: 'http://a:1/v1', model: 'm1', modelConcurrency: 3, verifyBaseURL: 'http://b:1/v1', verifyModel: 'm2', verifyConcurrency: 2 })
+  assert.equal(two.slots.length, 2); assert.equal(two.verify.slot, 1); assert.equal(two.verify.max, 2); assert.equal(two.extract.host, 'a:1')
+  const one = modelSlots({ baseURL: 'http://a:1/v1', model: 'm1', verifyModel: 'm1' })
+  assert.equal(one.slots.length, 1); assert.deepEqual(one.slots[0].roles, ['extract', 'verify'])
+  assert.equal(modelSlots({ baseURL: 'http://a:1/v1', model: 'm1' }).verify, null)
   const sab = new SharedArrayBuffer(GATE_BYTES)
-  const a = sharedLimiter(sab, 3, 0); const b = sharedLimiter(sab, 3, 1)
-  let now = 0; let peak = 0
-  const job = (lim) => lim(async () => { now++; peak = Math.max(peak, now); await new Promise((r) => setTimeout(r, 5)); now-- })
-  await Promise.all([...Array(10)].flatMap(() => [job(a), job(b)]))
-  assert.equal(peak, 3); assert.equal(new Int32Array(sab)[0], 0)
-  // 计数：在途、排队归零；完成调用与 token 按角色累计
-  a.tally(10); a.tally(5); b.tally(7)
+  const e = gateLimiter(sab, { ...two.extract, station: 'extract' }); const f = gateLimiter(sab, { ...two.extract, station: 'format' }); const v = gateLimiter(sab, { ...two.verify, station: 'verify' })
+  let now = [0, 0]; const peak = [0, 0]
+  const job = (lim, i) => lim(async () => { now[i]++; peak[i] = Math.max(peak[i], now[i]); await new Promise((r) => setTimeout(r, 5)); now[i]-- })
+  await Promise.all([...Array(10)].flatMap(() => [job(e, 0), job(f, 0), job(v, 1)]))
+  assert.equal(peak[0], 3); assert.equal(peak[1], 2)
+  e.tally(10); f.tally(5); v.tally(7)
   const g = readGate(sab)
   assert.deepEqual(g.inflight, [0, 0]); assert.deepEqual(g.waiting, [0, 0]); assert.deepEqual(g.done, [2, 1]); assert.deepEqual(g.tokens, [15, 7])
+  assert.deepEqual(g.byStation, [[0, 0, 0, 0], [0, 0, 0, 0]])
 })
 
 test('读入·清洗：base64 的文字解出来；编码串、哈希不当二进制；压缩文书计数不解', async () => {
@@ -205,4 +210,40 @@ test('读入·清洗：base64 的文字解出来；编码串、哈希不当二�
   const zipped = Buffer.from(`<document compression="7zip" type="" version="1"><content encoding="utf-8">${Buffer.alloc(120, 9).toString('base64')}</content></document>`).toString('base64')
   const cs2 = {}
   assert.equal(stripMedia(zipped, cs2), ''); assert.equal(cs2.mediaKinds['压缩文书（未解）'], 1)
+})
+
+test('复判：改口即采用；双方都不改提前交人工；核验模型改口也算一致；规则票只复判 1 轮', async () => {
+  const { adjudicate } = await import('../lib/engine/adjudicate.js')
+  const { docLevel, sameConclusion } = await import('../lib/engine/shard.js')
+  const { makeValue } = await import('../lib/engine/extract.js')
+  const tpl = compileTemplate(mdd)
+  const field = tpl.byId.get('J5')
+  const text = '家族史：父亲患双相情感障碍。否认家族中自杀史。\n'
+  const doc = { id: 'D1', patient: 'P', recordType: '入院记录', written: '2024-01-01', text, sections: splitSections(text) }
+  const has = makeValue(doc, field, { value: '有', s: text.indexOf('双相'), e: text.indexOf('双相') + 2, assertion: '家族', method: 'model' })
+  const YES = '{"values":[{"value":"有","assertion":"家族","quote":"父亲患双相情感障碍"}],"reason":"父亲双相"}'
+  const NO = '{"values":[],"reason":"没写"}'
+  const runner = (answer) => { let n = 0; return { get n() { return n }, llm: { model: 'x', chat: async () => { n++; return { content: answer(n), ms: 1 } } }, store: { cacheGet: () => null, cachePut() {}, logCall() {} }, limit: (fn) => fn() } }
+  const ctx = { s: 0, e: text.length, text }
+  const base = { doc, field, ctx, conclude: docLevel, same: sameConclusion, maxRounds: 3 }
+  // 1. 提取模型第一轮改成和核验模型一致（核验说有）
+  let E = runner(() => YES); let V = runner(() => YES)
+  let r = await adjudicate({ ...base, mine: [], other: [has], extract: E, verify: V })
+  assert.equal(r.resolved, true); assert.equal(r.round, 1); assert.equal(r.by, 'extract'); assert.equal(r.final[0].value, '有'); assert.equal(r.extractorChanged, true); assert.equal(V.n, 0)
+  // 2. 双方都坚持：第一轮后提前交人工
+  E = runner(() => NO); V = runner(() => YES)
+  r = await adjudicate({ ...base, mine: [], other: [has], extract: E, verify: V })
+  assert.equal(r.resolved, false); assert.equal(r.rounds.length, 1); assert.equal(E.n, 1); assert.equal(V.n, 1); assert.equal(r.rounds[0].verifyReason, '父亲双相')
+  // 3. 提取坚持「有」，核验模型改口同意
+  E = runner(() => YES); V = runner(() => YES)
+  r = await adjudicate({ ...base, mine: [has], other: [], extract: E, verify: V })
+  assert.equal(r.resolved, true); assert.equal(r.by, 'verify'); assert.equal(r.extractorChanged, false)
+  // 4. 规则票：只 1 轮，不问核验模型
+  E = runner(() => NO); V = runner(() => YES)
+  r = await adjudicate({ ...base, mine: [], other: [has], extract: E, verify: V, kind: 'rule' })
+  assert.equal(r.resolved, false); assert.equal(E.n, 1); assert.equal(V.n, 0)
+  // 5. 编造的引语不算数：等于没答
+  E = runner(() => '{"values":[{"value":"有","assertion":"家族","quote":"原文里没有这句"}]}'); V = runner(() => YES)
+  r = await adjudicate({ ...base, mine: [], other: [has], extract: E, verify: V, maxRounds: 1 })
+  assert.equal(r.resolved, false); assert.equal(r.stats.quoteFail, 1)
 })

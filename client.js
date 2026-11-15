@@ -277,6 +277,16 @@ window.__ModuleLoader__.load({
 .mx-conc .in{stroke:var(--teal);stroke-width:2}.mx-conc .lim{stroke:var(--ink3);stroke-dasharray:4 3;stroke-width:1}.mx-conc .zero{stroke:var(--line2);stroke-width:1}
 .mx-conc .tp{stroke:color-mix(in srgb,var(--vio) 70%,transparent);stroke-width:1.2}.mx-conc .q{fill:color-mix(in srgb,var(--warn) 30%,transparent);stroke:none}
 .mx-legend i.ln{width:12px;height:2px;border-radius:0}.mx-legend i.ln.in{background:var(--teal)}.mx-legend i.ln.lim{background:repeating-linear-gradient(90deg,var(--ink3) 0 3px,transparent 3px 5px)}.mx-legend i.ln.tp{background:var(--vio)}.mx-legend i.ln.q{background:color-mix(in srgb,var(--warn) 50%,transparent);height:6px}
+.mx-rounds{display:flex;flex-direction:column;gap:4px;margin:8px 0;border-left:2px solid var(--line2);padding-left:8px}
+.mx-round{display:grid;grid-template-columns:48px minmax(0,1fr) minmax(0,1fr);gap:10px;font-size:11.5px}.mx-round em{font-style:normal;font-family:var(--mono);font-size:10.5px;color:var(--ink3)}
+.mx-round small{display:block;font-size:10px;color:var(--ink3)}.mx-why{font-size:10.5px;color:var(--ink2);margin-top:2px}
+.mx-nd{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-rows:auto auto;column-gap:8px;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:5px 2px;font:inherit;color:var(--ink);cursor:pointer}
+.mx-nd:hover{background:var(--panel2)}.mx-nd span{font-size:11.5px;font-weight:600}.mx-nd small{grid-column:1;grid-row:2;font-size:10.5px;color:var(--ink3)}.mx-nd b{grid-column:2;grid-row:1/3;align-self:center}.mx-nd i{grid-column:3;grid-row:1/3;align-self:center;font-style:normal;font-size:11px;color:var(--teal)}
+.mx-ob-house{display:grid;grid-template-columns:8px minmax(0,1fr) auto 12px;gap:8px;align-items:center;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:6px 2px;font:inherit;color:var(--ink);cursor:pointer}
+.mx-ob-house:first-child{border-top:0}.mx-ob-house:disabled{cursor:default;opacity:.7}.mx-ob-house:not(:disabled):hover{background:var(--panel2)}
+.mx-ob-house>i{width:7px;height:7px;border-radius:50%;background:var(--ink3)}.mx-ob-house>i.on{background:var(--ok)}.mx-ob-house>i.bad{background:var(--bad)}
+.mx-ob-house b{display:block;font-family:var(--mono);font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mx-ob-house small{display:block;font-size:10.5px;color:var(--ink3)}
+.mx-ob-house .mx-num{font-size:11px;color:var(--ink2);white-space:nowrap}.mx-ob-go{color:var(--ink3)}
 .mx-ob .mx-link{align-self:flex-end;font-size:11px}
 .mx-slegacy{margin:6px 0 0;font-size:11px;line-height:1.55;padding:6px 8px}
 .mx-sdesc{margin:6px 0 2px;font-size:11.5px;line-height:1.6;color:var(--ink2)}.mx-sdesc span{color:var(--ink3)}
@@ -596,32 +606,47 @@ window.__ModuleLoader__.load({
     }
 
     /* --------------------------------------------------------------- pipeline */
+    /**
+     * 工序（楼）按实际顺序排：读入·清洗 → 分派 → 提取 → 归一 → 核验·复判 是每份文书在分片里依次走完的，
+     * 所有分片做完以后才汇总 → 交付。分片阶段这五栋同时在跑（不同的分片、不同的文书）。
+     * 返回数组的下标就是场景里的位置：0 读入楼，1–5 五栋工序楼，6 交付堆场，7 模板塔。
+     */
     function stationsOf(run) {
       const t = run.totals
       const running = run.status === 'running'
       const stage = running ? run.current?.stage : null
       const broken = !running && ['failed', 'cancelled'].includes(run.status)
       const shardFrac = run.shards.total ? run.shards.done / run.shards.total : 0
-      const order = ['E3', 'E5', 'E6', 'E7']
-      const after = (s) => !running || order.indexOf(stage) > order.indexOf(s)
-      const stOf = (s) => (broken ? (s === 'E5' || s === 'E6' || s === 'E7' ? 'idle' : 'part') : !running ? 'done' : s === 'E3' ? (stage === 'E3' ? 'run' : 'done') : stage === s ? 'run' : after(s) ? 'done' : 'idle')
+      const hasVerify = Boolean(run.model?.verifyModel)
+      // 运行到哪一段：format（格式识别）→ shards（分片）→ rollup（汇总、验收门）→ deliver（交付）
+      const phase = !running ? null : stage === 'E1' ? 'format' : stage === 'E3' ? 'shards' : stage === 'E7' ? 'deliver' : 'rollup'
+      const PH = ['format', 'shards', 'rollup', 'deliver']
+      const past = (p) => phase != null && PH.indexOf(phase) > PH.indexOf(p)
+      const stShard = (no) => {
+        if (broken) return 'part'
+        if (!running) return 'done'
+        if (phase === 'format') return no === 'E1' ? 'run' : 'idle'
+        if (phase === 'shards') return no === 'E6' && !hasVerify ? 'idle' : 'run'
+        return 'done'
+      }
+      const stLate = (p) => (broken ? 'idle' : !running ? 'done' : phase === p ? 'run' : past(p) ? 'done' : 'idle')
       const gate = (id) => run.gates?.find((g) => g.id === id)
-      const gateRow = (id, label, v) => [label, v ?? (gate(id) ? (gate(id).pass ? '通过' : '未过') : '—'), gate(id) ? (gate(id).pass ? 'ok' : 'warn') : '']
+      const gateRow = (id, label, v) => [label, v ?? (gate(id) ? (gate(id).skipped ? '跳过' : gate(id).pass ? '通过' : '未过') : '—'), gate(id) && !gate(id).skipped ? (gate(id).pass ? 'ok' : 'warn') : '']
       // ab＝场景里屋顶标签用的两字工序名；no（E0–E7）只留作内部编号，不在界面上显示
       const AB = { E0: '模板', E1: '读入', E2: '分派', E3: '提取', E4: '归一', E5: '汇总', E6: '核验', E7: '交付' }
       const st = (no, nm, sub, bigv, unit, rows, state, frac) => ({ no, ab: AB[no], nm, sub, big: bigv, unit, rows, state, frac })
-      const methods = t.byMethod ?? {}
       const legacy = run.flow !== 'read'
+      const shardF = (no) => (phase === 'format' && no !== 'E1' ? 0 : shardFrac)
       return [
-        st('E1', '读入·清洗', '只读文书；解码、去图片与乱码、剔除空壳', big(t.documents), '文书', [['分片', `${run.shards.done}/${run.shards.total}`, ''], ['结构化记录（不提取）', t.structured == null ? '—' : big(t.structured), ''], ['空壳文书', t.hollow == null ? '—' : big(t.hollow), ''], ['跳过（截至时刻）', fmt(t.skipped), '']], stOf('E3'), shardFrac),
+        st('E1', '读入·清洗', '只读文书；解码、去图片与乱码、剔除空壳', big(t.documents), '文书', [['分片', `${run.shards.done}/${run.shards.total}`, ''], ['结构化记录（不提取）', t.structured == null ? '—' : big(t.structured), ''], ['空壳文书', t.hollow == null ? '—' : big(t.hollow), ''], ['跳过（截至时刻）', fmt(t.skipped), '']], stShard('E1'), shardF('E1')),
         legacy
-          ? st('E2', '关键词定位（旧）', '旧批次：每个字段用关键词在文书里找命中', big(t.recalled), '命中', [], stOf('E3'), shardFrac)
-          : st('E2', '分派', '按文书类型、栏目把字段派给文书，切成提取任务', big(t.tasks), '任务', [['字段 × 文书', big(t.assigned), '']], stOf('E3'), shardFrac),
-        st('E3', '提取', legacy ? '旧批次：规则定值，定不了的片段送模型' : '提取模型通读每个任务，引语回原文定位；规则出规则票', big(t.values), '值', [gateRow('①', '验收①', `${fmt(t.quoteFail)} 丢弃`), ['模型调用', `${big(t.calls)}（缓存 ${big(t.cached)}）`, ''], ...(legacy ? [] : [['规则票不一致', fmt(t.ruleDisputes ?? 0), t.ruleDisputes ? 'warn' : '']])], stOf('E3'), shardFrac),
-        st('E4', '归一', '单位、日期、选项写法统一；类型、选项、值域校验', fmt(t.invalid + t.outOfRange), '不合规', [gateRow('②', '验收②')], stOf('E3'), shardFrac),
-        st('E5', '汇总·派生', '按粒度与汇总规则成格；派生字段；冲突登记', fmt(t.conflicts), '冲突', [['病人', big(t.patients), ''], gateRow('③', '验收③')], stOf('E5'), stage === 'E5' ? 0.5 : after('E5') ? 1 : 0),
-        st('E6', '抽样核验·复核', run.model?.verifyModel ? `核验模型 ${run.model.verifyModel}` : '未配置核验模型', fmt(t.review), '待复核', [gateRow('④', '验收④')], t.review && !running ? 'hold' : stOf('E6'), after('E6') ? 1 : 0),
-        st('E7', '交付', '宽表 → 证据长表 → 冲突表 → 只读核对', run.output ? '已写出' : '—', '', [['输出', run.output ? '已写出' : '未交付', run.output ? 'ok' : '']], run.output ? 'done' : stOf('E7'), run.output ? 1 : 0),
+          ? st('E2', '关键词定位（旧）', '旧批次：每个字段用关键词在文书里找命中', big(t.recalled), '命中', [], stShard('E2'), shardF('E2'))
+          : st('E2', '分派', '按文书类型、栏目把字段派给文书，切成提取任务', big(t.tasks), '任务', [['字段 × 文书', big(t.assigned), '']], stShard('E2'), shardF('E2')),
+        st('E3', '提取', legacy ? '旧批次：规则定值，定不了的片段送模型' : '提取模型通读每个任务，引语回原文定位；规则出规则票', big(t.values), '值', [gateRow('①', '验收①', `${fmt(t.quoteFail)} 丢弃`), ['模型调用', `${big(t.calls)}（缓存 ${big(t.cached)}）`, ''], ...(legacy ? [] : [['规则票不一致', fmt(t.ruleDisputes ?? 0), t.ruleDisputes ? 'warn' : '']])], stShard('E3'), shardF('E3')),
+        st('E4', '归一', '单位、日期、选项写法统一；类型、选项、值域校验', fmt(t.invalid + t.outOfRange), '不合规', [gateRow('②', '验收②')], stShard('E4'), shardF('E4')),
+        st('E6', '核验·复判', hasVerify ? `核验模型 ${run.model.verifyModel}；分歧复判至多 ${run.maxRounds ?? 3} 轮` : '未配置核验模型：不做抽样核验', fmt(t.review), '待复核', [gateRow('④', '验收④'), ...(t.adjResolved ? [['复判已解决', fmt(t.adjResolved), 'ok']] : [])], t.review && !running ? 'hold' : stShard('E6'), hasVerify ? shardF('E6') : 0),
+        st('E5', '汇总·派生', '所有分片做完后：按粒度与汇总规则成格；派生字段；冲突登记', fmt(t.conflicts), '冲突', [['病人', big(t.patients), ''], gateRow('③', '验收③')], stLate('rollup'), phase === 'rollup' ? 0.5 : past('rollup') || !running ? (broken ? 0 : 1) : 0),
+        st('E7', '交付', '宽表 → 证据长表 → 冲突表 → 只读核对', run.output ? '已写出' : '—', '', [['输出', run.output ? '已写出' : '未交付', run.output ? 'ok' : '']], run.output ? 'done' : stLate('deliver'), run.output ? 1 : 0),
         st('E0', '模板', `${run.template.name} v${run.template.version}`, String(run.template.fields), '字段', [['模式', modeLabel(run.mode), '']], 'done', 1),
       ]
     }
@@ -649,7 +674,8 @@ window.__ModuleLoader__.load({
             h(ProgressPanel, { run }),
             h(ResultsPanel, { run, stations, onSel: setSelK, goto }),
             h(ResourcesPanel, { run }))),
-          k >= 0 ? h(StationPanel, { run, s: stations[k], goto, onBack: () => setSelK(null) }) : h(Overview, { run, goto, onSel: setSelK, stations })))
+          k >= 8 ? h(ModelPanel, { run, house: modelHousesOf(run)[k - 8], goto, onBack: () => setSelK(null) })
+            : k >= 0 ? h(StationPanel, { run, s: stations[k], goto, onBack: () => setSelK(null) }) : h(Overview, { run, goto, onSel: setSelK, stations })))
     }
 
     /* 等轴测投影（与病历事件还原一致） */
@@ -681,6 +707,33 @@ window.__ModuleLoader__.load({
      * 产线主视图：后方的模板塔（E0）经规格总线把字段规格下发到每道工序；
      * E1 读入楼 → E2–E6 五栋工序楼 → E7 交付堆场；箱子＝一个分片；提取模型挂在提取楼旁，核验模型挂在核验楼旁。
      */
+    const STATION_LABEL = { format: '格式识别', extract: '提取', verify: '核验', adjudicate: '复判' }
+    const shortModel = (m) => { const x = String(m ?? ''); return x.length > 22 ? `${x.slice(0, 21)}…` : x }
+    /** 模型房子：一栋＝一个模型服务。用的哪几道工序、各调用多少，按 run.models 的角色拆 */
+    function modelHousesOf(run) {
+      const M = run.models ?? {}
+      const ROLE_ST = { format: ['extract', 'format'], extract: ['extract', 'extract'], 'adj-extract': ['extract', 'adjudicate'], 'format-verify': ['verify', 'format'], verify: ['verify', 'verify'], 'adj-verify': ['verify', 'adjudicate'] }
+      const list = run.modelHouses ?? [{ slot: 0, max: run.modelConcurrency ?? 8, model: run.model?.model, host: '', roles: run.model?.verifyModel && run.model.verifyModel === run.model.model ? ['extract', 'verify'] : ['extract'] },
+        ...(run.model?.verifyModel && run.model.verifyModel !== run.model.model ? [{ slot: 1, max: run.modelConcurrency ?? 8, model: run.model.verifyModel, host: '', roles: ['verify'] }] : [])]
+      const houses = list.map((x) => ({ ...x, calls: {}, total: 0, failed: 0, perf: [], stations: [] }))
+      if (houses.length === 1 && !houses[0].roles.includes('verify')) houses.push({ slot: 1, max: 0, model: null, host: '', roles: ['verify'], calls: {}, total: 0, failed: 0, perf: [], stations: ['format', 'verify', 'adjudicate'], label: '核验模型', why: '未配置 · 不做抽样核验' })
+      for (const hs of houses) {
+        if (hs.model) hs.stations = [...new Set(hs.roles.flatMap((r) => (r === 'extract' ? ['format', 'extract', 'adjudicate'] : ['format', 'verify', 'adjudicate'])))]
+        hs.label ??= hs.roles.includes('extract') ? '提取模型' : '核验模型'
+        hs.why ??= '未配置'
+      }
+      for (const [role, p] of Object.entries(M)) {
+        const [r0, st] = ROLE_ST[role] ?? [null, null]; if (!r0) continue
+        const hs = houses.find((x) => x.model && x.roles.includes(r0)); if (!hs) continue
+        hs.calls[st] = (hs.calls[st] ?? 0) + (p.calls ?? 0); hs.total += p.calls ?? 0; hs.failed += p.failed ?? 0; hs.perf.push([role, st, p])
+      }
+      for (const hs of houses) {
+        const used = hs.stations.filter((st) => st !== 'format' || hs.calls.format || run.format)
+        hs.roleText = hs.model ? used.map((st) => STATION_LABEL[st]).join(' · ') : (hs.roles.includes('verify') ? '核验 · 复判' : '提取')
+      }
+      return houses
+    }
+
     function PlantScene({ run, stations, sel, onSel, goto }) {
       const [P, C] = useClay()
       const A = P.teal
@@ -714,7 +767,7 @@ window.__ModuleLoader__.load({
       els.push(shadow('sh1', 0, 8, 84, 100), shadow('sh3', yard, 6, 150, 130, 14), shadow('shT', TW.i, TW.j, TW.a, TW.b, 40))
       for (let k = 1; k <= 5; k++) els.push(shadow(`sb${k}`, bay0(k), 0, bw, D, 24))
       // 站序号 → 在场景里的位置：0=E1 楼，1–5=E2–E6，6=E7 堆场，7=E0 模板塔
-      const footprint = (k) => (k === 0 ? [0, 8, 84, 100] : k === 6 ? [yard, 6, 150, 130] : k === 7 ? [TW.i, TW.j, TW.a, TW.b] : [bay0(k), 0, bw, D])
+      const footprint = (k) => (k === 0 ? [0, 8, 84, 100] : k === 6 ? [yard, 6, 150, 130] : k === 7 ? [TW.i, TW.j, TW.a, TW.b] : k === 8 ? [bay0(1) + 4, D + 112, 74, 44] : k === 9 ? [bay0(4) + 34, D + 150, 74, 44] : [bay0(k), 0, bw, D])
       {
         if (sel < 0) { /* 没选工序：不画选中框 */ } else {
         const [fi, fj, fa, fb] = footprint(sel); const m = 10
@@ -775,9 +828,9 @@ window.__ModuleLoader__.load({
         wins.forEach(([i, z], q) => { const lit = q < litN; g.push(leftPatch(`w${z}-${i}`, i, i + 7, 108, z, z + 6, { fill: lit ? (s.state === 'run' ? A : C.lamp) : C.win, opacity: lit ? 0.95 : 0.55, filter: lit && s.state === 'run' ? 'url(#mx-glow)' : undefined })) })
         els.push(h('g', { key: 'e1', ...click(0) }, h('title', {}, s.nm), g))
       }
-      // 走廊与验收门：①在 E3 出口，②在 E4 出口，③在 E5 出口，④在 E6 出口
+      // 走廊与验收门：①在提取出口，②在归一出口，④在核验出口，③在汇总出口（楼的顺序：分派、提取、归一、核验、汇总）
       const gateOf = (id) => run.gates?.find((x) => x.id === id)
-      const GATE_AFTER = { 3: '①', 4: '②', 5: '③', 6: '④' }
+      const GATE_AFTER = { 3: '①', 4: '②', 5: '④', 6: '③' }
       const corridor = (key, i0, i1, k) => {
         const cj = D - 30
         const a = iso(i0, cj + 24, 24); const b = iso(i1, cj + 24, 24)
@@ -814,7 +867,7 @@ window.__ModuleLoader__.load({
         g.push(leftPatch('plinth', i0, i0 + bw, D, 0, 5, { fill: C.right, opacity: 0.6 }))
         for (let w = 0; w < 3; w++) { const wi = i0 + 8 + w * 20; g.push(leftPatch(`hw${w}`, wi, wi + 12, D, 20, 36, { fill: lit ? A : C.win, opacity: lit ? 0.85 : 0.6, filter: lit ? 'url(#mx-glow)' : undefined })) }
         const roof = []
-        for (let a = 0; a < 4; a++) for (let b2 = 0; b2 < 2; b2++) { if (k === 4 && b2 === 1) continue; if (k === 5 && b2 === 1 && a >= 2) continue; roof.push([b2, a]) }
+        for (let a = 0; a < 4; a++) for (let b2 = 0; b2 < 2; b2++) { if (k === 5 && b2 === 1) continue; if (k === 4 && b2 === 1 && a >= 2) continue; roof.push([b2, a]) }
         roof.sort((p, q) => depthOf(p[0] * 30, p[1] * 24) - depthOf(q[0] * 30, q[1] * 24))
         const litN = s.state === 'hold' ? roof.length : s.state === 'run' ? Math.max(1, Math.round((s.frac ?? 0) * roof.length)) : 0
         roof.forEach(([b2, a], idx) => {
@@ -823,8 +876,8 @@ window.__ModuleLoader__.load({
           const f = iso(ui + 10, uj + 9, H + 7)
           g.push(h('ellipse', { key: `f${a}${b2}`, cx: f[0], cy: f[1], rx: 7.5, ry: 4, fill: on ? shade(c, -0.45) : C.hole, opacity: 0.85 }))
         })
-        if (k === 4) [[i0 + 50, 20], [i0 + 54, 50], [i0 + 50, 80]].forEach(([ci, cj], q) => g.push(...isoCyl(`st${q}`, ci, cj, H, 5, 30 + q * 6, C)))
-        if (k === 5) g.push(...isoBox('ctl', i0 + 36, 56, H, 26, 36, 16, CL2), leftPatch('ctlw', i0 + 39, i0 + 59, 92, H + 6, H + 12, { fill: c ?? C.win, opacity: c ? 0.9 : 0.6 }))
+        if (k === 5) [[i0 + 50, 20], [i0 + 54, 50], [i0 + 50, 80]].forEach(([ci, cj], q) => g.push(...isoCyl(`st${q}`, ci, cj, H, 5, 30 + q * 6, C)))
+        if (k === 4) g.push(...isoBox('ctl', i0 + 36, 56, H, 26, 36, 16, CL2), leftPatch('ctlw', i0 + 39, i0 + 59, 92, H + 6, H + 12, { fill: c ?? C.win, opacity: c ? 0.9 : 0.6 }))
         if (sel === k) g.push(h('polygon', { key: 'selroof', points: pts([iso(i0 + 2, 2, H + 0.5), iso(i0 + bw - 2, 2, H + 0.5), iso(i0 + bw - 2, D - 2, H + 0.5), iso(i0 + 2, D - 2, H + 0.5)]), fill: 'none', stroke: A, strokeWidth: 1.4, strokeDasharray: '5 4', opacity: 0.9 }))
         els.push(h('g', { key: `bay${k}`, className: s.state === 'hold' ? 'mx-breathe' : undefined, ...click(k) }, h('title', {}, `${s.nm}：${s.sub}`),
           h('polygon', { points: pts([iso(i0, 0, H), iso(i0 + bw, 0, H), iso(i0 + bw, D, H), iso(i0 + bw, D, 0), iso(i0, D, 0), iso(i0, D, H)]), fill: 'transparent' }), g))
@@ -862,13 +915,13 @@ window.__ModuleLoader__.load({
       // 门前排队：箱子＝等待处理的分片
       {
         const waiting = Math.max(0, run.shards.total - run.shards.done - (run.shards.running ?? 0))
-        const loads = [running ? waiting : 0, 0, 0, 0, 0, run.totals.review && !running ? Math.min(36, Math.ceil(run.totals.review / 10)) : 0]
-        const label = ['等待读入（分片）', '', '', '', '', '待复核（每箱 10 项）']
+        const loads = [running ? waiting : 0, 0, 0, 0, run.totals.review && !running ? Math.min(36, Math.ceil(run.totals.review / 10)) : 0, 0]
+        const label = ['等待读入（分片）', '', '', '', '待复核（每箱 10 项）', '']
         const pileAt = (k) => (k === 0 ? [12, 116] : [bay0(k) + 14, D + 12])
         loads.forEach((_, k) => { const [pi, pj] = pileAt(k); bb.push(iso(pi, pj + 24), iso(pi + 39, pj, 70)) })
         loads.forEach((n, k) => {
           if (!n) return
-          const [pi, pj] = pileAt(k); const hot = k === 5
+          const [pi, pj] = pileAt(k); const hot = k === 4
           const shown = Math.min(36, n); const g = []
           for (let q = 0; q < shown; q++) {
             const lv = Math.floor(q / 6); const a = q % 3; const c = Math.floor((q % 6) / 3)
@@ -877,7 +930,7 @@ window.__ModuleLoader__.load({
             if (!hot) { const t1 = iso(ci, cj + 5, z + 8); const t2 = iso(ci + 11, cj + 5, z + 8); g.push(h('line', { key: `pt${q}`, x1: t1[0], y1: t1[1], x2: t2[0], y2: t2[1], stroke: A, strokeWidth: 1, opacity: 0.8 })) }
           }
           const top = iso(pi + 19, pj + 11, Math.ceil(shown / 6) * 9 + 10)
-          const shownN = k === 5 ? run.totals.review : n
+          const shownN = k === 4 ? run.totals.review : n
           els.push(h('g', { key: `q${k}`, ...click(k) }, g,
             h('text', { x: top[0], y: top[1], textAnchor: 'middle', fill: A, fontSize: 17, fontWeight: 700, fontFamily: MONO, stroke: C.card, strokeWidth: 3.5, paintOrder: 'stroke' }, fmt(shownN)),
             h('text', { x: top[0], y: top[1] + 13, textAnchor: 'middle', fill: P.ink, fontSize: 10, stroke: C.card, strokeWidth: 3, paintOrder: 'stroke' }, `排队 · ${label[k]}`)))
@@ -898,35 +951,54 @@ window.__ModuleLoader__.load({
         els.push(h('g', { key: 'cur' }, h('g', { filter: 'url(#mx-glow)', className: 'mx-pulse' }, isoBox('cc', at[0], at[1], 0, 16, 14, 13, AMB)),
           h('text', { x: tp[0] - 14, y: tp[1] + 16, textAnchor: 'end', fill: A, fontSize: 10.5, fontWeight: 700, ...halo }, `处理中 · ${run.shards.running ?? 0} 个分片${run.rate ? ` · ${fmt(run.rate)} 份/秒` : ''}`)))
       }
-      // 模型小楼：提取模型挂在提取楼旁，核验模型挂在核验楼旁（楼号：bay0(2)=提取 E3，bay0(5)=核验 E6）
-      const kiosk = ({ key, bay, k, name, model, stats, label, side }) => {
-        const on = !!model; const V = P.vio
-        // 核验模型往右下放，让开「裁定回流」的弧线和说明
-        const mi = bay0(bay) + (side === 'left' ? 30 : 46); const mj = D + (side === 'left' ? 118 : 156); const ma = 70; const mb = 42; const mh = 28
+      // 模型房子：一栋＝一个模型服务（按模型名；提取、核验同端点同模型时只有一栋）。
+      // 管子只连真正调用模型的工序：读入（格式识别）、提取、核验（核验与复判）。哪道工序此刻有请求在途，那根管子就流动发光；
+      // 窗户按在途数／并发上限点亮。点房子，右侧显示这个模型的状态
+      const houses = modelHousesOf(run)
+      const last = running ? (run.series ?? []).filter((p) => p.length >= 18).at(-1) : null
+      const SPOT = { format: [42, 108, 26], extract: [bay0(2) + bw / 2, D, 20], verify: [bay0(4) + bw / 2, D, 20], adjudicate: [bay0(4) + bw / 2 - 14, D, 20] }
+      const HOUSE_AT = [[bay0(1) + 4, D + 112], [bay0(4) + 34, D + 150]]
+      houses.forEach((hs, hi) => {
+        const V = P.vio; const on = !!hs.model
+        const [mi, mj] = HOUSE_AT[Math.min(hi, 1)]; const ma = 74; const mb = 44; const mh = 30
+        const live = last ? { inflight: last[2 + hs.slot] ?? 0, waiting: last[4 + hs.slot] ?? 0, st: last.slice(10 + hs.slot * 4, 14 + hs.slot * 4) } : null
         const g = []
         g.push(...isoBox('mp', mi - 6, mj - 6, -3, ma + 12, mb + 12, 3, { top: C.pad, left: C.padL, right: C.padR }))
-        const a = iso(bay0(bay) + 40, D, 22); const b = iso(mi + ma / 2, mj, mh - 4)
-        g.push(h('line', { key: 'p', x1: a[0], y1: a[1], x2: b[0], y2: b[1], stroke: on ? V : C.left2, strokeWidth: on ? 1.8 : 1.4, strokeDasharray: '3 6', className: on && running ? 'mx-flow' : undefined, filter: on ? 'url(#mx-glow)' : undefined, opacity: on ? 1 : 0.5 }))
+        // 管子：这个模型用在哪几道工序（格式识别只在通用文件、做了格式识别时画）
+        const uses = hs.stations.filter((x) => x !== 'format' || run.format || run.current?.step?.startsWith?.('格式识别'))
+        const seenSpot = new Set()
+        uses.forEach((st) => {
+          const sp = st === 'verify' && uses.includes('adjudicate') ? SPOT.verify : SPOT[st]
+          const key = sp.join(','); if (seenSpot.has(key) && st !== 'adjudicate') return; seenSpot.add(key)
+          const stI = ['format', 'extract', 'verify', 'adjudicate'].indexOf(st)
+          const hot = on && live && (live.st[stI] ?? 0) > 0
+          const used = on && (hs.calls[st] ?? 0) > 0
+          const a = iso(...sp); const b = iso(mi + ma / 2 + (stI - 1.5) * 10, mj, mh - 2)
+          const mid = [(a[0] + b[0]) / 2, Math.max(a[1], b[1]) - 10]
+          g.push(h('path', { key: `p${st}`, d: `M${a[0].toFixed(1)} ${a[1].toFixed(1)} Q${mid[0].toFixed(1)} ${mid[1].toFixed(1)} ${b[0].toFixed(1)} ${b[1].toFixed(1)}`, fill: 'none', stroke: hot || used ? V : C.left2, strokeWidth: hot ? 2.4 : used ? 1.7 : 1.3, strokeDasharray: hot ? '3 5' : '2 5', className: hot ? 'mx-flow' : undefined, filter: hot ? 'url(#mx-glow)' : undefined, opacity: hot ? 1 : used ? 0.7 : 0.4 }, h('title', {}, `${STATION_LABEL[st]}${on ? `：调用 ${fmt(hs.calls[st] ?? 0)} 次${live ? ` · 在途 ${live.st[stI] ?? 0}` : ''}` : ''}`)))
+        })
         g.push(...isoBox('mb', mi, mj, 0, ma, mb, mh, CL))
-        for (let w = 0; w < 3; w++) g.push(leftPatch(`mw${w}`, mi + 8 + w * 20, mi + 20 + w * 20, mj + mb, 9, 19, { fill: on ? V : C.win, opacity: on ? 0.9 : 0.55, filter: on ? 'url(#mx-glow)' : undefined }))
-        g.push(...isoBox('mbk', mi + 48, mj + 14, mh, 10, 10, 7, on ? { top: shade(V, 0.3), left: V, right: shade(V, -0.3) } : CL2))
-        const lt = side === 'left' ? iso(mi - 10, mj + mb + 10) : iso(mi + ma + 14, mj + mb + 4)
-        const anchorT = side === 'left' ? 'end' : 'start'
-        g.push(h('text', { key: 't1', x: lt[0], y: lt[1] + 6, textAnchor: anchorT, fill: on ? V : P.ink3, fontSize: 11, fontWeight: 600, ...halo }, name),
-          h('text', { key: 't2', x: lt[0], y: lt[1] + 20, textAnchor: anchorT, fill: P.ink2, fontSize: 9.5, ...halo }, on ? stats : label))
-        els.push(h('g', { key, ...click(k) }, h('title', {}, on ? `${name}：${model}` : `${name}：${label}`), g))
-        bb.push(iso(mi - 6, mj + mb + 6), side === 'left' ? iso(mi - 160, mj + mb + 40) : iso(mi + ma + 170, mj + mb + 34), iso(mi + ma, mj + mb + 6))
-      }
-      const mE = run.models?.extract; const mV = run.models?.verify
-      kiosk({ key: 'model', bay: 2, k: 2, side: 'left', name: '提取模型', model: run.model?.model, stats: `调用 ${big(mE?.calls ?? t.calls)} · 缓存 ${big(mE?.cached ?? t.cached)} · 引语回原文核对`, label: '未配置 · 不能开始批次' })
-      kiosk({ key: 'vmodel', bay: 5, k: 5, side: 'right', name: '核验模型', model: run.model?.verifyModel, stats: mV ? `调用 ${big(mV.calls)} · 缓存 ${big(mV.cached)} · 背靠背重新提取` : '抽样背靠背重新提取', label: '未配置 · 不做抽样核验' })
-      // 裁定回流
+        // 窗户：6 格，按在途数／上限点亮；不在运行时，用过的模型留一格常亮
+        const nWin = 6; const lit = !on ? 0 : live ? Math.min(nWin, Math.ceil((live.inflight / Math.max(1, hs.max)) * nWin)) : 0
+        for (let w = 0; w < nWin; w++) { const wi = mi + 6 + w * 11; const isLit = w < lit; g.push(leftPatch(`mw${w}`, wi, wi + 7, mj + mb, 9, 20, { fill: isLit ? V : C.win, opacity: isLit ? 0.95 : 0.55, filter: isLit ? 'url(#mx-glow)' : undefined })) }
+        g.push(...isoBox('mbk', mi + 52, mj + 14, mh, 11, 11, 8, on && (live?.inflight ?? 0) > 0 ? { top: shade(V, 0.3), left: V, right: shade(V, -0.3), props: { filter: 'url(#mx-glow)' } } : CL2))
+        if (sel === 8 + hi) g.push(h('polygon', { key: 'selroof', points: pts([iso(mi + 2, mj + 2, mh + 0.5), iso(mi + ma - 2, mj + 2, mh + 0.5), iso(mi + ma - 2, mj + mb - 2, mh + 0.5), iso(mi + 2, mj + mb - 2, mh + 0.5)]), fill: 'none', stroke: A, strokeWidth: 1.4, strokeDasharray: '5 4' }))
+        const lt = iso(mi - 8, mj + mb + 12)
+        const name = hs.model ? shortModel(hs.model) : hs.label
+        const sub = !on ? hs.why : live ? `在途 ${live.inflight}／${hs.max}${live.waiting ? ` · 排队 ${live.waiting}` : ''}` : `调用 ${big(hs.total)}${hs.failed ? ` · 失败 ${fmt(hs.failed)}` : ''}`
+        g.push(h('text', { key: 't1', x: lt[0], y: lt[1] + 4, textAnchor: 'end', fill: on ? V : P.ink3, fontSize: 11, fontWeight: 700, fontFamily: MONO, ...halo }, name),
+          h('text', { key: 't2', x: lt[0], y: lt[1] + 17, textAnchor: 'end', fill: P.ink2, fontSize: 9.5, ...halo }, hs.roleText),
+          h('text', { key: 't3', x: lt[0], y: lt[1] + 30, textAnchor: 'end', fill: live?.inflight ? V : P.ink3, fontSize: 9.5, fontWeight: live?.inflight ? 600 : 400, ...halo }, sub))
+        els.push(h('g', { key: `house${hi}`, ...click(8 + hi), style: { cursor: 'pointer' } }, h('title', {}, `${hs.model ?? hs.label}（${hs.roleText}）：点开看模型状态`), g))
+        bb.push(iso(mi - 6, mj + mb + 6), iso(mi - 170, mj + mb + 44), iso(mi + ma + 6, mj + mb + 6))
+      })
+      // 复判与裁定：核验楼里两个模型轮流复判；人工裁定按稳定编号存，重跑沿用
       {
-        const a = iso(bay0(5) + 40, D + 40); const b = iso(bay0(4) + 50, D + 40)
-        const mx = (a[0] + b[0]) / 2; const my = Math.max(a[1], b[1]) + 34
+        const a = iso(bay0(4) + 50, D + 40); const b = iso(bay0(3) + 40, D + 40)
+        const mx = (a[0] + b[0]) / 2; const my = Math.max(a[1], b[1]) + 30
         els.push(h('g', { key: 'loop', pointerEvents: 'none' },
           h('path', { d: `M${a[0].toFixed(1)} ${a[1].toFixed(1)} Q${mx.toFixed(1)} ${my.toFixed(1)} ${b[0].toFixed(1)} ${b[1].toFixed(1)}`, fill: 'none', stroke: P.ink2, strokeWidth: 1.4, strokeDasharray: '5 5', markerEnd: 'url(#mx-arr)' }),
-          h('text', { x: mx, y: my - 8, textAnchor: 'middle', fill: P.ink2, fontSize: 10, ...halo }, '裁定按稳定编号存 · 重跑沿用')))
+          h('text', { x: mx, y: my - 6, textAnchor: 'middle', fill: P.ink2, fontSize: 10, ...halo }, `分歧复判至多 ${run.maxRounds ?? 3} 轮 · 人工裁定重跑沿用`)))
       }
       // 屋顶标签：贴在每栋楼顶上方的胶囊，不用引线；只放两字工序名＋关键数＋单位，验收门一个色点；选中＝实心
       // 细节（阶段名、说明、各行数）在悬停提示和右侧阶段面板里
@@ -951,14 +1023,14 @@ window.__ModuleLoader__.load({
             s.unit ? h('tspan', { dx: 3, fill: on ? 'rgba(255,255,255,.75)' : P.ink3, fontSize: 9.5, fontWeight: 400 }, s.unit) : null),
           g ? h('circle', { cx: x0 + w - 12, cy: y0 + hh / 2, r: 3.6, fill: gateDot[g[2]] ?? P.ink3, stroke: on ? '#fff' : 'none', strokeWidth: 1 }) : null))
       })
-      for (const [i, j, a, b, z] of [[-60, 44, 60, 24, 8], [0, 8, 84, 100, 112], [h0, 0, hallEnd - h0, D, H + 70], [yard, 6, 150, 160, 30], [bay0(3) + 20, D + 110, 90, 60, 30]]) {
+      for (const [i, j, a, b, z] of [[-60, 44, 60, 24, 8], [0, 8, 84, 100, 112], [h0, 0, hallEnd - h0, D, H + 70], [yard, 6, 150, 160, 30]]) {
         for (const [di, dj] of [[0, 0], [a, 0], [a, b], [0, b]]) bb.push(iso(i + di, j + dj, 0), iso(i + di, j + dj, z))
       }
       const xs = bb.map((p) => p[0]); const ys = bb.map((p) => p[1])
       const x0 = Math.min(...xs) - 24; const y0 = Math.min(...ys) - 16; const x1 = Math.max(...xs) + 24; const y1 = Math.max(...ys) + 16
       defs.push(h('mask', { key: 'mk', id: 'mx-gridmask', maskUnits: 'userSpaceOnUse', x: x0, y: y0, width: x1 - x0, height: y1 - y0 }, h('rect', { x: x0, y: y0, width: x1 - x0, height: y1 - y0, fill: 'url(#mx-fade)' })))
       // 键盘：场景本身是一个 Tab 停靠点，←／→ 按工序顺序（模板塔在前）切换
-      const ORDER = [7, 0, 1, 2, 3, 4, 5, 6]
+      const ORDER = [7, 0, 1, 2, 3, 4, 5, 6, ...houses.map((_, i) => 8 + i)]
       const onKeyDown = (e) => {
         if (e.key === 'Escape') { onSel(null); return }
         const d = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0
@@ -966,7 +1038,7 @@ window.__ModuleLoader__.load({
         e.preventDefault()
         onSel(sel < 0 ? ORDER[d > 0 ? 0 : ORDER.length - 1] : ORDER[(ORDER.indexOf(sel) + d + ORDER.length) % ORDER.length])
       }
-      return h('svg', { className: 'mx-scene', tabIndex: 0, role: 'group', 'aria-label': `处理流程，当前 ${sel >= 0 ? stations[sel].nm : '批次概览'}（←／→ 切换工序）`, onKeyDown, viewBox: `${x0} ${y0} ${x1 - x0} ${y1 - y0}`, preserveAspectRatio: 'xMidYMin meet', style: { maxHeight: 620, overflow: 'hidden' } }, h('defs', {}, defs), els)
+      return h('svg', { className: 'mx-scene', tabIndex: 0, role: 'group', 'aria-label': `处理流程，当前 ${sel >= 8 ? '模型' : sel >= 0 ? stations[sel].nm : '批次概览'}（←／→ 切换工序）`, onKeyDown, viewBox: `${x0} ${y0} ${x1 - x0} ${y1 - y0}`, preserveAspectRatio: 'xMidYMin meet', style: { maxHeight: 620, overflow: 'hidden' } }, h('defs', {}, defs), els)
     }
 
     /* 每道工序：做什么 → 产出什么（引擎的通用工序说明，不含病种内容） */
@@ -1019,7 +1091,7 @@ window.__ModuleLoader__.load({
         open ? h('div', { className: 'mx-lf-b' },
           h('div', {}, h('i', { className: 'sw hot' }), '运行中／待复核'), h('div', {}, h('i', { className: 'sw clay' }), '已完成'),
           h('div', {}, h('i', { className: 'sw box' }), '箱子＝一个分片'), h('div', {}, h('i', { className: 'sw red' }), '红色＝验收门未过'),
-          h('div', {}, h('i', { className: 'sw vio' }), '青灯＝提取模型／核验模型'), h('div', {}, h('i', { className: 'sw flow' }), '紫色流线＝字段规格下发')) : null)
+          h('div', {}, h('i', { className: 'sw vio' }), '模型房子：窗户亮＝有请求在途，管子流动＝哪道工序在调用'), h('div', {}, h('i', { className: 'sw flow' }), '紫色流线＝字段规格下发')) : null)
     }
 
     /** 待办告警（同匿名化插件）：产线右上角，最严重的在前，最多 3 条（其余「再看 N 条」），点一条直接去处理；可收起 */
@@ -1079,9 +1151,9 @@ window.__ModuleLoader__.load({
     const LAT_LABELS = ['<.5', '.5', '1', '2', '4', '8', '16+']
 
     /** 一个角色的并发曲线：在途（阶梯线）、上限（虚线）、吞吐（token/秒，自身峰值归一）、排队（零线以下） */
-    function ConcChart({ series, role, limit }) {
+    function ConcChart({ series, role, slot, limit }) {
       const W = 280; const H = 74; const Q = 16; const top = 6; const base = H - Q
-      const i = role === 'extract' ? 0 : 1
+      const i = slot ?? (role === 'verify' ? 1 : 0)
       const pts0 = (series ?? []).filter((p) => p.length >= 10)
       if (pts0.length < 3) return h('p', { className: 'mx-snote' }, '采样点不够，画不出曲线（批次太短，或是旧版本跑的）')
       const t1 = pts0[pts0.length - 1][0] || 1
@@ -1132,25 +1204,58 @@ window.__ModuleLoader__.load({
             h('div', {}, h('span', {}, 'Token'), h('b', {}, kfmt(sum('pt') + sum('ct'))))),
           t.structured ? h('p', { className: 'mx-snote' }, `另有结构化记录 ${big(t.structured)} 条不提取，不计在内`) : null)
           : h('p', { className: 'mx-snote' }, legacy ? '这个批次没有记录送审字数（旧版本跑的）' : '还没有送审')),
-        block('模型表现', 'MODELS', roles.length ? h('div', { className: 'mx-ob-models', style: { gridTemplateColumns: `76px repeat(${roles.length}, minmax(0,1fr))` } },
-          h('span', {}), ...roles.map((r) => h('div', { key: r, className: 'mx-ob-mh' }, h('b', {}, ROLE_NM[r]), h('small', { title: nm(r) }, h('i', { className: M[r]?.failed && M[r].calls && M[r].failed / M[r].calls > 0.05 ? 'bad' : '' }), nm(r)))),
-          h('span', {}, '调用'), ...roles.map((r) => h('b', { key: r }, fmt(M[r]?.calls ?? 0))),
-          h('span', {}, '失败率'), ...roles.map((r) => { const m = M[r] ?? {}; const fr = m.calls ? m.failed / m.calls : 0; return h('b', { key: r, className: fr > 0.02 ? 'mx-bad' : '' }, m.calls ? `${(fr * 100).toFixed(fr && fr < 0.1 ? 1 : 0)}%` : '—', m.retries ? h('small', { title: '断线、超时、429／5xx 自动重试的次数' }, ` ↻${fmt(m.retries)}`) : null) }),
-          h('span', {}, '耗时分布'), ...roles.map((r) => { const hs = M[r]?.hist; if (!hs) return h('small', { key: r, className: 'mx-faint' }, '—'); const mx = Math.max(1, ...hs); return h('div', { key: r, className: 'mx-lat', title: hs.map((n, i) => `${LAT_LABELS[i]}s：${n}`).join('\n') }, h('div', { className: 'bars' }, hs.map((n, i) => h('i', { key: i, className: i >= 5 && n ? 'slow' : '', style: { height: `${Math.max(n ? 6 : 2, (n / mx) * 100)}%` } }))), h('div', { className: 'lbl' }, LAT_LABELS.map((x) => h('span', { key: x }, x)))) }),
-          h('span', {}, '上下文 均/最大'), ...roles.map((r) => { const m = M[r] ?? {}; return h('b', { key: r }, m.calls ? `${kfmt(m.pt / m.calls)} / ${m.ptMax ? kfmt(m.ptMax) : '—'}` : '—') }),
-          h('span', {}, '每次 输出/耗时'), ...roles.map((r) => { const m = M[r] ?? {}; return h('b', { key: r }, m.calls ? `${fmt(Math.round(m.ct / m.calls))} / ${(m.ms / m.calls / 1000).toFixed(1)}s` : '—') }))
-          : h('p', { className: 'mx-snote' }, '还没有模型调用'), h('button', { className: 'mx-link', onClick: () => goto('calls') }, '明细 →')),
-        block('并发调度', 'CONCURRENCY', h(React.Fragment, {},
-          h('div', { className: 'mx-legend' }, h('span', {}, h('i', { className: 'ln in' }), '在途'), h('span', {}, h('i', { className: 'ln lim' }), '上限'), h('span', {}, h('i', { className: 'ln tp' }), '吞吐'), h('span', {}, h('i', { className: 'ln q' }), '排队')),
-          roles.map((r) => h('div', { key: r, className: 'mx-ob-conc' },
-            h('div', { className: 'mx-ob-ch' }, h('b', {}, ROLE_NM[r]), h('span', {}, '并发峰值 ', h('b', {}, fmt(peak(r)))), h('span', { className: 'tp' }, '吞吐峰值 ', h('b', {}, `${kfmt(peakT(r))}`), ' token/秒')),
-            h(ConcChart, { series, role: r, limit: run.modelConcurrency }))),
-          h('p', { className: 'mx-snote' }, `上限 ${fmt(run.modelConcurrency ?? 0) || '—'}：提取和核验共用一个并发上限（设置里的「全局同时进行的模型请求数」），各工作线程共用`))),
+        block('模型', 'MODELS', h(React.Fragment, {},
+          modelHousesOf(run).map((hs, hi) => h('button', { key: hi, type: 'button', className: 'mx-ob-house', onClick: () => onSel(8 + hi), disabled: !hs.model },
+            h('i', { className: hs.model ? (hs.total && hs.failed / hs.total > 0.02 ? 'bad' : 'on') : '' }),
+            h('div', {}, h('b', {}, hs.model ?? hs.label), h('small', {}, hs.model ? `${hs.roleText} · 上限 ${hs.max}` : hs.why)),
+            hs.model ? h('span', { className: 'mx-num' }, `${big(hs.total)} 次${hs.total ? ` · 失败 ${((hs.failed / hs.total) * 100).toFixed(hs.failed && hs.failed / hs.total < 0.1 ? 1 : 0)}%` : ''}`) : null,
+            hs.model ? h('span', { className: 'mx-ob-go' }, '→') : null)),
+          h('p', { className: 'mx-snote' }, '点模型看负载、并发曲线、耗时分布和按工序拆的调用'))),
         block('核验与复核', 'CROSS-CHECK', h(React.Fragment, {},
           h('p', { className: 'mx-snote' }, run.model?.verifyModel ? `抽样核验 ${fmt(vn)} 次（字段 × 文书）· 一致 ${vn ? pct(va / vn) : '—'} · 核验分歧 ${fmt(Math.max(0, t.review - rd))}` : '未配置核验模型，不做抽样核验'),
           !legacy && run.mode !== 'model' ? h('p', { className: 'mx-snote' }, `规则票 ${fmt(t.votes ?? 0)} · 与模型一致 ${fmt(t.agree ?? 0)} · 不一致 ${fmt(rd)}`) : null,
+          t.adjResolved || t.ruleResolved ? h('p', { className: 'mx-snote' }, `复判自动解决 ${fmt((t.adjResolved ?? 0))}（至多 ${run.maxRounds ?? 3} 轮）`) : null,
+          run.needsDefinition?.length ? h('p', { className: 'mx-snote mx-warn' }, `${run.needsDefinition.length} 个字段需要改定义（复判前一致率不达标）`) : null,
           h('p', { className: 'mx-snote' }, `待复核合计 ${fmt(t.review)} 项`)),
           h('button', { className: 'mx-link', onClick: () => goto('review') }, '明细 →')))
+    }
+
+    /** 模型房子的面板：一个模型服务的负载、并发、耗时与按工序拆的调用 */
+    function ModelPanel({ run, house: hs, goto, onBack }) {
+      const calls = useAsync(() => call('calls', { runId: run.id }).catch(() => null), [run.id, hs?.total ?? 0])
+      if (!hs) return h('div', { className: 'mx-frame mx-side' }, h('p', { className: 'mx-snote' }, '没有这个模型'))
+      const running = run.status === 'running'
+      const series = run.series ?? []
+      const last = running ? series.filter((p) => p.length >= 18).at(-1) : null
+      const inflight = last ? last[2 + hs.slot] : 0; const waiting = last ? last[4 + hs.slot] : 0
+      const P0 = { calls: 0, cached: 0, failed: 0, retries: 0, ms: 0, pt: 0, ct: 0, ptMax: 0, hist: [0, 0, 0, 0, 0, 0, 0] }
+      const agg = hs.perf.reduce((a, [, , p]) => { for (const k of ['calls', 'cached', 'failed', 'retries', 'ms', 'pt', 'ct']) a[k] += p[k] ?? 0; a.ptMax = Math.max(a.ptMax, p.ptMax ?? 0); a.hist = a.hist.map((x, i) => x + (p.hist?.[i] ?? 0)); return a }, { ...P0, hist: [...P0.hist] })
+      const byStation = {}
+      for (const [, st, p] of hs.perf) { const x = (byStation[st] ??= { calls: 0, cached: 0, failed: 0 }); x.calls += p.calls ?? 0; x.cached += p.cached ?? 0; x.failed += p.failed ?? 0 }
+      const ps = series.filter((p) => p.length >= 10); let peak = 0; let peakT = 0
+      for (let j = 0; j < ps.length; j++) { peak = Math.max(peak, ps[j][2 + hs.slot]); if (j) { const dt = (ps[j][0] - ps[j - 1][0]) / 1000; if (dt > 0) peakT = Math.max(peakT, (ps[j][8 + hs.slot] - ps[j - 1][8 + hs.slot]) / dt) } }
+      const fr = agg.calls ? agg.failed / agg.calls : 0
+      const sec = (title, body, aside) => h('div', { key: title, className: 'mx-ssec' }, h('div', { className: 'mx-ssec-h' }, h('span', {}, title), aside ? h('span', {}, aside) : null), body)
+      const kv = (pairs) => h('div', { className: 'mx-skv' }, pairs.filter(Boolean).map(([l, v, cls]) => h('div', { key: l }, h('span', {}, l), h('b', { className: `mx-num ${cls === 'warn' ? 'mx-warn' : cls === 'bad' ? 'mx-bad' : ''}` }, v))))
+      const errs = (calls.value?.errors ?? []).filter((e) => e.model === hs.model).slice(0, 5)
+      const mx = Math.max(1, ...agg.hist)
+      return h('div', { className: 'mx-frame mx-side' },
+        h('div', { className: 'mx-side-h' }, h('b', { style: { fontFamily: 'var(--mono)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }, title: hs.model }, hs.model), h('span', { className: `mx-chip ${inflight ? 'w' : 'ok'}` }, running ? (inflight ? '处理中' : '空闲') : '已结束'), h('button', { className: 'mx-link mx-back', onClick: onBack }, '← 概览')),
+        h('p', { className: 'mx-sdesc' }, `${hs.roles.includes('extract') && hs.roles.includes('verify') ? '提取模型兼核验模型' : hs.roles.includes('extract') ? '提取模型' : '核验模型'}：用于 ${hs.roleText}`, h('br'), h('span', {}, `端点 ${hs.host || '—'} · 并发上限 ${hs.max}（${hs.roles.includes('extract') ? '设置里的「提取模型并发」' : '设置里的「核验模型并发」'}）`)),
+        h('div', { className: 'mx-shead' },
+          h(Ring, { v: running ? inflight / Math.max(1, hs.max) : peak / Math.max(1, hs.max), label: running ? `${inflight}／${hs.max}` : `${peak}／${hs.max}`, sub: running ? `在途${waiting ? ` · 排队 ${waiting}` : ''}` : '在途峰值', hot: running && waiting > 0 }),
+          kv([['调用', fmt(agg.calls)], ['缓存复用', fmt(agg.cached)], ['失败率', agg.calls ? `${(fr * 100).toFixed(fr && fr < 0.1 ? 1 : 0)}%` : '—', fr > 0.02 ? 'bad' : ''], ['自动重试', fmt(agg.retries)], ['Token', kfmt(agg.pt + agg.ct)], ['吞吐峰值', `${kfmt(peakT)} token/秒`]])),
+        sec('按工序', h('div', { className: 'mx-ob-models', style: { gridTemplateColumns: '64px repeat(3, minmax(0,1fr))' } },
+          h('span', {}), h('b', {}, '调用'), h('b', {}, '缓存'), h('b', {}, '失败'),
+          ...hs.stations.flatMap((st) => { const x = byStation[st] ?? { calls: 0, cached: 0, failed: 0 }; return [h('span', { key: `${st}n` }, STATION_LABEL[st]), h('b', { key: `${st}c` }, fmt(x.calls)), h('b', { key: `${st}k` }, fmt(x.cached)), h('b', { key: `${st}f`, className: x.failed ? 'mx-bad' : '' }, fmt(x.failed))] }))),
+        sec('并发', h(React.Fragment, {},
+          h('div', { className: 'mx-legend' }, h('span', {}, h('i', { className: 'ln in' }), '在途'), h('span', {}, h('i', { className: 'ln lim' }), '上限'), h('span', {}, h('i', { className: 'ln tp' }), '吞吐'), h('span', {}, h('i', { className: 'ln q' }), '排队')),
+          h(ConcChart, { series, slot: hs.slot, limit: hs.max })), `峰值 ${peak}／${hs.max}`),
+        sec('每次调用', h(React.Fragment, {},
+          kv([['耗时 均', agg.calls ? `${(agg.ms / agg.calls / 1000).toFixed(1)}s` : '—'], ['输出 均', agg.calls ? `${fmt(Math.round(agg.ct / agg.calls))} token` : '—'], ['上下文 均', agg.calls ? kfmt(agg.pt / agg.calls) : '—'], ['上下文 最大', agg.ptMax ? kfmt(agg.ptMax) : '—']]),
+          h('div', { className: 'mx-lat', style: { marginTop: 6 }, title: agg.hist.map((n, i) => `${LAT_LABELS[i]}s：${n}`).join('\n') }, h('div', { className: 'bars', style: { height: 44 } }, agg.hist.map((n, i) => h('i', { key: i, className: i >= 5 && n ? 'slow' : '', style: { height: `${Math.max(n ? 6 : 2, (n / mx) * 100)}%` } }))), h('div', { className: 'lbl' }, LAT_LABELS.map((x) => h('span', { key: x }, `${x}s`))))), '耗时分布'),
+        errs.length ? sec('最近的失败', h('ul', { className: 'mx-slist' }, errs.map((e, i) => h('li', { key: i, title: e.error }, `${fmtTime(e.at)} · ${String(e.error).slice(0, 60)}`)))) : null,
+        h('button', { className: 'mx-btn mx-saction', onClick: () => goto('calls') }, '模型调用明细 →'))
     }
 
     function StationPanel({ run, s, goto, onBack }) {
@@ -1278,6 +1383,20 @@ window.__ModuleLoader__.load({
         if (!legacy) parts.push(sec('怎么核验', note(`核验模型对同样的提取任务背靠背通读（按文书抽样，另保证每个有值的字段都核验到），按字段比较文书级结论；两边都「未提及」的不计入一致率`)))
         const weak = verify.filter(([, x]) => x.n >= 3).map(([f, x]) => [f, x.agree / x.n, x]).sort((a, b) => a[1] - b[1]).slice(0, 5)
         parts.push(sec('一致率最低的字段', weak.length ? h(RankBars, { max: 1, rows: weak.map(([f, r, x]) => [nameOf(f), r, r.toFixed(2), r < 0.9 ? 'var(--warn)' : 'var(--teal)', `${nameOf(f)}（${f}）：${x.agree} / ${x.n} 次一致`]) }) : note(run.model?.verifyModel ? '抽样不足（每个字段至少 3 次）' : '在设置里配置核验模型后才会抽样核验')))
+        // 复判：分歧两个模型轮流复判，一致即采用；验收门④按复判前算
+        const adjN = verify.reduce((a2, [, x]) => a2 + (x.adj ?? 0), 0); const adjOk = verify.reduce((a2, [, x]) => a2 + (x.resolved ?? 0), 0)
+        if (!legacy && (adjN || t.ruleDisputes)) {
+          const byR = (t.adjByRound ?? []).map((n, i) => [i + 1, n]).filter(([, n]) => n)
+          parts.push(sec(`复判（至多 ${run.maxRounds ?? 3} 轮）`, h(React.Fragment, {},
+            h(Split, { parts: [['复判已解决', adjOk + (t.ruleResolved ?? 0), 'var(--ok)'], ['交人工', Math.max(0, adjN - adjOk) + Math.max(0, (t.ruleDisputes ?? 0) - (t.ruleResolved ?? 0)), 'var(--warn)']] }),
+            note(`核验分歧 ${fmt(adjN)} 项：复判解决 ${fmt(adjOk)}${byR.length ? `（${byR.map(([rr, n]) => `第 ${rr} 轮 ${n}`).join('、')}）` : ''}；规则票不一致 ${fmt(t.ruleDisputes ?? 0)} 项：解决 ${fmt(t.ruleResolved ?? 0)}。一致率按复判前算——复判只修好了被抽到的那几份`)),
+            h('button', { className: 'mx-link', onClick: () => goto('review') }, '抽查 →')))
+        }
+        const nd = run.needsDefinition ?? []
+        if (nd.length) parts.push(sec('需要改字段定义', h(React.Fragment, {},
+          note('这些字段复判前就对不上：没被抽到的文书只有第一遍的结果，重跑不会变（同样的提示命中缓存）。看复核里的分歧，改模板里这个字段的定义、算／不算的写法或例子'),
+          h('div', { className: 'mx-rank' }, nd.slice(0, 8).map((x) => h('button', { key: x.field, type: 'button', className: 'mx-nd', title: `${x.why}；抽样 ${x.n} 次，一致 ${x.agree}`, onClick: () => { focusField.id = x.field; goto('template') } },
+            h('span', {}, nameOf(x.field)), h('small', {}, x.why), h('b', { className: 'mx-num mx-warn' }, pct(x.agree / x.n)), h('i', {}, '改 →')))))))
         parts.push(gateLine('④', '抽样核验一致率'))
         action = [t.review ? `去复核 ${fmt(t.review)} 项` : '复核', 'review']
       } else if (id === 'E7') {
@@ -1533,8 +1652,12 @@ window.__ModuleLoader__.load({
       for (const x of xs) { const k = x.origin === 'builtin' ? `内置 · ${x.domain ?? '其他'}` : '我的模板'; if (!g.has(k)) g.set(k, []); g.get(k).push(x) }
       return [...g.entries()].sort((a, b) => (a[0] === '我的模板' ? 1 : b[0] === '我的模板' ? -1 : a[0].localeCompare(b[0], 'zh')))
     }
+    /** 从核验面板跳到模板页的某个字段：记下要高亮的字段，模板页渲染后滚到它 */
+    const focusField = { id: null }
     function Templates({ run, onError }) {
       const list = useAsync(() => call('templates'), [])
+      const [focus] = useState(() => { const f = focusField.id; focusField.id = null; return f })
+      useEffect(() => { if (!focus) return; const t0 = setTimeout(() => document.getElementById(`mx-f-${focus}`)?.scrollIntoView({ block: 'center' }), 300); return () => clearTimeout(t0) }, [focus])
       const [sel, setSel] = useState(run?.template?.id ?? null)
       const [view, setView] = useState('fields')
       const [draft, setDraft] = useState('')
@@ -1603,7 +1726,7 @@ window.__ModuleLoader__.load({
               h('div', { style: { display: 'flex', gap: 4, marginTop: 8 } }, [['fields', `字段 ${t.fields.length}`], ['json', 'JSON（编辑、另存）']].map(([k, l]) => h('button', { key: k, className: `mx-btn sm${view === k ? ' on' : ''}`, onClick: () => setView(k) }, l)), h('span', { className: 'mx-sp' }), h('button', { className: 'mx-btn sm', onClick: () => download(false), title: '把这个模板导出成 Excel，改好后用左侧「导入 Excel」导回来' }, '⇩ 下载 Excel'), h('button', { className: 'mx-btn sm pri', onClick: copyAsMine, title: '以当前模板为底稿，换一个新 id，在 JSON 里改好后保存到我的模板库' }, '＋ 复制为我的模板'))),
             view === 'fields' ? h('div', { className: 'mx-scroll', style: { flex: 1 } }, h('table', {},
               h('thead', {}, h('tr', {}, ['字段', '名称', '组', '优先级', '类型', '粒度', '模型', '定义', '召回／规则'].map((x) => h('th', { key: x, style: nw }, x)))),
-              h('tbody', {}, t.fields.map((f) => h('tr', { key: f.id },
+              h('tbody', {}, t.fields.map((f) => h('tr', { key: f.id, id: `mx-f-${f.id}`, className: focus === f.id ? 'sel' : undefined },
                 h('td', { className: 'mx-num', style: nw }, f.id), h('td', { style: { minWidth: 120 } }, f.name), h('td', { className: 'mx-faint', style: nw }, groupName[f.group] ?? f.group ?? ''), h('td', { style: nw }, h('span', { className: `mx-chip ${f.priority === 'P0' ? 'v' : ''}` }, f.priority ?? 'P1')),
                 h('td', { style: nw }, f.type), h('td', { className: 'mx-faint', style: nw }, f.granularity ?? 'encounter'), h('td', { className: 'mx-faint', style: nw }, f.model ?? 'auto'),
                 h('td', { style: { maxWidth: 360, fontSize: 11.5 } }, f.definition),
@@ -1692,7 +1815,8 @@ window.__ModuleLoader__.load({
     function Review({ run, onError }) {
       const [offset, setOffset] = useState(0)
       const [field, setField] = useState('')
-      const d = useAsync(() => call('reviewQueue', { runId: run.id, offset, limit: 20, field: field || null }), [run.id, offset, field])
+      const [status, setStatus] = useState('open')
+      const d = useAsync(() => call('reviewQueue', { runId: run.id, offset, limit: 20, field: field || null, status }), [run.id, offset, field, status])
       const decide = async (item, decision) => {
         try { await call('decide', { runId: run.id, kind: 'review', target: item.id, decision, item }); d.reload() } catch (e) { onError(msg(e)) }
       }
@@ -1709,8 +1833,9 @@ window.__ModuleLoader__.load({
       }
       return h('div', { className: 'mx-frame mx-col', style: { flex: 1 } },
         h('div', { className: 'mx-pad', style: { display: 'flex', gap: 8, alignItems: 'center', borderBottom: '1px solid var(--line)' } },
-          h('b', {}, '复核'), h('span', { className: 'mx-cap' }, 'REVIEW'), h('span', { className: 'mx-faint' }, '抽样核验时最终结果与核验模型不一致的项。裁定按稳定编号存，重跑沿用。'),
+          h('b', {}, '复核'), h('span', { className: 'mx-cap' }, 'REVIEW'), h('span', { className: 'mx-faint' }, `核验分歧和规则票不一致的项；两个模型先复判（至多 ${run.maxRounds ?? 3} 轮），仍不一致的交人工。裁定按稳定编号存，重跑沿用。`),
           h('span', { className: 'mx-sp' }),
+          [['open', '待人工'], ['resolved', '复判已解决（抽查）']].map(([k, l]) => h('button', { key: k, className: `mx-btn sm${status === k ? ' on' : ''}`, onClick: () => { setStatus(k); setOffset(0) } }, `${l}${v?.counts ? ` ${fmt(v.counts[k])}` : ''}`)),
           h('select', { className: 'mx-input', value: field, onChange: (e) => { setField(e.target.value); setOffset(0) } }, h('option', { value: '' }, '全部字段'), fieldsInQueue.map((f) => h('option', { key: f, value: f }, f))),
           v ? h('span', { className: 'mx-faint mx-num' }, `${fmt(v.total)} 项`) : null,
           h('button', { className: 'mx-btn sm', disabled: offset === 0, onClick: () => setOffset(Math.max(0, offset - 20)) }, '‹'),
@@ -1718,11 +1843,16 @@ window.__ModuleLoader__.load({
         h('div', { className: 'mx-scroll mx-pad', style: { flex: 1 } },
           !v ? h('div', { className: 'mx-faint' }, d.error ?? '加载中…') : !v.items.length ? h('div', { className: 'mx-empty' }, run.model?.verifyModel ? '没有待复核的项。' : '未配置核验模型，没有抽样核验。') : v.items.map((it) => h('div', { key: it.id, className: 'mx-rv' },
             h('div', { className: 'mx-rv-h' }, h('b', { className: 'mx-num' }, it.field), h('b', {}, it.fieldName ?? ''), h('span', { className: 'mx-faint' }, `${it.patient} · ${it.recordType} · ${it.written ?? ''}`), h('span', { className: 'mx-sp' }),
+              it.resolved ? h('span', { className: 'mx-chip ok' }, `复判第 ${it.resolved.round} 轮解决（${it.resolved.by === 'extract' ? '提取模型改口' : '核验模型改口'}）`) : null,
               it.decision ? h('span', { className: 'mx-chip ok' }, { confirm: '已维持', useVerify: '已按核验改判', reject: '已驳回全部' }[it.decision.decision] ?? it.decision.decision) : null),
             h('div', { className: 'mx-rv-cols' },
-              h('div', {}, h('div', { className: 'mx-faint' }, '最终结果'), h('b', {}, it.final), it.finalValues.slice(0, 4).map((x, i) => h('div', { key: i, className: 'mx-faint' }, `「${x.quote}」 ${x.assertion} · ${x.method}`))),
+              h('div', {}, h('div', { className: 'mx-faint' }, it.resolved ? '采用的结果' : '最终结果'), h('b', {}, it.final), it.finalValues.slice(0, 4).map((x, i) => h('div', { key: i, className: 'mx-faint' }, `「${x.quote}」 ${x.assertion} · ${x.method}`))),
               h('div', {}, h('div', { className: 'mx-faint' }, it.kind === 'rule' ? '规则票' : '核验模型'), h('b', {}, it.verify), it.verifyValues.slice(0, 4).map((x, i) => h('div', { key: i, className: 'mx-faint' }, `「${x.quote}」 ${x.assertion}`)))),
-            it.snippets.slice(0, 3).map((s, i) => h('div', { key: i, className: 'mx-snip' }, mark(s, [...it.finalValues, ...it.verifyValues]))),
+            it.rounds?.length ? h('div', { className: 'mx-rounds' }, it.rounds.map((rd) => h('div', { key: rd.round, className: 'mx-round' },
+              h('em', {}, `第 ${rd.round} 轮`),
+              h('div', {}, h('small', {}, '提取模型'), h('b', {}, rd.extract?.length ? rd.extract.map((x) => `${x.value}（${x.assertion}）`).join('；') : '原文没写'), rd.extract?.slice(0, 2).map((x, i) => h('div', { key: i, className: 'mx-faint' }, `「${x.quote}」`)), rd.extractReason ? h('div', { className: 'mx-why' }, rd.extractReason) : null),
+              rd.verify ? h('div', {}, h('small', {}, '核验模型'), h('b', {}, rd.verify.length ? rd.verify.map((x) => `${x.value}（${x.assertion}）`).join('；') : '原文没写'), rd.verify.slice(0, 2).map((x, i) => h('div', { key: i, className: 'mx-faint' }, `「${x.quote}」`)), rd.verifyReason ? h('div', { className: 'mx-why' }, rd.verifyReason) : null) : h('div', { className: 'mx-faint' }, it.kind === 'rule' ? '（规则不变，只复判 1 轮）' : '')))) : null,
+            it.snippets.slice(0, 3).map((s, i) => h('div', { key: i, className: 'mx-snip' }, mark(s, [...it.finalValues, ...it.verifyValues, ...(it.rounds ?? []).flatMap((rd) => [...(rd.extract ?? []), ...(rd.verify ?? [])])]))),
             h('div', { style: { display: 'flex', gap: 6, marginTop: 8 } },
               h('button', { className: 'mx-btn sm', onClick: () => decide(it, 'confirm') }, '维持最终结果'),
               h('button', { className: 'mx-btn sm pri', onClick: () => decide(it, 'useVerify') }, '按核验模型改判'),
@@ -1766,7 +1896,7 @@ window.__ModuleLoader__.load({
         const patch = {
           outputRoot: form.outputRoot ?? '', template: form.template || 'mdd', extractMode: MODE_LABEL[form.extractMode] ? form.extractMode : 'hybrid', priorities: String(form.priorities ?? '').split(/[,，\s]+/).filter(Boolean), mapping,
           baseURL: form.baseURL ?? '', model: form.model ?? '', verifyBaseURL: form.verifyBaseURL ?? '', verifyModel: form.verifyModel ?? '', disableThinking: form.disableThinking !== false,
-          timeoutMs: num('timeoutMs', 120000), modelConcurrency: num('modelConcurrency', 8), workers: num('workers', 0), shardUnits: num('shardUnits', 20),
+          timeoutMs: num('timeoutMs', 120000), modelConcurrency: num('modelConcurrency', 8), verifyConcurrency: num('verifyConcurrency', 8), maxRounds: Math.max(1, Math.min(6, num('maxRounds', 3))), workers: num('workers', 0), shardUnits: num('shardUnits', 20),
           verifySampleRate: num('verifySampleRate', 0.02), verifyMinPerField: num('verifyMinPerField', 2), verifyThreshold: num('verifyThreshold', 0.9), showSidebarEntry: form.showSidebarEntry !== false,
           formatRecognition: form.formatRecognition !== false, borrowFormats: form.borrowFormats !== false, elementDict: form.elementDict ?? '', heldTables: form.heldTables || 'generic',
         }
@@ -1785,7 +1915,7 @@ window.__ModuleLoader__.load({
         h('div', { className: 'mx-grid2' }, field('baseURL', '提取模型端点（OpenAI 兼容）', { placeholder: 'http://127.0.0.1:11434/v1' }), field('model', '提取模型'),
           field('verifyBaseURL', '核验模型端点（空＝同上）'), field('verifyModel', '核验模型（空＝不做抽样核验）'),
           field('apiKey', 'API Key（留空不修改）', { type: 'password' }), field('timeoutMs', '单次调用超时（毫秒）'),
-          field('modelConcurrency', '全局同时进行的模型请求数'), field('verifySampleRate', '核验抽样比例（0–1）'),
+          field('modelConcurrency', '提取模型并发（同时进行的请求数）'), field('verifyConcurrency', '核验模型并发（和提取模型同端点同模型时共用上一项）'), field('maxRounds', '复判轮次上限（1–6）'), field('verifySampleRate', '核验抽样比例（0–1）'),
           field('verifyMinPerField', '每字段每分片至少核验几份'), field('verifyThreshold', '验收门④一致率阈值')),
         check('disableThinking', '关闭思考模式（推理模型更快）'),
         h('h3', { style: { margin: '6px 0 0' } }, '格式识别（通用文件）'),
