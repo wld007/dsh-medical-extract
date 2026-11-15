@@ -128,7 +128,8 @@ window.__ModuleLoader__.load({
 .mx-settings .mx-input{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary);border-color:var(--dsw-alias-border-l2)}
 .mx-settings .mx-btn{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary);border-color:var(--dsw-alias-border-l2)}
 .mx-settings .mx-field{color:var(--dsw-alias-label-secondary)}
-.mx-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mx-grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}.mx-grid2>*{min-width:0}
+.mx-pop .mx-grid2.tm{grid-template-columns:minmax(0,1fr) max-content}
 /* ---- 产线：等轴测工厂＋HUD 面板（参考工业监控大屏） ---- */
 .mx.mx-dark{--lift:0 1px 0 rgba(255,255,255,.025) inset,0 12px 26px -22px #000}
 .mx.mx-light{--lift:0 1px 0 rgba(255,255,255,.8) inset,0 10px 22px -20px rgba(40,20,80,.32)}
@@ -470,9 +471,9 @@ window.__ModuleLoader__.load({
         h('label', { className: 'mx-field' }, '病历目录或文件',
           h('input', { className: 'mx-input', value: inputDir, onChange: (e) => setInput(e.target.value), placeholder: '/path/to/_medical-anonymizer/… 或 notes.ndjson', autoFocus: true }),
           h('div', { className: 'mx-pick' }, h('button', { className: 'mx-btn sm', onClick: pick, disabled: picking }, picking ? '请在弹出的窗口里选择…' : '选择文件夹…'), h('span', { className: 'mx-faint' }, 'p_doc 导出，或 json／ndjson／csv／txt 文书'))),
-        h('div', { className: 'mx-grid2' },
+        h('div', { className: 'mx-grid2 tm' },
           h('label', { className: 'mx-field' }, '抽取模板',
-            h('select', { className: 'mx-input', value: template, onChange: (e) => setTemplate(e.target.value) },
+            h('select', { className: 'mx-input', value: template, title: tplList.find((t) => t.id === template)?.name ?? '', onChange: (e) => setTemplate(e.target.value) },
               h('option', { value: '' }, `默认（${cfg.value?.template ?? '…'}）`), tplList.map((t) => h('option', { key: t.id, value: t.id }, `${t.domain ? `${t.domain} · ` : ''}${t.name} · ${t.fields} 字段${t.origin === 'builtin' ? '' : '（我的）'}`)))),
           h('label', { className: 'mx-field' }, '模式',
             h('select', { className: 'mx-input', value: mode, onChange: (e) => setMode(e.target.value) },
