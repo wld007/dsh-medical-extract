@@ -2356,7 +2356,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         h('aside', { className: 'mx-frame mx-col mx-dc-side' },
           h('div', { className: 'mx-dc-search' },
             h('input', { className: 'mx-input', placeholder: '搜索病人编号', value: q, onChange: (e) => { setQ(e.target.value); setOffset(0) } }),
-            h('div', { className: 'mx-dc-tg' }, [['all', `全部${P ? ` ${fmt(P.total)}` : ''}`], ['todo', `有待判断${P?.todo ? ` ${fmt(P.todo)}` : ''}`]].map(([k, l]) => h('button', { key: k, className: `mx-dc-tgb${only === k ? ' on' : ''}${k === 'todo' && P?.todo ? ' hot' : ''}`, onClick: () => { setOnly(k); setOffset(0) } }, l)))),
+            h('div', { className: 'mx-dc-tg' }, [['all', `全部${P ? ` ${fmt(P.patientsAll ?? P.total)} 人` : ''}`, '这批的全部病人'], ['todo', `有待判断${P?.patientsTodo ? ` ${fmt(P.patientsTodo)} 人` : ''}`, P?.todo ? `有待判断项的病人；合计 ${fmt(P.todo)} 项待判断` : '有待判断项的病人']].map(([k, l, tip]) => h('button', { key: k, title: tip, className: `mx-dc-tgb${only === k ? ' on' : ''}${k === 'todo' && P?.patientsTodo ? ' hot' : ''}`, onClick: () => { setOnly(k); setOffset(0) } }, l)))),
           h('div', { className: 'mx-scroll mx-dc-list' },
             !P ? h('div', { className: 'mx-faint', style: { padding: 8 } }, pl.error ?? '加载中…')
               : !P.items.length ? h('div', { className: 'mx-faint', style: { padding: 8 } }, '没有符合的病人。')
