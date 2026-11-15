@@ -1440,6 +1440,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         if (t.hollow != null) parts.push(sec('清洗', h(React.Fragment, {}, h(Split, { parts: [['进入提取的文书', t.documents, 'var(--teal)'], ['空壳文书', t.hollow, 'var(--warn)']] }), note(`解码 ${fmt(t.decoded)} 个字段值，去掉导出乱码 ${fmt(t.garbled)} 个字段值，去掉图片与二进制 ${fmt(t.media ?? 0)} 处${Object.keys(t.mediaKinds ?? {}).length ? `（${Object.entries(t.mediaKinds).map(([k, v]) => `${k} ${fmt(v)}`).join('，')}）` : ''}，图片里的文字不识别。空壳文书＝清洗后各栏目加起来不到 2 个汉字，如「护理观察：-」、只有编码的记录`))))
         if (run.format) {
           parts.push(sec('格式识别', h(Split, { parts: [['采用', run.format.adopted ?? 0, 'var(--teal)'], ['待确认', run.format.held ?? 0, 'var(--warn)'], ['跳过', run.format.ignored ?? 0, 'var(--line2)']] }), `${fmt((run.format.adopted ?? 0) + (run.format.held ?? 0) + (run.format.ignored ?? 0))} 张表`))
+          if (run.format.scoped) parts.push(note(`${fmt(run.format.scoped)} 张结构化表两个模型在本插件用得到的项（类别、病人、就诊）上一致、其余角色有分歧：只在本插件内采用，不交人工`))
           if (run.format.adjudicated || run.format.adjDisputed) parts.push(note(`两个模型背靠背各自起草，有分歧的表先复判（只重判有分歧的项，至多 ${run.maxRounds ?? 3} 轮）：复判后一致 ${fmt(run.format.adjudicated ?? 0)} 张${run.format.adjDisputed ? `，仍有分歧交人工 ${fmt(run.format.adjDisputed)} 张` : ''}`))
           if (run.format.held) action = [`去确认 ${run.format.held} 张表`, 'formats']
         }
@@ -1711,7 +1712,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
               : !shown.length ? h('div', { className: 'mx-empty' }, filter === 'held' ? '没有待确认的表。' : '—')
                 : h('table', {}, h('thead', {}, h('tr', {}, ['表', '行', '状态', '类别', '依据'].map((x) => h('th', { key: x }, x)))),
                   h('tbody', {}, shown.map((r) => {
-                    const [label, cls] = FMT_STATUS[r.status] ?? [r.status, '']
+                    const [label, cls] = r.scope ? ['本插件内采用', 'ok'] : FMT_STATUS[r.status] ?? [r.status, '']
                     return h('tr', { key: r.signature, className: `click${sel === r.signature ? ' sel' : ''}`, onClick: () => setSel(r.signature) },
                       h('td', { className: 'mx-num', style: { maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }, title: r.table }, r.table),
                       h('td', { className: 'mx-num' }, fmt(r.rows)),
@@ -1728,13 +1729,14 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       const [editing, setEditing] = useState(false)
       const [text, setText] = useState(() => JSON.stringify(stripSpec(row.spec), null, 1))
       const [jsonErr, setJsonErr] = useState('')
-      const [label, cls] = FMT_STATUS[row.status] ?? [row.status, '']
+      const [label, cls] = row.scope ? ['本插件内采用', 'ok'] : FMT_STATUS[row.status] ?? [row.status, '']
       const drafts = row.drafts ?? {}
       const labels = Object.fromEntries((row.fields ?? []).filter((f) => f.label).map((f) => [f.name, f.label]))
       return h('div', {},
         h('div', { className: 'mx-h' }, h('b', { className: 'mx-num', style: { wordBreak: 'break-all' } }, row.table), h('span', { className: `mx-chip ${cls}` }, label)),
         h('div', { className: 'mx-muted', style: { fontSize: 11.5, marginBottom: 8 } }, `${fmt(row.rows)} 行 · ${row.files} 个文件 · 字段 ${row.fields?.length ?? '—'}（空 ${row.fields?.filter((f) => f.kind === 'empty').length ?? '—'}）`),
         row.reason ? h('div', { className: 'mx-mo', style: { wordBreak: 'break-all' } }, row.reason, ...(row.diffs ?? []).map((d, i) => h('div', { key: i }, `· ${d}`)), ...(row.problems ?? []).map((d, i) => h('div', { key: `p${i}`, className: 'mx-warn' }, `· ${d}`))) : null,
+        row.scope ? h('div', { className: 'mx-mo', style: { marginTop: 6 } }, '只在本插件内采用：这是结构化表，本插件只用类别、病人与就诊，这几项一致；下面这些角色有分歧，本插件用不到，病历事件还原不会借用这条结果。', ...(row.partialDiffs ?? []).map((d, i) => h('div', { key: i, className: 'mx-faint' }, `· ${d}`))) : null,
         row.rounds?.length ? h(React.Fragment, {},
           h('div', { className: 'mx-sec' }, h('b', {}, '复判经过'), h('span', { className: 'mx-cap' }, row.adjudicated ? `第 ${row.adjudicated} 轮一致` : `${row.rounds.length} 轮仍不一致`)),
           row.firstDiffs?.length ? h('div', { className: 'mx-faint', style: { fontSize: 11 } }, `起初的分歧：${row.firstDiffs.join('；')}`) : null,
