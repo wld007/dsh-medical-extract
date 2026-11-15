@@ -131,6 +131,24 @@ window.__ModuleLoader__.load({
 .mx-settings .mx-input{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary);border-color:var(--dsw-alias-border-l2)}
 .mx-settings .mx-btn{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary);border-color:var(--dsw-alias-border-l2)}
 .mx-settings .mx-field{color:var(--dsw-alias-label-secondary)}
+.mx-stabs{display:flex;gap:2px;box-shadow:inset 0 -1px 0 var(--dsw-alias-border-l2,var(--line2));overflow-x:auto}
+.mx-stab{position:relative;display:inline-flex;align-items:center;gap:6px;background:none;border:0;border-bottom:2px solid transparent;padding:8px 12px;font:inherit;font-size:13px;color:var(--dsw-alias-label-secondary,var(--ink2));cursor:pointer;white-space:nowrap}
+.mx-stab[aria-selected="true"]{color:var(--dsw-alias-label-primary,var(--ink));font-weight:600;border-bottom-color:var(--teal,#5b3cc4)}
+.mx-sdot{width:6px;height:6px;border-radius:50%;background:var(--warn,#c27a12)}
+.mx-spanel{display:flex;flex-direction:column;gap:12px;min-height:240px}
+.mx-scard{border:1px solid var(--dsw-alias-border-l2,var(--line2));border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:10px;background:var(--dsw-alias-bg-layer-1,var(--panel))}
+.mx-scard-h b{font-size:13.5px;color:var(--dsw-alias-label-primary,var(--ink))}.mx-scard-h p{margin:3px 0 0}
+.mx-shint{display:block;font-size:11.5px;line-height:1.5;color:var(--dsw-alias-label-tertiary,var(--ink3))}.mx-shint.ok{color:var(--ok,#2f9a55)}.mx-shint.bad{color:var(--bad,#cf3a3f)}
+.mx-scheck{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;color:var(--dsw-alias-label-primary,var(--ink))}.mx-scheck input{margin-top:2px}
+.mx-sact{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.mx-settings .mx-wide{grid-column:1/-1}
+.mx-savebar{position:sticky;bottom:0;display:flex;align-items:center;gap:8px;padding:10px 0 4px;border-top:1px solid var(--dsw-alias-border-l2,var(--line2));background:var(--dsw-alias-bg-base,var(--panel))}
+.mx-mp{position:relative;width:100%}.mx-mp-row{display:flex;gap:6px}.mx-mp-row .mx-input{flex:1;min-width:0}.mx-mp-btn{flex:none;width:32px;padding:0}
+.mx-mp-menu{position:absolute;z-index:30;left:0;right:0;top:calc(100% + 4px);max-height:240px;overflow:auto;padding:4px;border-radius:8px;border:1px solid var(--dsw-alias-border-l2,var(--line2));background:var(--dsw-alias-bg-overlay,var(--dsw-alias-bg-layer-1,var(--panel)));box-shadow:0 8px 24px rgba(0,0,0,.16)}
+.mx-mp-item{display:block;width:100%;text-align:left;padding:6px 8px;border:0;border-radius:5px;background:none;color:var(--dsw-alias-label-primary,var(--ink));font:12.5px ui-monospace,SFMono-Regular,Menlo,monospace;cursor:pointer}
+.mx-mp-item:hover{background:var(--dsw-alias-bg-layer-2,var(--panel2))}.mx-mp-item.on{color:var(--teal,#5b3cc4);font-weight:600}
+.mx-mp-clear{font-family:inherit;color:var(--dsw-alias-label-secondary,var(--ink2))}
+.mx-mp-note{padding:6px 8px;font-size:12px;color:var(--dsw-alias-label-secondary,var(--ink2))}.mx-mp-note.bad{color:var(--bad,#cf3a3f)}
 .mx-grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}.mx-grid2>*{min-width:0}
 .mx-pop .mx-grid2.tm{grid-template-columns:minmax(0,1fr) max-content}
 /* ---- 产线：等轴测工厂＋HUD 面板（参考工业监控大屏） ---- */
@@ -1977,54 +1995,165 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
     }
 
     /* --------------------------------------------------------------- settings */
+    /**
+     * 模型名称：可输入，也可从端点的 /models 下拉选择（同匿名化插件）。
+     * 聚焦或点 ▾ 时取列表；端点或 Key 变了重新取。
+     */
+    function ModelPicker({ value, onChange, placeholder, baseURL, apiKey }) {
+      const [open, setOpen] = useState(false)
+      const [st, setSt] = useState({ src: null, loading: false, models: [], error: '' })
+      const box = React.useRef(null)
+      const src = `${baseURL}|${apiKey}`
+      const load = async (force = false) => {
+        if (!force && st.src === src && (st.loading || st.models.length || st.error)) return
+        setSt({ src, loading: true, models: [], error: '' })
+        try { const r = await call('models', { baseURL, apiKey }); setSt({ src, loading: false, models: r.models ?? [], error: r.ok ? '' : r.error ?? '取不到模型列表' }) } catch (e) { setSt({ src, loading: false, models: [], error: msg(e) }) }
+      }
+      useEffect(() => {
+        if (!open) return undefined
+        const onDown = (e) => { if (box.current && !box.current.contains(e.target)) setOpen(false) }
+        document.addEventListener('mousedown', onDown)
+        return () => document.removeEventListener('mousedown', onDown)
+      }, [open])
+      const stale = st.src !== src
+      const q = String(value ?? '').trim().toLowerCase()
+      const list = stale ? [] : st.models
+      const shown = q && list.some((n) => n.toLowerCase() === q) ? list : list.filter((n) => !q || n.toLowerCase().includes(q))
+      const note = (t, cls = '') => h('div', { className: `mx-mp-note ${cls}` }, t)
+      return h('div', { className: 'mx-mp', ref: box },
+        h('div', { className: 'mx-mp-row' },
+          h('input', { className: 'mx-input', value: value ?? '', placeholder, autoComplete: 'off', spellCheck: false, onChange: (e) => { onChange(e.target.value); setOpen(true) }, onFocus: () => { setOpen(true); load() }, onKeyDown: (e) => { if (e.key === 'Escape') setOpen(false) } }),
+          h('button', { type: 'button', className: 'mx-btn mx-mp-btn', title: '从端点取模型列表', onClick: () => { setOpen(true); load(true) } }, st.loading && !stale ? '…' : '▾')),
+        open ? h('div', { className: 'mx-mp-menu', role: 'listbox' },
+          stale || st.loading ? note('正在取模型列表…')
+            : st.error ? note(`取不到模型列表：${st.error}`, 'bad')
+              : !list.length ? note('端点没有列出模型，请直接输入名称')
+                : [
+                  value ? h('button', { key: '__clear', type: 'button', className: 'mx-mp-item mx-mp-clear', onClick: () => { onChange(''); setOpen(false) } }, '清空') : null,
+                  ...shown.map((n) => h('button', { key: n, type: 'button', role: 'option', 'aria-selected': n === value ? 'true' : 'false', className: `mx-mp-item${n === value ? ' on' : ''}`, onClick: () => { onChange(n); setOpen(false) } }, n)),
+                  shown.length ? null : h('div', { key: '__none', className: 'mx-mp-note' }, '没有匹配的模型'),
+                ]) : null)
+    }
+
+    const SET_TABS = [
+      ['model', '模型连接', ['baseURL', 'model', 'apiKey', 'clearKey', 'verifyBaseURL', 'verifyModel', 'disableThinking', 'timeoutMs', 'modelConcurrency', 'verifyConcurrency', 'autoConcurrency']],
+      ['extract', '提取与核验', ['template', 'extractMode', 'priorities', 'mapping', 'verifySampleRate', 'verifyMinPerField', 'verifyThreshold', 'maxRounds']],
+      ['format', '格式识别', ['formatRecognition', 'borrowFormats', 'elementDict', 'heldTables']],
+      ['batch', '批次与界面', ['outputRoot', 'workers', 'shardUnits', 'showSidebarEntry']],
+    ]
+
     function SettingsSection({ inModal = false } = {}) {
       const [cfg, setCfg] = useState(null)
+      const [base, setBase] = useState({})
       const [form, setForm] = useState({})
-      const [state, setState] = useState('')
-      useEffect(() => { call('config').then((c) => { setCfg(c); setForm({ ...c.settings, priorities: [].concat(c.settings.priorities ?? []).join(','), mapping: JSON.stringify(c.settings.mapping ?? {}), apiKey: '' }) }).catch((e) => setState(msg(e))) }, [])
-      if (!cfg) return h('div', { className: 'mx-settings' }, h('style', {}, CSS), state || '加载中…')
-      const field = (k, label, props = {}) => h('label', { className: 'mx-field' }, label, h('input', { className: 'mx-input', value: form[k] ?? '', onChange: (e) => setForm({ ...form, [k]: e.target.value }), ...props }))
-      const check = (k, label) => h('label', { style: { display: 'flex', gap: 6, alignItems: 'center' } }, h('input', { type: 'checkbox', checked: form[k] !== false, onChange: (e) => setForm({ ...form, [k]: e.target.checked }) }), label)
+      const [tab, setTab] = useState('model')
+      const [state, setState] = useState({ text: '', tone: '' })
+      const [saving, setSaving] = useState(false)
+      const [tests, setTests] = useState({})
+      const tpls = useAsync(() => call('templates').catch(() => ({ templates: [] })), [])
+      const load = () => call('config').then((c) => {
+        const f = { ...c.settings, priorities: [].concat(c.settings.priorities ?? []).join(','), mapping: Object.keys(c.settings.mapping ?? {}).length ? JSON.stringify(c.settings.mapping) : '', apiKey: '', clearKey: false }
+        setCfg(c); setBase(f); setForm(f)
+      }).catch((e) => setState({ text: msg(e), tone: 'bad' }))
+      useEffect(() => { load() }, [])
+      if (!cfg) return h('div', { className: 'mx-settings' }, h('style', {}, CSS), state.text || '加载中…')
+      const set = (k, v) => { setForm((f) => ({ ...f, [k]: v })); setState({ text: '', tone: '' }) }
+      const same = (a, b) => String(a ?? '') === String(b ?? '')
+      const dirtyKeys = Object.keys(form).filter((k) => (typeof form[k] === 'boolean' || typeof base[k] === 'boolean' ? (form[k] !== false) !== (base[k] !== false) : !same(form[k], base[k])))
+      const dirty = new Set(dirtyKeys)
+      const field = (k, label, props = {}, hint) => h('label', { className: 'mx-field' }, label, h('input', { className: 'mx-input', value: form[k] ?? '', onChange: (e) => set(k, e.target.value), ...props }), hint ? h('small', { className: 'mx-shint' }, hint) : null)
+      const check = (k, label, hint) => h('label', { className: 'mx-scheck' }, h('input', { type: 'checkbox', checked: form[k] !== false, onChange: (e) => set(k, e.target.checked) }), h('span', {}, label, hint ? h('small', { className: 'mx-shint' }, hint) : null))
+      const select = (k, label, opts, hint) => h('label', { className: 'mx-field' }, label, h('select', { className: 'mx-input', value: form[k] ?? '', onChange: (e) => set(k, e.target.value) }, opts.map(([v, l]) => h('option', { key: v, value: v }, l))), hint ? h('small', { className: 'mx-shint' }, hint) : null)
+      const card = (title, hint, ...body) => h('div', { className: 'mx-scard' }, h('div', { className: 'mx-scard-h' }, h('b', {}, title), hint ? h('p', { className: 'mx-shint' }, hint) : null), ...body)
       const num = (k, d) => (form[k] === '' || form[k] == null ? d : Number(form[k]))
+      const keyFor = () => form.apiKey || '' // 两个模型共用一个 Key；已保存的 Key 由插件只发往已保存的端点
+      const endpointOf = (which) => (which === 'verify' ? form.verifyBaseURL || form.baseURL : form.baseURL) || ''
+      const test = async (which) => {
+        const name = String(which === 'verify' ? form.verifyModel : form.model).trim()
+        setTests((t) => ({ ...t, [which]: { pending: true } }))
+        try {
+          const r = await call('models', { baseURL: endpointOf(which), apiKey: keyFor(which) })
+          const tone = !r.ok ? 'bad' : name && r.models.length && !r.models.includes(name) ? 'bad' : 'ok'
+          const text = !r.ok ? `连接失败：${r.error}` : !name ? `已连通，端点有 ${r.models.length} 个模型；请选一个` : r.models.length && !r.models.includes(name) ? `已连通，但端点没有「${name}」` : `已连通，模型「${name}」可用`
+          setTests((t) => ({ ...t, [which]: { tone, text } }))
+        } catch (e) { setTests((t) => ({ ...t, [which]: { tone: 'bad', text: msg(e) } })) }
+      }
+      const testLine = (which) => { const x = tests[which]; return h('div', { className: 'mx-sact' }, h('button', { type: 'button', className: 'mx-btn sm', disabled: x?.pending || !endpointOf(which), onClick: () => test(which) }, x?.pending ? '测试中…' : '测试连接'), x && !x.pending ? h('span', { className: `mx-shint ${x.tone}` }, x.text) : null) }
       const save = async () => {
         let mapping = {}
-        try { mapping = form.mapping ? JSON.parse(form.mapping) : {} } catch { setState('字段映射不是合法 JSON'); return }
+        try { mapping = form.mapping ? JSON.parse(form.mapping) : {} } catch { setTab('extract'); setState({ text: '字段映射不是合法 JSON', tone: 'bad' }); return }
         const patch = {
           outputRoot: form.outputRoot ?? '', template: form.template || 'mdd', extractMode: MODE_LABEL[form.extractMode] ? form.extractMode : 'hybrid', priorities: String(form.priorities ?? '').split(/[,，\s]+/).filter(Boolean), mapping,
-          baseURL: form.baseURL ?? '', model: form.model ?? '', verifyBaseURL: form.verifyBaseURL ?? '', verifyModel: form.verifyModel ?? '', disableThinking: form.disableThinking !== false,
+          baseURL: String(form.baseURL ?? '').trim(), model: String(form.model ?? '').trim(), verifyBaseURL: String(form.verifyBaseURL ?? '').trim(), verifyModel: String(form.verifyModel ?? '').trim(), disableThinking: form.disableThinking !== false,
           timeoutMs: num('timeoutMs', 120000), modelConcurrency: num('modelConcurrency', 8), verifyConcurrency: num('verifyConcurrency', 8), maxRounds: Math.max(1, Math.min(6, num('maxRounds', 3))), workers: num('workers', 0), shardUnits: num('shardUnits', 20),
           verifySampleRate: num('verifySampleRate', 0.02), verifyMinPerField: num('verifyMinPerField', 2), verifyThreshold: num('verifyThreshold', 0.9), autoConcurrency: form.autoConcurrency !== false, showSidebarEntry: form.showSidebarEntry !== false,
           formatRecognition: form.formatRecognition !== false, borrowFormats: form.borrowFormats !== false, elementDict: form.elementDict ?? '', heldTables: form.heldTables || 'generic',
         }
         if (form.apiKey) patch.apiKey = form.apiKey
-        try { await call('saveDefaults', patch); setState('已保存（插件会重新加载）') } catch (e) { setState(msg(e)) }
+        else if (form.clearKey === true) patch.apiKey = ''
+        setSaving(true)
+        try { await call('saveDefaults', patch); setState({ text: '已保存（插件会重新加载）', tone: 'ok' }); setBase({ ...form, apiKey: '', clearKey: false }); setForm((f) => ({ ...f, apiKey: '', clearKey: false })) } catch (e) { setState({ text: msg(e), tone: 'bad' }) } finally { setSaving(false) }
+      }
+      const tplList = tpls.value?.templates ?? []
+      const sameName = form.verifyModel && String(form.verifyModel).trim() === String(form.model ?? '').trim() && (form.verifyBaseURL || form.baseURL) === form.baseURL
+      const panels = {
+        model: () => h(React.Fragment, {},
+          card('提取模型', '通读每份文书提取字段值；也给格式识别起草。必须配置，否则不能开始批次。病历内容只发往这里配置的端点，Agent 不能更改。',
+            h('div', { className: 'mx-grid2' },
+              field('baseURL', '端点（OpenAI 兼容）', { placeholder: 'http://127.0.0.1:11434/v1' }),
+              h('div', { className: 'mx-field' }, '模型', h(ModelPicker, { value: form.model, onChange: (v) => set('model', v), placeholder: '输入或从下拉选择', baseURL: form.baseURL ?? '', apiKey: form.apiKey ?? '' })),
+              h('label', { className: 'mx-field mx-wide' }, 'API Key', h('input', { className: 'mx-input', type: 'password', autoComplete: 'off', value: form.apiKey ?? '', placeholder: cfg.hasApiKey && !form.clearKey ? '已保存（留空不修改）' : '没有可不填', onChange: (e) => { set('apiKey', e.target.value); if (e.target.value) set('clearKey', false) } }))),
+            cfg.hasApiKey ? h('label', { className: 'mx-scheck' }, h('input', { type: 'checkbox', checked: form.clearKey === true, onChange: (e) => { set('clearKey', e.target.checked); if (e.target.checked) set('apiKey', '') } }), h('span', {}, '清除已保存的 API Key')) : null,
+            testLine('extract')),
+          card('核验模型', '抽样对同样的任务背靠背重新提取，统计一致率；也给格式识别核对。可不配，不配就不做抽样核验。最好和提取模型不是同一个。',
+            h('div', { className: 'mx-grid2' },
+              field('verifyBaseURL', '端点（空＝同提取模型）', { placeholder: form.baseURL || 'http://127.0.0.1:11434/v1' }),
+              h('div', { className: 'mx-field' }, '模型', h(ModelPicker, { value: form.verifyModel, onChange: (v) => set('verifyModel', v), placeholder: '空＝不做抽样核验', baseURL: form.verifyBaseURL || form.baseURL || '', apiKey: form.apiKey ?? '' }))),
+            sameName ? h('p', { className: 'mx-shint bad' }, `核验模型和提取模型都是「${form.model}」：背靠背重抽等于自己核自己，一致率会偏高`) : null,
+            form.verifyModel ? testLine('verify') : null),
+          card('调用', '两个模型共用。',
+            check('disableThinking', '关闭思考模式', '推理模型（如 Qwen3）更快、更省 token'),
+            h('div', { className: 'mx-grid2' },
+              field('timeoutMs', '单次调用超时（毫秒）', { type: 'number', min: 10000 }),
+              field('modelConcurrency', '提取模型并发', { type: 'number', min: 1 }, '同时进行的请求数'),
+              field('verifyConcurrency', '核验模型并发', { type: 'number', min: 1 }, '和提取模型同端点同模型时共用上一项')),
+            check('autoConcurrency', '自动调并发', '上面两个并发只是起始值，每 30 秒按吞吐自动加减（最多 64）；服务器排队、KV 将满或出错时降'))),
+        extract: () => h(React.Fragment, {},
+          card('提取', null,
+            h('div', { className: 'mx-grid2' },
+              select('template', 'Agent 未指定模板时使用', (tplList.length ? tplList : [{ id: form.template, name: form.template }]).map((t) => [t.id, `${t.domain ? `${t.domain} · ` : ''}${t.name}`]), '页面上开新批次时必须自己选模板，这一项只给 Agent 调用用'),
+              select('extractMode', '默认模式', Object.entries(MODE_LABEL)),
+              field('priorities', '只提取这些优先级', { placeholder: '空＝全部，如 P0,P1' }),
+              field('mapping', '通用文件字段映射（JSON）', { placeholder: '空＝自动识别，如 {"text":"content"}' }))),
+          card('抽样核验与复判', '需要配置核验模型。',
+            h('div', { className: 'mx-grid2' },
+              field('verifySampleRate', '核验抽样比例（0–1）', { type: 'number', step: 0.01, min: 0, max: 1 }),
+              field('verifyMinPerField', '每字段每分片至少核验几份', { type: 'number', min: 0 }),
+              field('verifyThreshold', '验收门④一致率阈值（0–1）', { type: 'number', step: 0.01, min: 0, max: 1 }),
+              field('maxRounds', '复判轮次上限（1–6）', { type: 'number', min: 1, max: 6 }, '分歧时两个模型轮流复判，仍不一致交人工')))),
+        format: () => card('格式识别（通用文件）', '按表识别类别、写成时间、病人、就诊与栏目：规则草稿＋提取模型起草＋核验模型背靠背，一致才自动采用，其余在「格式」页确认。只发字段名、统计和截短样例，不发正文。',
+          check('formatRecognition', '启用格式识别'),
+          check('borrowFormats', '借用病历事件还原插件已采用的识别结果'),
+          h('div', { className: 'mx-grid2' },
+            field('elementDict', '数据元对照表', { placeholder: 'csv／xlsx／json 路径，两列：编码、名称' }),
+            select('heldTables', '格式未定的表', [['generic', '先按通用读法读'], ['skip', '跳过，等确认']]))),
+        batch: () => h(React.Fragment, {},
+          card('批次', null,
+            h('div', { className: 'mx-grid2' },
+              field('outputRoot', '默认输出根目录', { placeholder: '空＝输入旁的 _medical-extract' }),
+              field('workers', '工作线程数', { type: 'number', min: 0 }, '0＝自动'),
+              field('shardUnits', 'p_doc 导出：每个分片的病人数', { type: 'number', min: 1 }))),
+          card('界面', null, check('showSidebarEntry', '在左侧栏显示「病历文书提取」入口'))),
       }
       return h('div', { className: 'mx-settings' }, h('style', {}, CSS),
-        inModal ? null : h('p', { style: { margin: 0, color: 'var(--dsw-alias-label-secondary)' } }, '这里只放配置。运行批次、看宽表与复核，请到左侧栏的「病历文书提取」，或在聊天框使用 /extract。'),
-        h('h3', { style: { margin: '6px 0 0' } }, '提取'),
-        h('div', { className: 'mx-grid2' },
-          field('template', '默认模板 id'),
-          h('label', { className: 'mx-field' }, '模式', h('select', { className: 'mx-input', value: MODE_LABEL[form.extractMode] ? form.extractMode : 'hybrid', onChange: (e) => setForm({ ...form, extractMode: e.target.value }) }, Object.entries(MODE_LABEL).map(([k, l]) => h('option', { key: k, value: k }, l)))),
-          field('priorities', '只提取这些优先级（逗号分隔；空＝全部）'), field('mapping', '通用文件字段映射（JSON；空＝自动识别）', { placeholder: '{"text":"content","patient":"patient_id"}' })),
-        h('h3', { style: { margin: '6px 0 0' } }, '模型'),
-        h('p', { style: { margin: 0, fontSize: 12, color: 'var(--dsw-alias-label-tertiary)' } }, '提取模型通读每份文书提取字段值（必须配置，否则不能开始批次）；核验模型抽样，对同样的任务背靠背重新提取，统计一致率（可不配）。格式识别两个都用。病历内容只发往这里配置的端点，Agent 不能更改。'),
-        h('div', { className: 'mx-grid2' }, field('baseURL', '提取模型端点（OpenAI 兼容）', { placeholder: 'http://127.0.0.1:11434/v1' }), field('model', '提取模型'),
-          field('verifyBaseURL', '核验模型端点（空＝同上）'), field('verifyModel', '核验模型（空＝不做抽样核验）'),
-          field('apiKey', 'API Key（留空不修改）', { type: 'password' }), field('timeoutMs', '单次调用超时（毫秒）'),
-          field('modelConcurrency', '提取模型并发（同时进行的请求数；自动调并发时是起始值）'), field('verifyConcurrency', '核验模型并发（和提取模型同端点同模型时共用上一项）'), field('maxRounds', '复判轮次上限（1–6）'), field('verifySampleRate', '核验抽样比例（0–1）'),
-          field('verifyMinPerField', '每字段每分片至少核验几份'), field('verifyThreshold', '验收门④一致率阈值')),
-        check('disableThinking', '关闭思考模式（推理模型更快）'),
-        check('autoConcurrency', '自动调并发：上面两个并发只是起始值，每 30 秒按各模型的吞吐自动加减（最多 64）；服务器排队、KV 将满或出错时降'),
-        h('h3', { style: { margin: '6px 0 0' } }, '格式识别（通用文件）'),
-        h('p', { style: { margin: 0, fontSize: 12, color: 'var(--dsw-alias-label-tertiary)' } }, '按表识别类别、写成时间、病人、就诊与栏目：规则草稿＋提取模型起草＋核验模型背靠背，一致才自动采用，其余在「格式」页确认。只发字段名、统计和截短样例，不发正文。'),
-        check('formatRecognition', '启用格式识别'),
-        check('borrowFormats', '借用病历事件还原插件已采用的识别结果'),
-        h('div', { className: 'mx-grid2' }, field('elementDict', '数据元对照表（csv／xlsx／json，两列：编码、名称；可空）'),
-          h('label', { className: 'mx-field' }, '格式未定的表', h('select', { className: 'mx-input', value: form.heldTables ?? 'generic', onChange: (e) => setForm({ ...form, heldTables: e.target.value }) }, h('option', { value: 'generic' }, '先按通用读法读'), h('option', { value: 'skip' }, '跳过，等确认')))),
-        h('h3', { style: { margin: '6px 0 0' } }, '规模与批次'),
-        h('div', { className: 'mx-grid2' }, field('outputRoot', '默认输出根目录（空＝输入旁的 _medical-extract）'), field('workers', '工作线程数（0＝自动）'), field('shardUnits', 'p_doc 导出：每个分片的病人数')),
-        check('showSidebarEntry', '在左侧栏显示「病历文书提取」入口'),
-        h('div', { style: { display: 'flex', gap: 8, alignItems: 'center' } }, h('button', { className: 'mx-btn', onClick: save }, '保存'), h('span', { style: { color: 'var(--dsw-alias-label-secondary)' } }, state)))
+        inModal ? null : h('p', { className: 'mx-shint', style: { margin: 0 } }, '这里只放配置。运行批次、看宽表与复核，请到左侧栏的「病历文书提取」，或在聊天框使用 /extract。'),
+        h('div', { className: 'mx-stabs', role: 'tablist' }, SET_TABS.map(([id, label, keys]) => h('button', { key: id, type: 'button', role: 'tab', 'aria-selected': tab === id ? 'true' : 'false', className: 'mx-stab', onClick: () => setTab(id) }, label, keys.some((k) => dirty.has(k)) ? h('span', { className: 'mx-sdot', title: '有未保存的修改' }) : null))),
+        h('div', { role: 'tabpanel', className: 'mx-spanel' }, panels[tab]()),
+        h('div', { className: 'mx-savebar' },
+          h('span', { className: `mx-shint ${state.tone}` }, state.text || (dirty.size ? `${dirty.size} 项未保存` : '没有未保存的修改')),
+          h('span', { style: { flex: 1 } }),
+          h('button', { type: 'button', className: 'mx-btn', disabled: saving || !dirty.size, onClick: () => { setForm(base); setState({ text: '', tone: '' }) } }, '撤销修改'),
+          h('button', { type: 'button', className: 'mx-btn mx-new', disabled: saving || !dirty.size, onClick: save }, saving ? '保存中…' : '保存')))
     }
 
     /* ----------------------------------------------------------------- plugin */

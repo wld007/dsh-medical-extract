@@ -247,6 +247,8 @@ export function apply(ctx, config = {}) {
           case 'calls': return service.calls(r.runId)
           case 'pickFolder': return { path: await pickFolder() }
           case 'saveDefaults': return saveDefaults(r)
+          // 设置页的模型下拉（只在页面上用，不是 Agent 工具）
+          case 'models': return service.models({ baseURL: r.baseURL, apiKey: r.apiKey })
           default: throw Object.assign(new Error(`未知方法: ${endpoint}`), { code: 'unknown-endpoint' })
         }
       })()

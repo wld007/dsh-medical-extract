@@ -53,6 +53,7 @@ body{background:var(--dsw-alias-bg-base)}</style>
 
 const handlers = {
   config: () => ({ ...service.configInfo(), version: process.env.PREVIEW_VERSION ?? 'preview' }),
+  models: (p) => service.models(p),
   list: () => service.list(),
   status: (p) => service.status(p.runId),
   report: (p) => service.report(p.runId),
