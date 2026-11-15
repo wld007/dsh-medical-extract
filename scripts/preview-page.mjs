@@ -52,7 +52,7 @@ body{background:var(--dsw-alias-bg-base)}</style>
 </script>`
 
 const handlers = {
-  config: () => ({ ...service.configInfo(), version: 'preview' }),
+  config: () => ({ ...service.configInfo(), version: process.env.PREVIEW_VERSION ?? 'preview' }),
   list: () => service.list(),
   status: (p) => service.status(p.runId),
   report: (p) => service.report(p.runId),

@@ -52,7 +52,8 @@ window.__ModuleLoader__.load({
 .mx-clock b{font-family:var(--mono);font-size:18px;font-weight:600;letter-spacing:1px;line-height:22px}
 .mx-clock.sep{padding-right:14px;margin-right:6px;border-right:1px solid var(--line)}
 .mx-clock.pct b{color:var(--teal)}.mx-clock.pct small{font-size:11px;font-weight:400;margin-left:1px;color:var(--ink2)}
-.mx-clock.ver{margin-right:6px}.mx-clock.ver b{font-size:12.5px;font-weight:500;letter-spacing:0;color:var(--ink2)}
+.mx-clock.ver{margin-right:6px}.mx-clock.ver b{display:flex;align-items:baseline;gap:5px;white-space:nowrap;font-size:15px;font-weight:600;letter-spacing:0;color:var(--ink2)}
+.mx-clock.ver small{font-size:10.5px;font-weight:500;color:var(--ink3);padding:0 5px;border:1px solid var(--line2);border-radius:3px;line-height:15px}
 .mx-top .mx-btn,.mx-icon{height:34px;border-radius:7px}
 .mx-top .mx-btn{display:inline-flex;align-items:center;gap:5px;padding:0 14px;box-shadow:none}
 .mx-stop{border-color:var(--bad);color:var(--badink)}
@@ -520,7 +521,11 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
           h('span', { className: 'mx-sp' }),
           h('div', { className: 'mx-clock sep' }, h('span', {}, '用时'), h('b', {}, clock(elapsed))),
           run ? h('div', { className: 'mx-clock sep pct', title: `${run.shards.done} / ${run.shards.total} 个分片` }, h('span', {}, '完成'), h('b', {}, percent == null ? '—' : String(percent), h('small', {}, '%'))) : null,
-          version ? h('div', { className: 'mx-clock ver' }, h('span', {}, '版本'), h('b', {}, `v${version}`)) : null,
+          version ? (() => {
+            // 0.1.0-dev.42 → 大字 v0.1.0 ＋ 小字 dev.42（不折行，和用时、完成同一基线）
+            const [main, pre] = String(version).split(/-(.+)/)
+            return h('div', { className: 'mx-clock ver', title: `v${version}` }, h('span', {}, '版本'), h('b', {}, `v${main}`, pre ? h('small', {}, pre) : null))
+          })() : null,
           h('div', { className: 'mx-act' },
             run?.status === 'running'
               ? h('button', { className: 'mx-btn mx-stop', onClick: () => call('cancel', { runId: run.id }).catch((e) => setError(msg(e))) }, '■ 停止批次')
