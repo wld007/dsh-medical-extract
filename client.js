@@ -225,19 +225,6 @@ window.__ModuleLoader__.load({
 .mx-al-item:disabled{cursor:default}.mx-al-item:not(:disabled):hover{background:var(--panel2)}
 .mx-al-item>i{width:7px;height:7px;border-radius:50%}.mx-al-item b{display:block;font-weight:600;font-size:11.5px}.mx-al-item small{display:block;color:var(--ink3);font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mx-al-more{align-self:flex-end;font-size:11px;padding-top:4px}
-.mx-legend-fold{position:absolute;z-index:1;left:14px;bottom:10px;font-size:10px;color:var(--ink3);background:color-mix(in srgb,var(--panel) 85%,transparent);border:1px solid var(--line2);border-radius:5px;padding:3px 8px}
-.mx-lf-h{background:none;border:0;padding:0;font:inherit;color:var(--ink2);cursor:pointer;display:flex;gap:4px}
-.mx-lf-b{display:flex;flex-direction:column;gap:4px;padding:6px 0 3px}.mx-lf-b div{display:flex;align-items:center;gap:6px}
-.mx-legend-fold .sw{width:12px;height:8px;display:inline-block;border-radius:1px}
-.mx-legend-fold .sw.hot{background:var(--teal);box-shadow:0 0 5px var(--teal)}.mx-legend-fold .sw.clay{background:#c9c4d6}.mx-legend-fold .sw.box{background:#e9e6f0;border-top:2px solid var(--teal)}.mx-legend-fold .sw.red{background:var(--bad)}.mx-legend-fold .sw.vio{background:var(--vio);box-shadow:0 0 5px var(--vio)}
-.mx-legend-fold .sw.flow{height:2px;background:repeating-linear-gradient(90deg,var(--ink2) 0 4px,transparent 4px 7px)}
-.mx-hud.br{right:14px;top:36px;display:flex;flex-direction:column;gap:4px;font-size:10px;color:var(--ink3)}
-.mx-hud.br div{display:flex;align-items:center;gap:6px;justify-content:flex-end}
-.mx-hud .sw{width:12px;height:8px;display:inline-block;border-radius:1px}
-.mx-hud .sw.hot{background:var(--teal);box-shadow:0 0 5px var(--teal)}.mx-hud .sw.clay{background:#c9c4d6}
-.mx-hud .sw.sel{border:1.5px solid var(--teal);border-right:0;border-bottom:0;background:transparent}
-.mx-hud .sw.box{background:#e9e6f0;border-top:2px solid var(--teal)}.mx-hud .sw.red{background:var(--bad)}.mx-hud .sw.vio{background:var(--vio);box-shadow:0 0 5px var(--vio)}
-.mx-hud .sw.flow{height:2px;background:repeating-linear-gradient(90deg,var(--ink2) 0 4px,transparent 4px 7px)}
 .mx-act{position:relative}
 .mx-new{border-color:var(--fill);background:var(--fill);color:#fff;font-weight:600}
 .mx-new:hover:not(:disabled){filter:brightness(1.06)}
@@ -668,8 +655,7 @@ window.__ModuleLoader__.load({
               run.status === 'failed' ? h('span', { className: 'mx-live bad' }, h('i'), '批次失败') : run.status === 'cancelled' ? h('span', { className: 'mx-live bad' }, h('i'), '已取消') : hot.length ? h('span', { className: 'mx-live' }, h('i'), hot.map((s) => `${s.nm} ${STATE_LABEL[s.state]}`).join(' · ')) : h('span', { className: 'mx-live ok' }, h('i'), '全部完成')),
             run.status === 'failed' && run.error ? h('div', { className: 'mx-err mx-hero-err' }, h('b', {}, '批次失败：'), String(run.error).split('\n')[0].replace(/^Error:\s*/, '')) : null,
             h(PlantScene, { run, stations, sel: k, onSel: setSelK, goto }),
-            h(AlertsOverlay, { run, stations, goto, onSel: setSelK }),
-            h(LegendFold)),
+            h(AlertsOverlay, { run, stations, goto, onSel: setSelK })),
           h('div', { className: 'mx-frame mx-bottom' },
             h(ProgressPanel, { run }),
             h(ResultsPanel, { run, stations, onSel: setSelK, goto }),
@@ -752,7 +738,7 @@ window.__ModuleLoader__.load({
       const RED = { top: shade(P.bad, 0.3), left: P.bad, right: shade(P.bad, -0.35) }
       const CL = { top: C.top, left: C.left, right: C.right, edge: C.edge }
       const CL2 = { top: C.top2, left: C.left2, right: C.right2, edge: C.edge }
-      const TW = { i: 96, j: -236, a: 56, b: 56, hh: 128 }
+      const TW = { i: 96, j: -190, a: 56, b: 56, hh: 128 }
       const gi0 = -140; const gi1 = yard + 220; const gj0 = -280; const gj1 = D + 170
       const grid = []
       for (let i = gi0; i <= gi1; i += 40) { const a = iso(i, gj0); const b = iso(i, gj1); grid.push(h('line', { key: `gi${i}`, x1: a[0], y1: a[1], x2: b[0], y2: b[1] })) }
@@ -767,7 +753,7 @@ window.__ModuleLoader__.load({
       els.push(shadow('sh1', 0, 8, 84, 100), shadow('sh3', yard, 6, 150, 130, 14), shadow('shT', TW.i, TW.j, TW.a, TW.b, 40))
       for (let k = 1; k <= 5; k++) els.push(shadow(`sb${k}`, bay0(k), 0, bw, D, 24))
       // 站序号 → 在场景里的位置：0=E1 楼，1–5=E2–E6，6=E7 堆场，7=E0 模板塔
-      const footprint = (k) => (k === 0 ? [0, 8, 84, 100] : k === 6 ? [yard, 6, 150, 130] : k === 7 ? [TW.i, TW.j, TW.a, TW.b] : k === 8 ? [bay0(1) + 4, D + 112, 74, 44] : k === 9 ? [bay0(4) + 34, D + 150, 74, 44] : [bay0(k), 0, bw, D])
+      const footprint = (k) => (k === 0 ? [0, 8, 84, 100] : k === 6 ? [yard, 6, 150, 130] : k === 7 ? [TW.i, TW.j, TW.a, TW.b] : k === 8 ? [bay0(1) + 4, D + 118, 74, 44] : k === 9 ? [bay0(4) + 92, D + 118, 74, 44] : [bay0(k), 0, bw, D])
       {
         if (sel < 0) { /* 没选工序：不画选中框 */ } else {
         const [fi, fj, fa, fb] = footprint(sel); const m = 10
@@ -814,6 +800,8 @@ window.__ModuleLoader__.load({
           g.push(h('path', { key: `dr${k}`, d: `M${d0[0].toFixed(1)} ${d0[1].toFixed(1)} Q${((d0[0] + d1[0]) / 2).toFixed(1)} ${(d0[1] - 6).toFixed(1)} ${d1[0].toFixed(1)} ${d1[1].toFixed(1)}`, fill: 'none', stroke: A, strokeWidth: 1.2, strokeDasharray: '2 4', opacity: 0.75 }))
         }
         els.push(h('g', { key: 'busg', pointerEvents: 'none' }, g))
+        // 悬停说明（原图例里「紫色流线」那条）：透明粗线只用来接住鼠标
+        els.push(h('polyline', { key: 'bushit', points: pts([a, b, c]), fill: 'none', stroke: 'transparent', strokeWidth: 12, pointerEvents: 'stroke' }, h('title', {}, '字段规格：模板里每个字段的召回词、规则和值类型，下发到每道工序')))
       }
       // E1 读入楼：窗户＝分片进度
       {
@@ -912,6 +900,7 @@ window.__ModuleLoader__.load({
         els.push(h('g', { key: 'yardcap', transform: `matrix(${IX[0]} ${IX[1]} ${JX[0]} ${JX[1]} ${x.toFixed(1)} ${y.toFixed(1)})`, pointerEvents: 'none' },
           h('text', { x: 0, y: 0, fill: P.ink3, fontSize: 9.5 }, '每个值带原文引语 · 只读核对 · 移交')))
       }
+      const underQueue = els.length // 模型小楼的连线画在排队箱子和数字下面，不压字
       // 门前排队：箱子＝等待处理的分片
       {
         const waiting = Math.max(0, run.shards.total - run.shards.done - (run.shards.running ?? 0))
@@ -931,7 +920,7 @@ window.__ModuleLoader__.load({
           }
           const top = iso(pi + 19, pj + 11, Math.ceil(shown / 6) * 9 + 10)
           const shownN = k === 4 ? run.totals.review : n
-          els.push(h('g', { key: `q${k}`, ...click(k) }, g,
+          els.push(h('g', { key: `q${k}`, ...click(k) }, h('title', {}, k === 4 ? `待复核 ${fmt(run.totals.review)} 项，每箱 10 项；点开核验工序，再去复核` : `等待读入的分片 ${fmt(n)} 个，每箱一个分片`), g,
             h('text', { x: top[0], y: top[1], textAnchor: 'middle', fill: A, fontSize: 17, fontWeight: 700, fontFamily: MONO, stroke: C.card, strokeWidth: 3.5, paintOrder: 'stroke' }, fmt(shownN)),
             h('text', { x: top[0], y: top[1] + 13, textAnchor: 'middle', fill: P.ink, fontSize: 10, stroke: C.card, strokeWidth: 3, paintOrder: 'stroke' }, `排队 · ${label[k]}`)))
         })
@@ -957,14 +946,15 @@ window.__ModuleLoader__.load({
       const houses = modelHousesOf(run)
       const last = running ? (run.series ?? []).filter((p) => p.length >= 18).at(-1) : null
       const SPOT = { format: [42, 108, 26], extract: [bay0(2) + bw / 2, D, 20], verify: [bay0(4) + bw / 2, D, 20], adjudicate: [bay0(4) + bw / 2 - 14, D, 20] }
-      const HOUSE_AT = [[bay0(1) + 4, D + 112], [bay0(4) + 34, D + 150]]
+      // 两栋同一排、说明在房子左边：右下方的说明会把场景底边往下撑，整幅画就被缩小
+      const HOUSE_AT = [[bay0(1) + 4, D + 118], [bay0(4) + 92, D + 118]]
       houses.forEach((hs, hi) => {
         const V = P.vio; const on = !!hs.model
         const [mi, mj] = HOUSE_AT[Math.min(hi, 1)]; const ma = 74; const mb = 44; const mh = 30
         const live = last ? { inflight: last[2 + hs.slot] ?? 0, waiting: last[4 + hs.slot] ?? 0, st: last.slice(10 + hs.slot * 4, 14 + hs.slot * 4) } : null
-        const g = []
+        const g = []; const pipes = []
         g.push(...isoBox('mp', mi - 6, mj - 6, -3, ma + 12, mb + 12, 3, { top: C.pad, left: C.padL, right: C.padR }))
-        // 管子：这个模型用在哪几道工序（格式识别只在通用文件、做了格式识别时画）
+        // 管子（画在排队箱子和数字下面，不压字）：这个模型用在哪几道工序（格式识别只在通用文件、做了格式识别时画）
         const uses = hs.stations.filter((x) => x !== 'format' || run.format || run.current?.step?.startsWith?.('格式识别'))
         const seenSpot = new Set()
         uses.forEach((st) => {
@@ -975,7 +965,7 @@ window.__ModuleLoader__.load({
           const used = on && (hs.calls[st] ?? 0) > 0
           const a = iso(...sp); const b = iso(mi + ma / 2 + (stI - 1.5) * 10, mj, mh - 2)
           const mid = [(a[0] + b[0]) / 2, Math.max(a[1], b[1]) - 10]
-          g.push(h('path', { key: `p${st}`, d: `M${a[0].toFixed(1)} ${a[1].toFixed(1)} Q${mid[0].toFixed(1)} ${mid[1].toFixed(1)} ${b[0].toFixed(1)} ${b[1].toFixed(1)}`, fill: 'none', stroke: hot || used ? V : C.left2, strokeWidth: hot ? 2.4 : used ? 1.7 : 1.3, strokeDasharray: hot ? '3 5' : '2 5', className: hot ? 'mx-flow' : undefined, filter: hot ? 'url(#mx-glow)' : undefined, opacity: hot ? 1 : used ? 0.7 : 0.4 }, h('title', {}, `${STATION_LABEL[st]}${on ? `：调用 ${fmt(hs.calls[st] ?? 0)} 次${live ? ` · 在途 ${live.st[stI] ?? 0}` : ''}` : ''}`)))
+          pipes.push(h('path', { key: `h${hi}p${st}`, d: `M${a[0].toFixed(1)} ${a[1].toFixed(1)} Q${mid[0].toFixed(1)} ${mid[1].toFixed(1)} ${b[0].toFixed(1)} ${b[1].toFixed(1)}`, fill: 'none', stroke: hot || used ? V : C.left2, strokeWidth: hot ? 2.4 : used ? 1.7 : 1.3, strokeDasharray: hot ? '3 5' : '2 5', className: hot ? 'mx-flow' : undefined, filter: hot ? 'url(#mx-glow)' : undefined, opacity: hot ? 1 : used ? 0.7 : 0.4 }, h('title', {}, `${STATION_LABEL[st]}${on ? `：调用 ${fmt(hs.calls[st] ?? 0)} 次${live ? ` · 在途 ${live.st[stI] ?? 0}` : ''}` : ''}`)))
         })
         g.push(...isoBox('mb', mi, mj, 0, ma, mb, mh, CL))
         // 窗户：6 格，按在途数／上限点亮；不在运行时，用过的模型留一格常亮
@@ -989,6 +979,7 @@ window.__ModuleLoader__.load({
         g.push(h('text', { key: 't1', x: lt[0], y: lt[1] + 4, textAnchor: 'end', fill: on ? V : P.ink3, fontSize: 11, fontWeight: 700, fontFamily: MONO, ...halo }, name),
           h('text', { key: 't2', x: lt[0], y: lt[1] + 17, textAnchor: 'end', fill: P.ink2, fontSize: 9.5, ...halo }, hs.roleText),
           h('text', { key: 't3', x: lt[0], y: lt[1] + 30, textAnchor: 'end', fill: live?.inflight ? V : P.ink3, fontSize: 9.5, fontWeight: live?.inflight ? 600 : 400, ...halo }, sub))
+        els.splice(underQueue, 0, ...pipes)
         els.push(h('g', { key: `house${hi}`, ...click(8 + hi), style: { cursor: 'pointer' } }, h('title', {}, `${hs.model ?? hs.label}（${hs.roleText}）：点开看模型状态`), g))
         bb.push(iso(mi - 6, mj + mb + 6), iso(mi - 170, mj + mb + 44), iso(mi + ma + 6, mj + mb + 6))
       })
@@ -1038,7 +1029,7 @@ window.__ModuleLoader__.load({
         e.preventDefault()
         onSel(sel < 0 ? ORDER[d > 0 ? 0 : ORDER.length - 1] : ORDER[(ORDER.indexOf(sel) + d + ORDER.length) % ORDER.length])
       }
-      return h('svg', { className: 'mx-scene', tabIndex: 0, role: 'group', 'aria-label': `处理流程，当前 ${sel >= 8 ? '模型' : sel >= 0 ? stations[sel].nm : '批次概览'}（←／→ 切换工序）`, onKeyDown, viewBox: `${x0} ${y0} ${x1 - x0} ${y1 - y0}`, preserveAspectRatio: 'xMidYMin meet', style: { maxHeight: 620, overflow: 'hidden' } }, h('defs', {}, defs), els)
+      return h('svg', { className: 'mx-scene', tabIndex: 0, role: 'group', 'aria-label': `处理流程，当前 ${sel >= 8 ? '模型' : sel >= 0 ? stations[sel].nm : '批次概览'}（←／→ 切换工序）`, onKeyDown, viewBox: `${x0} ${y0} ${x1 - x0} ${y1 - y0}`, preserveAspectRatio: 'xMidYMid meet', style: { overflow: 'hidden' } }, h('defs', {}, defs), els)
     }
 
     /* 每道工序：做什么 → 产出什么（引擎的通用工序说明，不含病种内容） */
@@ -1081,19 +1072,6 @@ window.__ModuleLoader__.load({
     }
 
     /* ------------------------------------------------------------- alerts */
-    /** 图例：左下角，可收起。第一次打开产线页时展开，之后默认收起（记在本机） */
-    function LegendFold() {
-      const KEY = 'medical-extract.legendSeen'
-      const [open, setOpen] = useState(() => { try { return !localStorage.getItem(KEY) } catch { return true } })
-      useEffect(() => { try { localStorage.setItem(KEY, '1') } catch { /* 无痕模式 */ } }, [])
-      return h('div', { className: `mx-legend-fold${open ? ' open' : ''}` },
-        h('button', { type: 'button', className: 'mx-lf-h', onClick: () => setOpen(!open), 'aria-expanded': open ? 'true' : 'false' }, '图例', h('span', {}, open ? '▾' : '▸')),
-        open ? h('div', { className: 'mx-lf-b' },
-          h('div', {}, h('i', { className: 'sw hot' }), '运行中／待复核'), h('div', {}, h('i', { className: 'sw clay' }), '已完成'),
-          h('div', {}, h('i', { className: 'sw box' }), '箱子＝一个分片'), h('div', {}, h('i', { className: 'sw red' }), '红色＝验收门未过'),
-          h('div', {}, h('i', { className: 'sw vio' }), '模型房子：窗户亮＝有请求在途，管子流动＝哪道工序在调用'), h('div', {}, h('i', { className: 'sw flow' }), '紫色流线＝字段规格下发')) : null)
-    }
-
     /** 待办告警（同匿名化插件）：产线右上角，最严重的在前，最多 3 条（其余「再看 N 条」），点一条直接去处理；可收起 */
     function AlertsOverlay({ run, stations, goto, onSel }) {
       const [fold, setFold] = useState(false)
