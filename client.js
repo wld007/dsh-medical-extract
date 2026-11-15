@@ -376,7 +376,8 @@ window.__ModuleLoader__.load({
       const percent = run?.shards?.total ? Math.round(run.shards.done / run.shards.total * 100) : null
       const lineStatus = run?.status ?? 'idle'
       const dark = useHostDark()
-      const tabs = [['line', '◈ 产线'], ['template', '模板', run?.template?.fields], ['wide', '宽表', run?.totals?.patients], ['source', '原文标注'], ['review', '复核', run?.totals?.review], ['calls', '模型调用'], ['report', '报告']]
+      const heldFormats = run?.format?.held ?? 0
+      const tabs = [['line', '◈ 产线'], ...(run?.format ? [['formats', '格式', heldFormats]] : []), ['template', '模板', run?.template?.fields], ['wide', '宽表', run?.totals?.patients], ['source', '原文标注'], ['review', '复核', run?.totals?.review], ['calls', '模型调用'], ['report', '报告']]
       return h(ThemeCtx.Provider, { value: dark ? PAL.dark : PAL.light }, h('div', { className: `mx ${dark ? 'mx-dark' : 'mx-light'}` },
         h('style', {}, CSS),
         h('header', { className: 'mx-frame mx-top' },
@@ -422,6 +423,7 @@ window.__ModuleLoader__.load({
           tab === 'template' ? h(Templates, { run, onError: setError })
             : !run ? h('div', { className: 'mx-frame mx-empty', style: { flex: 1 } }, runs.length ? '加载中…' : '还没有批次。点右上角「＋ 新批次」选择病历目录或文件，选一个抽取模板开始。')
               : tab === 'line' ? h(Pipeline, { run, goto: setTab, openPatient })
+                : tab === 'formats' ? h(Formats, { run, busy: !!activeId, onRerun: (id) => { setRunId(id); setRun(null); refreshList(); setTab('line') }, onError: setError })
                 : tab === 'wide' ? h(Wide, { run, openPatient })
                   : tab === 'source' ? h(Source, { run, patient, setPatient })
                     : tab === 'review' ? h(Review, { run, onError: setError })
@@ -948,6 +950,108 @@ window.__ModuleLoader__.load({
           h('span', { className: 'mx-al-tag' }, tag[lv])))))
     }
 
+
+    /* --------------------------------------------------------------- formats */
+    const FMT_STATUS = { agreed: ['自动采用', 'ok'], confirmed: ['已确认', 'ok'], disputed: ['有分歧', 'w'], invalid: ['校验未过', 'w'], pending: ['待确认', 'w'], failed: ['调用失败', 'b'], rejected: ['已跳过', ''] }
+    const FMT_ORIGIN = { model: '抽取模型', verify: '核验模型', rule: '规则', user: '人工' }
+    const DRAFT_LABEL = { model: '抽取模型草稿', verify: '核验模型草稿', rule: '规则草稿' }
+    const FIELD_KIND = { time: '时间', number: '数', code: '代码', text: '短文', long: '长文', embedded: '嵌入文书', pseudonym: '假名' }
+    const stripSpec = (s) => { if (!s) return {}; const { origin, accept, ...rest } = s; return rest }
+    /** 规格的一句话小结；labels：字段 → 中文名（数据元对照表） */
+    function specLine(spec, labels = {}) {
+      if (!spec) return '—'
+      const nm = (f) => (labels[f] ? `${labels[f]}（${f}）` : f)
+      const parts = [spec.recordType ?? '（未定类别）']
+      if (spec.written?.length) parts.push(`写成：${spec.written.map(nm).join(' › ')}`)
+      if (spec.sections?.length) parts.push(`栏目：${spec.sections.map(([f, n]) => `${n}←${nm(f)}`).join('，')}`)
+      const roles = Object.entries(spec.roles ?? {})
+      if (roles.length) parts.push(`角色：${roles.map(([r, f]) => `${r}←${[].concat(f).map(nm).join('+')}`).join('，')}`)
+      if (spec.measures?.length) parts.push(`测量：${spec.measures.map((m) => m[1]).join('、')}`)
+      return parts.join('｜')
+    }
+
+    function Formats({ run, busy, onRerun, onError }) {
+      const data = useAsync(() => call('formats', { runId: run.id }), [run.id])
+      const [sel, setSel] = useState(null)
+      const [filter, setFilter] = useState('held')
+      const [rerunning, setRerunning] = useState(false)
+      const rows = data.value?.tables ?? []
+      const held = (r) => !['agreed', 'confirmed', 'rejected'].includes(r.status)
+      const shown = rows.filter((r) => filter === 'all' || (filter === 'held' ? held(r) : !held(r)))
+      const counts = { held: rows.filter(held).length, ok: rows.filter((r) => !held(r)).length, all: rows.length }
+      const decide = async (payload) => {
+        try { const r = await call('formatDecide', payload); if (r?.ok === false) onError(`没有保存：${r.problems.join('；')}`); data.reload() } catch (e) { onError(msg(e)) }
+      }
+      const rerun = async () => {
+        setRerunning(true)
+        try { const v = await call('start', { inputDir: run.input, outputRoot: run.outputRoot, template: run.template.id, mode: run.mode, priorities: run.priorities, asOf: run.asOf || undefined }); onRerun(v.runId) } catch (e) { onError(msg(e)) } finally { setRerunning(false) }
+      }
+      const changed = Boolean(data.value?.changed)
+      const current = sel ? rows.find((r) => r.signature === sel) : null
+      const policy = run.format?.heldPolicy === 'skip' ? '先跳过' : '先按通用读法读'
+      return h('div', { style: { display: 'flex', gap: 8, flex: 1, minWidth: 0, minHeight: 0 } },
+        h('div', { className: 'mx-frame mx-col', style: { flex: 1, minWidth: 0 } },
+          h('div', { className: 'mx-pad', style: { borderBottom: '1px solid var(--line)' } },
+            h('div', { className: 'mx-h' }, h('b', {}, '格式识别'), h('span', { className: 'mx-cap' }, 'FORMAT'),
+              h('span', { className: 'mx-sp' }),
+              h('button', { className: `mx-btn ${changed ? 'mx-new' : ''}`, disabled: busy || rerunning, title: busy ? '有批次在运行' : '用格式库里的最新结果重新跑这个输入', onClick: rerun }, rerunning ? '启动中…' : '↻ 按确认结果重新运行')),
+            h('div', { className: 'mx-muted', style: { lineHeight: 1.7 } },
+              `${rows.length} 张表：采用 ${run.format?.adopted ?? 0}，待确认 ${run.format?.held ?? 0}（${policy}），跳过 ${run.format?.ignored ?? 0}${run.format?.dict ? `；数据元对照表 ${fmt(run.format.dict)} 条` : ''}。`),
+            h('div', { style: { display: 'flex', gap: 6, marginTop: 8 } },
+              [['held', '待确认'], ['ok', '已采用／跳过'], ['all', '全部']].map(([k, l]) => h('button', { key: k, className: `mx-btn sm${filter === k ? ' on' : ''}`, onClick: () => setFilter(k) }, `${l} ${counts[k]}`)))),
+          h('div', { className: 'mx-scroll', style: { flex: 1 } },
+            !data.value ? h('div', { className: 'mx-empty' }, data.error ?? '加载中…')
+              : !shown.length ? h('div', { className: 'mx-empty' }, filter === 'held' ? '没有待确认的表。' : '—')
+                : h('table', {}, h('thead', {}, h('tr', {}, ['表', '行', '状态', '类别', '依据'].map((x) => h('th', { key: x }, x)))),
+                  h('tbody', {}, shown.map((r) => {
+                    const [label, cls] = FMT_STATUS[r.status] ?? [r.status, '']
+                    return h('tr', { key: r.signature, className: `click${sel === r.signature ? ' sel' : ''}`, onClick: () => setSel(r.signature) },
+                      h('td', { className: 'mx-num', style: { maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }, title: r.table }, r.table),
+                      h('td', { className: 'mx-num' }, fmt(r.rows)),
+                      h('td', {}, h('span', { className: `mx-chip ${cls}` }, label)),
+                      h('td', { style: { whiteSpace: 'nowrap' } }, r.spec?.recordType ?? r.recordType ?? '—', (r.spec?.origin ?? r.origin) ? h('span', { className: 'mx-faint', style: { marginLeft: 6, fontSize: 10.5 } }, FMT_ORIGIN[r.spec?.origin ?? r.origin] ?? '') : null),
+                      h('td', { className: 'mx-muted', style: { fontSize: 11.5 } }, [r.borrowedFrom ? `沿用${r.borrowedFrom}` : r.reason, ...(r.diffs ?? []), ...(r.problems ?? []).slice(0, 2)].filter(Boolean).join('；') || '—'))
+                  }))))),
+        h('div', { className: 'mx-frame mx-scroll mx-pad', style: { width: 480, flex: 'none', overflowX: 'hidden' } },
+          !current ? h('div', { className: 'mx-faint' }, '点左边的一张表，查看识别规格和各方草稿，并确认、修改或跳过。')
+            : h(FormatDetail, { key: current.signature, row: current, recordTypes: data.value?.recordTypes ?? [], decide })))
+    }
+
+    function FormatDetail({ row, recordTypes, decide }) {
+      const [editing, setEditing] = useState(false)
+      const [text, setText] = useState(() => JSON.stringify(stripSpec(row.spec), null, 1))
+      const [jsonErr, setJsonErr] = useState('')
+      const [label, cls] = FMT_STATUS[row.status] ?? [row.status, '']
+      const drafts = row.drafts ?? {}
+      const labels = Object.fromEntries((row.fields ?? []).filter((f) => f.label).map((f) => [f.name, f.label]))
+      return h('div', {},
+        h('div', { className: 'mx-h' }, h('b', { className: 'mx-num', style: { wordBreak: 'break-all' } }, row.table), h('span', { className: `mx-chip ${cls}` }, label)),
+        h('div', { className: 'mx-muted', style: { fontSize: 11.5, marginBottom: 8 } }, `${fmt(row.rows)} 行 · ${row.files} 个文件 · 字段 ${row.fields?.length ?? '—'}（空 ${row.fields?.filter((f) => f.kind === 'empty').length ?? '—'}）`),
+        row.reason ? h('div', { className: 'mx-mo', style: { wordBreak: 'break-all' } }, row.reason, ...(row.diffs ?? []).map((d, i) => h('div', { key: i }, `· ${d}`)), ...(row.problems ?? []).map((d, i) => h('div', { key: `p${i}`, className: 'mx-warn' }, `· ${d}`))) : null,
+        h('div', { className: 'mx-sec' }, h('b', {}, '当前规格'), h('span', { className: 'mx-cap' }, FMT_ORIGIN[row.spec?.origin] ?? '')),
+        h('div', { style: { fontSize: 12, lineHeight: 1.7, wordBreak: 'break-all' } }, specLine(row.spec, labels)),
+        row.spec?.note ? h('div', { className: 'mx-faint', style: { fontSize: 11, marginTop: 4 } }, `依据：${row.spec.note}`) : null,
+        h('div', { style: { display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 10 } },
+          h('button', { className: 'mx-btn mx-new', onClick: () => decide({ signature: row.signature, action: 'confirm' }) }, '✓ 采用当前规格'),
+          h('button', { className: 'mx-btn', onClick: () => decide({ signature: row.signature, action: 'reject' }) }, '跳过这张表'),
+          h('button', { className: 'mx-btn', title: '从格式库删掉，下次运行重新起草', onClick: () => decide({ signature: row.signature, action: 'reset' }) }, '重新起草'),
+          h('button', { className: `mx-btn${editing ? ' on' : ''}`, onClick: () => setEditing(!editing) }, '编辑…')),
+        editing ? h('div', { style: { marginTop: 8 } },
+          h('textarea', { className: 'mx-json', style: { minHeight: 260 }, value: text, onChange: (e) => setText(e.target.value), spellCheck: false }),
+          h('div', { className: 'mx-faint', style: { fontSize: 10.5, margin: '4px 0 6px' } }, `类别：${recordTypes.join('、')}。字段名必须是这张表里有的；保存时插件会校验。`),
+          jsonErr ? h('div', { className: 'mx-err', style: { marginBottom: 6 } }, jsonErr) : null,
+          h('button', { className: 'mx-btn mx-new', onClick: () => { let spec; try { spec = JSON.parse(text) } catch (e) { return setJsonErr(`不是合法的 JSON：${msg(e)}`) } setJsonErr(''); decide({ signature: row.signature, action: 'confirm', spec }) } }, '校验并确认')) : null,
+        Object.keys(drafts).length ? h(React.Fragment, {},
+          h('div', { className: 'mx-sec' }, h('b', {}, '各方草稿'), h('span', { className: 'mx-cap' }, 'DRAFTS')),
+          Object.entries(DRAFT_LABEL).filter(([k]) => drafts[k]).map(([k, l]) => h('div', { key: k, className: 'mx-mrow' },
+            h('div', { style: { display: 'flex', alignItems: 'center', gap: 8 } }, h('b', { style: { fontSize: 12 } }, l), h('span', { className: 'mx-sp' }),
+              h('button', { className: 'mx-btn sm', onClick: () => decide({ signature: row.signature, action: 'confirm', use: k }) }, '采用这份')),
+            h('div', { className: 'mx-muted', style: { marginTop: 3, wordBreak: 'break-all' } }, specLine(drafts[k], labels))))) : null,
+        row.fields?.length ? h(React.Fragment, {},
+          h('div', { className: 'mx-sec' }, h('b', {}, '字段'), h('span', { className: 'mx-cap' }, 'FIELDS')),
+          h('div', { style: { display: 'flex', flexWrap: 'wrap', gap: 4 } }, row.fields.filter((f) => f.kind !== 'empty').map((f) => h('span', { key: f.name, className: 'mx-chip', title: `${f.kind} · 填充 ${f.fill}%` }, `${f.label ? `${f.label}·` : ''}${f.name}·${FIELD_KIND[f.kind] ?? f.kind}`)))) : null)
+    }
+
     /* -------------------------------------------------------------- template */
     /** 模板列表分组：内置按学科（domain），我的模板单独一组 */
     function tplGroups(xs) {
@@ -1190,6 +1294,7 @@ window.__ModuleLoader__.load({
           modelEnabled: form.modelEnabled !== false, baseURL: form.baseURL ?? '', model: form.model ?? '', verifyBaseURL: form.verifyBaseURL ?? '', verifyModel: form.verifyModel ?? '', disableThinking: form.disableThinking !== false,
           timeoutMs: num('timeoutMs', 120000), modelConcurrency: num('modelConcurrency', 8), workers: num('workers', 0), shardUnits: num('shardUnits', 20),
           verifySampleRate: num('verifySampleRate', 0.02), verifyMinPerField: num('verifyMinPerField', 2), verifyThreshold: num('verifyThreshold', 0.9), showSidebarEntry: form.showSidebarEntry !== false,
+          formatRecognition: form.formatRecognition !== false, borrowFormats: form.borrowFormats !== false, elementDict: form.elementDict ?? '', heldTables: form.heldTables || 'generic',
         }
         if (form.apiKey) patch.apiKey = form.apiKey
         try { await call('saveDefaults', patch); setState('已保存（插件会重新加载）') } catch (e) { setState(msg(e)) }
@@ -1210,6 +1315,12 @@ window.__ModuleLoader__.load({
           field('modelConcurrency', '全局同时进行的模型请求数'), field('verifySampleRate', '核验抽样比例（0–1）'),
           field('verifyMinPerField', '每字段每分片至少核验几份'), field('verifyThreshold', '验收门④一致率阈值')),
         check('disableThinking', '关闭思考模式（推理模型更快）'),
+        h('h3', { style: { margin: '6px 0 0' } }, '格式识别（通用文件）'),
+        h('p', { style: { margin: 0, fontSize: 12, color: 'var(--dsw-alias-label-tertiary)' } }, '按表识别类别、写成时间、病人、就诊与栏目：规则草稿＋抽取模型起草＋核验模型背靠背，一致才自动采用，其余在「格式」页确认。只发字段名、统计和截短样例，不发正文。'),
+        check('formatRecognition', '启用格式识别'),
+        check('borrowFormats', '借用病历事件还原插件已采用的识别结果'),
+        h('div', { className: 'mx-grid2' }, field('elementDict', '数据元对照表（csv／xlsx／json，两列：编码、名称；可空）'),
+          h('label', { className: 'mx-field' }, '格式未定的表', h('select', { className: 'mx-input', value: form.heldTables ?? 'generic', onChange: (e) => setForm({ ...form, heldTables: e.target.value }) }, h('option', { value: 'generic' }, '先按通用读法读'), h('option', { value: 'skip' }, '跳过，等确认')))),
         h('h3', { style: { margin: '6px 0 0' } }, '规模与批次'),
         h('div', { className: 'mx-grid2' }, field('outputRoot', '默认输出根目录（空＝输入旁的 _medical-extract）'), field('workers', '工作线程数（0＝自动）'), field('shardUnits', 'p_doc 导出：每个分片的病人数')),
         check('showSidebarEntry', '在左侧栏显示「病历文书提取」入口'),

@@ -2,6 +2,8 @@
  * 抑郁障碍（MDD）。依据见 docs/mdd-fields.md（ICD-10/11、DSM-5-TR、中国抑郁障碍防治指南第二版、CANMAT 2023、NICE NG222）。
  * 生成：node scripts/build-templates.mjs → templates/mdd.json
  */
+import { lone } from './_lib.mjs'
+
 const NUM = '[\\d一二两三四五六七八九十]+'
 const DUR = '[\\d一二两三四五六七八九十半]+\\s*个?\\s*(?:年|月|周|星期|天)\\s*(?:余|多|左右|许)?'
 const DX_SECTIONS = ['诊断', '初步诊断', '出院诊断', '入院诊断', 'ICD-10 名称', 'ICD-10']
@@ -197,6 +199,6 @@ export default {
 
     /* ---------------------------------------------------------------- K 检验 */
     { id: 'K1', name: 'TSH', group: 'K', priority: 'P0', type: 'number', granularity: 'timepoint', unit: 'mIU/L', range: { min: 0, max: 150 }, definition: '促甲状腺激素检测值。', rules: [{ id: 'tsh', regex: '(?:TSH|促甲状腺(?:激素|素))[^。；\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)' }], recall: { regex: ['TSH', '促甲状腺(?:激素|素)'] } },
-    { id: 'K2', name: '血钠', group: 'K', priority: 'P1', type: 'number', granularity: 'timepoint', unit: 'mmol/L', range: { min: 100, max: 180 }, definition: '血清钠检测值。', rules: [{ id: 'na', regex: '(?:血钠|血清钠|项目：钠|钠|Na\\+?)[^。；\\n\\d]{0,24}?(?<v>1\\d{2}(?:\\.\\d+)?)\\s*mmol' }], recall: { regex: ['血钠', '血清钠', '项目：钠', 'Na\\+?'] } },
+    { id: 'K2', name: '血钠', group: 'K', priority: 'P1', type: 'number', granularity: 'timepoint', unit: 'mmol/L', range: { min: 100, max: 180 }, definition: '血清钠检测值。', rules: [{ id: 'na', regex: '(?:血钠|血清钠|' + lone('钠') + ')[^。；\\n\\d]{0,24}?(?<v>1\\d{2}(?:\\.\\d+)?)\\s*mmol' }], recall: { regex: ['血钠', '血清钠', lone('钠')] } },
   ],
 }

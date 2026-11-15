@@ -132,8 +132,8 @@ test('通用 ndjson：自动识别字段、多分片多线程、取消后继续'
   }
   assert.equal(run.status, 'completed', run.error)
   assert.equal(run.totals.documents, 6000)
-  assert.equal(run.plan.mappings['notes.ndjson'].text, 'content')
-  assert.equal(run.plan.mappings['notes.ndjson'].patient, 'patient_id')
+  assert.equal(run.plan.mappings.notes.text, 'content')
+  assert.equal(run.plan.mappings.notes.patient, 'patient_id')
   const P = await readCsv(join(root, 'out', 'notes', 'wide_patient.csv'))
   assert.equal(P.length, 300)
   const E = await readCsv(join(root, 'out', 'notes', 'wide_encounter.csv'))

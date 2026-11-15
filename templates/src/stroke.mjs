@@ -52,7 +52,7 @@ export default {
     scale('C2', 'GCS', 'C', 'P2', 'GCS|格拉斯哥昏迷(?:评分|量表)', { min: 3, max: 15 }),
     scale('C3', 'ASPECTS', 'C', 'P1', 'ASPECTS|Alberta卒中项目早期CT评分', { min: 0, max: 10 }),
     presence('C4', '大血管闭塞（LVO）', 'C', 'P0', 'CTA/MRA/DSA 证实的颅内外大血管闭塞（颈内动脉、大脑中动脉 M1/M2、基底动脉等）。', ['大血管闭塞', 'LVO', '颈内动脉闭塞', '大脑中动脉闭塞', 'M1段闭塞', 'M2段闭塞', '基底动脉闭塞', '椎基底动脉闭塞'], { granularity: 'encounter' }),
-    presence('C5', '出血转化', 'C', 'P0', '影像复查发现的梗死后出血转化（含无症状）。', ['出血转化', '梗死后出血', '出血性转化', 'HT', '渗血'], { granularity: 'encounter' }),
+    presence('C5', '出血转化', 'C', 'P0', '影像复查发现的梗死后出血转化（含无症状）。', ['出血转化', '梗死后出血', '出血性转化', '渗血'], { granularity: 'encounter' }),
 
     /* D 再灌注治疗 */
     presence('D1', '静脉溶栓', 'D', 'P0', '本次给予静脉溶栓（阿替普酶、替奈普酶、尿激酶、瑞替普酶等）。', ['静脉溶栓', 'IVT', '阿替普酶', 'rt-PA', 'rtPA', '替奈普酶', 'TNK', '尿激酶', '瑞替普酶', '溶栓治疗'], { granularity: 'encounter' }),
@@ -65,7 +65,7 @@ export default {
     presence('E1', '症状性颅内出血（sICH）', 'E', 'P0', '溶栓或取栓后出现、伴临床恶化（如 NIHSS 增加≥4 分）的颅内出血（ECASS 定义）。', ['症状性颅内出血', 'sICH', '症状性出血转化', '症状性脑出血'], { granularity: 'encounter' }),
     presence('E2', '卒中相关性肺炎', 'E', 'P0', '住院期间新发肺部感染／卒中相关性肺炎。', ['卒中相关性肺炎', 'SAP', '肺部感染', '吸入性肺炎', '坠积性肺炎', '肺炎'], { granularity: 'encounter' }),
     presence('E3', '吞咽障碍', 'E', 'P0', '吞咽功能障碍（洼田饮水试验异常等）。', ['吞咽障碍', '吞咽困难', '饮水呛咳', '洼田饮水试验'], { granularity: 'encounter' }),
-    presence('E4', '早期神经功能恶化', 'E', 'P1', '病情进展／早期神经功能恶化（END）。', ['神经功能恶化', 'END', '病情进展', '症状加重', '病情加重'], { granularity: 'encounter' }),
+    presence('E4', '早期神经功能恶化', 'E', 'P1', '病情进展／早期神经功能恶化（END）。', ['神经功能恶化', '早期神经功能恶化', '病情进展', '症状加重', '病情加重'], { granularity: 'encounter' }),
     presence('E5', '恶性脑水肿／去骨瓣减压', 'E', 'P1', '大面积梗死伴恶性脑水肿或行去骨瓣减压。', ['恶性脑水肿', '脑疝', '去骨瓣减压', '中线移位'], { granularity: 'encounter' }),
     presence('E6', '深静脉血栓', 'E', 'P2', '住院期间下肢深静脉血栓。', ['深静脉血栓', 'DVT', '下肢静脉血栓'], { granularity: 'encounter' }),
 

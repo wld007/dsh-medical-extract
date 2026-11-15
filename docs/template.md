@@ -65,7 +65,7 @@
 | `include`、`exclude` | 否 | 算／不算的写法或情形；给模型看 |
 | `examples` | 否 | `[{text, value}]`，给模型看的例子（虚构） |
 | `sources` | 否 | `recordTypes`、`sections`：只在这些文书类型、栏目里召回；空＝全部。栏目名按数据源层切出的栏目名匹配（包含即可，如 `史` 不建议） |
-| `recall` | 否* | `terms`（字面量，大小写不敏感）、`regex`（JS 正则源码，无分隔符；隐含 `u` 标志）。命中句才是候选。*派生字段不需要；其他类型没写 `recall` 时，用 `name`、`include` 当召回词 |
+| `recall` | 否* | `terms`（字面量；英文缩写按整词匹配，4 个字母以上不分大小写，更短的按原样大小写，如 AVF 不匹配 aVF）、`regex`（JS 正则源码，无分隔符；隐含 `u` 标志）。命中句才是候选。*派生字段不需要；其他类型没写 `recall` 时，用 `name`、`include` 当召回词 |
 | `rules` | 否 | 规则抽取，见 §5 |
 | `accept` | 否 | 哪些断言算"有该值"，默认 `["阳性"]`。既往史类字段写 `["阳性","既往"]`，家族史字段写 `["家族"]` |
 | `granularity` | 否 | `document`／`encounter`（默认）／`patient`／`timepoint` |

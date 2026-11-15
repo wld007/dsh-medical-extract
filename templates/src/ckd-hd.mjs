@@ -3,7 +3,7 @@
  * 依据：KDIGO 2024 CKD 评估与管理指南（G1–G5、A1–A3）；KDOQI 血液透析充分性指南 2015 更新（spKt/V 目标 1.4、最低 1.2）；
  * 中国血液透析充分性临床实践指南（URR ≥65%）；KDIGO 2017 CKD-MBD 指南；KDIGO 贫血指南。
  */
-import { DUR, HX, date, derived, enumOf, listOf, measure, presence, scale, text } from './_lib.mjs'
+import { DUR, HX, date, derived, enumOf, listOf, measure, presence, scale, text, lone } from './_lib.mjs'
 
 const DX = ['诊断', '初步诊断', '出院诊断', '入院诊断', 'ICD-10 名称', 'ICD-10']
 
@@ -42,7 +42,7 @@ export default {
     measure('A6', '24 小时尿蛋白定量', 'A', 'P2', '24\\s*(?:小时|h)\\s*尿蛋白(?:定量)?|24hUP', { unit: 'g/24h', range: { min: 0, max: 30 } }),
 
     /* B 透析与通路 */
-    enumOf('B1', '肾脏替代治疗方式', 'B', 'P0', '当前透析或替代治疗方式。', [['血液透析', 'HD', '维持性血液透析', '规律血透', '血透'], ['血液透析滤过', 'HDF', '血液滤过'], ['腹膜透析', 'PD', 'CAPD', 'APD', '腹透'], ['肾移植', '肾移植术后', '移植肾']], { granularity: 'encounter', pick: 'last' }),
+    enumOf('B1', '肾脏替代治疗方式', 'B', 'P0', '当前透析或替代治疗方式。', [['血液透析', '维持性血液透析', '规律血透', '血透', '规律透析'], ['血液透析滤过', 'HDF', '血液滤过'], ['腹膜透析', 'CAPD', 'APD', '腹透'], ['肾移植', '肾移植术后', '移植肾']], { granularity: 'encounter', pick: 'last' }),
     date('B2', '开始透析时间', 'B', 'P0', '首次开始规律透析的时间；"规律血透5年"取 5 年前。', { granularity: 'patient', pick: 'earliest', accept: HX, model: 'always', sources: { sections: ['主诉', '现病史', '既往史', '入院情况'] }, recall: { terms: ['血透', '血液透析', '腹透', '腹膜透析', '透析'], regex: [DUR] } }),
     derived('B3', '透析龄（月）', 'B', 'P0', '开始透析至本次就诊的月数。', { op: 'monthsBetween', from: 'B2', to: '$encounter.start' }, { granularity: 'encounter' }),
     enumOf('B4', '当前血管通路', 'B', 'P0', '当前使用的血管通路类型。', [['自体动静脉内瘘', 'AVF', '动静脉内瘘', '自体内瘘', '内瘘'], ['移植物内瘘', 'AVG', '人工血管内瘘', '人工血管'], ['长期导管', '带隧道带涤纶套导管', 'TCC', '长期透析导管', '半永久导管'], ['临时导管', '临时透析导管', '无隧道导管', '股静脉置管', '颈内静脉置管']], { granularity: 'encounter', pick: 'last' }),
@@ -66,15 +66,15 @@ export default {
     presence('D5', '容量负荷过重', 'D', 'P1', '水肿、胸腔积液、心衰等容量负荷表现。', ['容量负荷过重', '容量超负荷', '水钠潴留', '胸腔积液', '水肿'], { granularity: 'encounter' }),
 
     /* E 贫血 */
-    measure('E1', '血红蛋白', 'E', 'P0', '血红蛋白|Hb(?!A)|HGB', { unit: 'g/L', range: { min: 20, max: 250 } }),
+    measure('E1', '血红蛋白', 'E', 'P0', '(?<!平均红细胞|红细胞平均|糖化|平均|碳氧|游离|高铁)血红蛋白(?!浓度)|Hb(?!A)|HGB', { unit: 'g/L', range: { min: 20, max: 250 } }),
     measure('E2', '血清铁蛋白', 'E', 'P0', '铁蛋白', { unit: 'ng/mL', range: { min: 1, max: 5000 } }),
     measure('E3', '转铁蛋白饱和度（TSAT）', 'E', 'P0', 'TSAT|转铁蛋白饱和度', { unit: '%', range: { min: 1, max: 100 } }),
     listOf('E4', '红细胞生成刺激剂／HIF-PHI', 'E', 'P0', '促红素、罗沙司他等。', [['重组人促红素', '促红素', '促红细胞生成素', 'EPO', '益比奥', '依倍', '利血宝'], ['达依泊汀α', '达依泊汀'], ['培促红素'], ['罗沙司他', '爱瑞卓'], ['恩那司他'], ['达普司他']], { granularity: 'encounter' }),
     listOf('E5', '铁剂', 'E', 'P1', '静脉或口服铁剂。', [['蔗糖铁', '维乐福'], ['右旋糖酐铁'], ['羧基麦芽糖铁'], ['异麦芽糖酐铁'], ['多糖铁复合物', '力蜚能'], ['琥珀酸亚铁', '速力菲'], ['硫酸亚铁']], { granularity: 'encounter' }),
 
     /* F 矿物质与骨代谢 */
-    measure('F1', '血钙', 'F', 'P0', '血钙|血清钙|项目：钙|(?<![a-zA-Z])Ca(?![a-zA-Z])', { unit: 'mmol/L', range: { min: 0.8, max: 4 }, value: '\\d\\.\\d{1,2}' }),
-    measure('F2', '血磷', 'F', 'P0', '血磷|血清磷|无机磷|项目：磷|(?<![a-zA-Z])P(?![a-zA-Z])', { unit: 'mmol/L', range: { min: 0.2, max: 5 }, value: '\\d\\.\\d{1,2}' }),
+    measure('F1', '血钙', 'F', 'P0', '血钙|血清钙|' + lone('钙') + '|Ca', { unit: 'mmol/L', range: { min: 0.8, max: 4 }, value: '\\d\\.\\d{1,2}' }),
+    measure('F2', '血磷', 'F', 'P0', '血磷|血清磷|无机磷|' + lone('磷'), { unit: 'mmol/L', range: { min: 0.2, max: 5 }, value: '\\d\\.\\d{1,2}' }),
     measure('F3', 'iPTH', 'F', 'P0', 'i?PTH|甲状旁腺(?:激素|素)', { unit: 'pg/mL', range: { min: 1, max: 5000 } }),
     measure('F4', '碱性磷酸酶', 'F', 'P2', 'ALP|AKP|碱性磷酸酶', { unit: 'U/L', range: { min: 5, max: 3000 } }),
     listOf('F5', '磷结合剂', 'F', 'P0', '在用磷结合剂。', [['碳酸钙', '钙尔奇'], ['醋酸钙'], ['司维拉姆', '碳酸司维拉姆', '盐酸司维拉姆', '诺维乐'], ['碳酸镧', '福斯利诺'], ['蔗糖氧化铁', '维福瑞']], { granularity: 'encounter' }),
@@ -83,7 +83,7 @@ export default {
 
     /* G 营养与炎症 */
     measure('G1', '血白蛋白', 'G', 'P0', '(?:血清)?白蛋白|ALB(?![a-zA-Z])', { unit: 'g/L', range: { min: 10, max: 60 } }),
-    measure('G2', '血钾', 'G', 'P0', '血钾|血清钾|项目：钾|(?<![a-zA-Z])K\\+?(?![a-zA-Z])', { unit: 'mmol/L', range: { min: 1.5, max: 9 }, value: '\\d\\.\\d{1,2}' }),
+    measure('G2', '血钾', 'G', 'P0', '血钾|血清钾|' + lone('钾'), { unit: 'mmol/L', range: { min: 1.5, max: 9 }, value: '\\d\\.\\d{1,2}' }),
     measure('G3', 'C 反应蛋白', 'G', 'P2', 'CRP|C\\s*反应蛋白|hs-?CRP', { unit: 'mg/L', range: { min: 0, max: 500 } }),
     measure('G4', '透析前血肌酐', 'G', 'P2', '(?:透前|透析前)?(?:血)?肌酐|Scr|SCr', { unit: 'μmol/L', range: { min: 50, max: 3000 } }),
     measure('G5', 'β2 微球蛋白', 'G', 'P2', 'β\\s*2\\s*-?微球蛋白|β2-?MG|B2M', { unit: 'mg/L', range: { min: 0, max: 200 } }),

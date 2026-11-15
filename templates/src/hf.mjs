@@ -3,7 +3,7 @@
  * 依据：中国心力衰竭诊断和治疗指南 2024（中华心血管病杂志 2024;52(3)）；ESC 2021 心衰指南及 2023 重点更新；
  * AHA/ACC/HFSA 2022 心衰指南。LVEF 分型：HFrEF ≤40%，HFmrEF 41%–49%，HFpEF ≥50%。
  */
-import { HX, derived, enumOf, listOf, measure, presence, scale, text } from './_lib.mjs'
+import { HX, derived, enumOf, listOf, measure, presence, scale, text, lone } from './_lib.mjs'
 
 const DX = ['诊断', '初步诊断', '出院诊断', '入院诊断', 'ICD-10 名称', 'ICD-10']
 const LVEF = '(?:LVEF|左室射血分数|左心室射血分数|射血分数|EF值?)'
@@ -98,11 +98,11 @@ export default {
     measure('H5', '出院体重', 'H', 'P2', '(?:出院|干)?体重', { unit: 'kg', range: { min: 25, max: 250 }, value: '\\d{2,3}(?:\\.\\d)?(?=\\s*(?:kg|Kg|KG|公斤))' }),
 
     /* K 检验与生命体征 */
-    measure('K1', '血钾', 'K', 'P0', '血钾|血清钾|项目：钾|(?<![a-zA-Z])K\\+?', { unit: 'mmol/L', range: { min: 1.5, max: 9 }, value: '\\d\\.\\d{1,2}' }),
-    measure('K2', '血钠', 'K', 'P0', '血钠|血清钠|项目：钠|Na\\+?', { unit: 'mmol/L', range: { min: 100, max: 180 }, value: '1\\d{2}(?:\\.\\d+)?' }),
+    measure('K1', '血钾', 'K', 'P0', '血钾|血清钾|' + lone('钾'), { unit: 'mmol/L', range: { min: 1.5, max: 9 }, value: '\\d\\.\\d{1,2}' }),
+    measure('K2', '血钠', 'K', 'P0', '血钠|血清钠|' + lone('钠'), { unit: 'mmol/L', range: { min: 100, max: 180 }, value: '1\\d{2}(?:\\.\\d+)?' }),
     measure('K3', '肌酐', 'K', 'P0', '肌酐|Scr|SCr|Cr(?![a-z])', { unit: 'μmol/L', range: { min: 10, max: 2500 } }),
     measure('K4', 'eGFR', 'K', 'P0', 'eGFR|估算肾小球滤过率|肾小球滤过率', { unit: 'mL/min/1.73m²', range: { min: 1, max: 200 } }),
-    measure('K5', '血红蛋白', 'K', 'P1', '血红蛋白|Hb(?!A)|HGB', { unit: 'g/L', range: { min: 20, max: 250 } }),
+    measure('K5', '血红蛋白', 'K', 'P1', '(?<!平均红细胞|红细胞平均|糖化|平均|碳氧|游离|高铁)血红蛋白(?!浓度)|Hb(?!A)|HGB', { unit: 'g/L', range: { min: 20, max: 250 } }),
     measure('K6', '心率', 'K', 'P1', '心率|HR|脉搏', { unit: '次/分', range: { min: 20, max: 250 }, value: '\\d{2,3}(?=\\s*次)' }),
     measure('K7', '收缩压', 'K', 'P1', '(?:BP|血压)\\s*[:：]?', { unit: 'mmHg', range: { min: 50, max: 280 }, value: '\\d{2,3}(?=\\s*/\\s*\\d{2,3})', definition: '血压记录中的收缩压（每次测量一条）。' }),
     measure('K8', '血清铁蛋白', 'K', 'P2', '铁蛋白', { unit: 'ng/mL', range: { min: 1, max: 5000 } }),

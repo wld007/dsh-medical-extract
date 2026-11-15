@@ -2,6 +2,11 @@
  * 写模板用的小工具（只在 templates/src 里用，不进插件运行时）。
  * 生成的都是 extract-template/1 的字段对象，见 docs/template.md。
  */
+/** 名称两侧不能紧挨字母数字（PTH 不匹配 PTHlRen…，Ca 不匹配 CaO） */
+export const bounded = (head) => `(?<![A-Za-z0-9])(?:${head})(?![A-Za-z])`
+/** 单字检验项目（钙、磷、钾、钠）：前后不能是汉字，"碳酸钙""血钾正常"里的不算项目名 */
+export const lone = (ch) => `(?<![\\u4e00-\\u9fff])${ch}(?![\\u4e00-\\u9fff])`
+
 export const NUM = '[\\d一二两三四五六七八九十]+'
 export const DUR = '[\\d一二两三四五六七八九十半]+\\s*个?\\s*(?:年|月|周|星期|天|日|小时|h)\\s*(?:余|多|左右|许)?'
 export const DX_SECTIONS = ['诊断', '初步诊断', '出院诊断', '入院诊断', 'ICD-10 名称', 'ICD-10']
@@ -38,8 +43,8 @@ export function measure(id, name, group, priority, head, { unit = null, range = 
   return {
     id, name, group, priority, type: 'number', granularity, ...(unit ? { unit } : {}), ...(range ? { range } : {}), ...(pick ? { pick } : {}),
     definition: definition ?? `${name}${unit ? `（${unit}）` : ''}的测定值，每次测定一条。`,
-    rules: [{ id: `${id.toLowerCase()}-v`, regex: `(?:${head})[^。；;\\n\\d]{0,${gap}}?(?<v>${value})` }, ...alt],
-    recall: { regex: [head] },
+    rules: [{ id: `${id.toLowerCase()}-v`, regex: `${bounded(head)}[^。；;\\n\\d]{0,${gap}}?(?<v>${value})` }, ...alt],
+    recall: { regex: [bounded(head)] },
     ...rest,
   }
 }

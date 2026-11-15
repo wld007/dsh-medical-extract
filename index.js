@@ -111,6 +111,24 @@ export function apply(ctx, config = {}) {
   }))
 
   ctx.tools.register(tool({
+    name: 'extract_formats',
+    description: '查看病历文书提取批次的格式识别结果（通用文件：每张表识别出的记录类别、写成时间、病人、就诊与栏目，状态为自动采用／已确认／有分歧／校验未过／待确认／已跳过），或裁定一张表：confirm 采用当前规格（可附改过的 spec）、use 采用某份草稿（model／verify／rule）、reject 跳过、reset 下次重新识别。裁定存在本机格式库，重跑时生效。',
+    parameters: {
+      runId: { type: 'string', description: '批次 id；省略则取最近一批。' },
+      signature: { type: 'string', description: '裁定时：表的签名（列表里给出）。' },
+      action: { type: 'string', description: '裁定时：confirm、reject 或 reset。' },
+      use: { type: 'string', description: 'confirm 时：采用哪份草稿（model、verify、rule）。' },
+      spec: { type: 'object', description: 'confirm 时：改过的规格（JSON，格式同列表里的 spec）。' },
+    },
+    execute: async (args) => (args.signature ? service.formatDecide(args) : service.formats(args.runId ?? (await service.status()).run?.id)),
+    render: (args, v) => {
+      if (v.ok !== undefined) return [{ type: 'text', text: v.ok ? '已保存裁定；重跑后生效。' : `没有保存：\n- ${(v.problems ?? []).join('\n- ')}` }]
+      const lines = (v.tables ?? []).map((t) => `${t.signature}  ${t.status}  ${t.spec?.recordType ?? t.recordType ?? '—'}  ${t.table}${t.borrowedFrom ? `（沿用${t.borrowedFrom}）` : ''}${t.diffs?.length ? `  分歧：${t.diffs.join('；')}` : ''}${t.problems?.length ? `  问题：${t.problems.slice(0, 2).join('；')}` : ''}`)
+      return [{ type: 'text', text: lines.length ? lines.join('\n') : '这个批次没有格式识别（区域平台导出或未启用）。' }]
+    },
+  }))
+
+  ctx.tools.register(tool({
     name: 'extract_template_excel',
     description: '抽取模板与 Excel 互转。export：把模板（或空白模板）导出成 xlsx 文件写到 outPath；import：读本机 xlsx（模板、字段、规则三张表，格式同导出），校验后存入用户模板库（同 id 覆盖），校验不通过时返回问题清单（到行到列）、不保存。',
     parameters: {
@@ -216,6 +234,8 @@ export function apply(ctx, config = {}) {
           case 'templates': return service.templates()
           case 'template': return service.template(r.id)
           case 'saveTemplate': return service.saveTemplate(r.template)
+          case 'formats': return service.formats(r.runId)
+          case 'formatDecide': return service.formatDecide(r)
           case 'templateXlsx': return service.templateXlsx({ id: r.id, blank: Boolean(r.blank) })
           case 'importTemplateXlsx': return service.importTemplateXlsx({ base64: r.base64 })
           case 'reviewQueue': return service.reviewQueue(r.runId, r)

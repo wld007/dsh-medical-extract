@@ -32,6 +32,14 @@
         verifyMinPerField: 2
         # 验收门④：抽样一致率阈值
         verifyThreshold: 0.9
+        # 格式识别（通用文件）：按表识别类别、写成时间、病人、就诊、栏目
+        formatRecognition: true
+        # 数据元对照表（编码→中文名；csv／xlsx／json 两列）；空 = 不用
+        elementDict: ''
+        # 借用病历事件还原插件格式库里已采用的识别结果（只读）
+        borrowFormats: true
+        # 格式未定的表：generic＝先按通用读法读；skip＝跳过，等在「格式」页确认
+        heldTables: generic
         # 值不超过这个数时另出一份 result.xlsx
         xlsxMaxRows: 200000
         showSidebarEntry: true
