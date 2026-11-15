@@ -1006,11 +1006,13 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       const houses = modelHousesOf(run)
       const last = running ? (run.series ?? []).filter((p) => p.length >= 18).at(-1) : null
       const SPOT = { format: [42, 108, 26], extract: [bay0(2) + bw / 2, D, 20], verify: [bay0(4) + bw / 2, D, 20], adjudicate: [bay0(4) + bw / 2 - 14, D, 20] }
-      // 两栋同一排、说明在房子左边：右下方的说明会把场景底边往下撑，整幅画就被缩小
-      const HOUSE_AT = [[bay0(1) + 4, D + 118], [bay0(4) + 92, D + 118]]
+      // 两栋同一排（同一条斜线），各自正对所服务的楼：提取模型在提取楼前，核验模型在核验楼前，管子顺着地面网格笔直连过去；
+      // 说明在房子左边：右下方的说明会把场景底边往下撑，整幅画就被缩小
+      const HOUSE_MA = 74
+      const HOUSE_AT = [[SPOT.extract[0] - HOUSE_MA / 2, D + 118], [SPOT.verify[0] - HOUSE_MA / 2, D + 118]]
       houses.forEach((hs, hi) => {
         const V = P.vio; const on = !!hs.model
-        const [mi, mj] = HOUSE_AT[Math.min(hi, 1)]; const ma = 74; const mb = 44; const mh = 30
+        const [mi, mj] = HOUSE_AT[Math.min(hi, 1)]; const ma = HOUSE_MA; const mb = 44; const mh = 30
         const live = last ? { inflight: last[2 + hs.slot] ?? 0, waiting: last[4 + hs.slot] ?? 0, st: last.slice(10 + hs.slot * 4, 14 + hs.slot * 4) } : null
         // 最近 10 秒有调用失败（含重试后仍失败）：一扇窗闪红
         const recentFail = (() => { if (!running) return false; const ps = (run.series ?? []).filter((p) => p.length >= 20); if (ps.length < 2) return false; const z = ps.at(-1); const old = ps.filter((p) => z[0] - p[0] <= 10000)[0] ?? ps.at(-2); return (z[18 + hs.slot] ?? 0) > (old[18 + hs.slot] ?? 0) })()
@@ -1025,9 +1027,14 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
           const stI = ['format', 'extract', 'verify', 'adjudicate'].indexOf(st)
           const hot = on && live && (live.st[stI] ?? 0) > 0
           const used = on && (hs.calls[st] ?? 0) > 0
-          const a = iso(...sp); const b = iso(mi + ma / 2 + (stI - 1.5) * 10, mj, mh - 2)
-          const mid = [(a[0] + b[0]) / 2, Math.max(a[1], b[1]) - 10]
-          pipes.push(h('path', { key: `h${hi}p${st}`, d: `M${a[0].toFixed(1)} ${a[1].toFixed(1)} Q${mid[0].toFixed(1)} ${mid[1].toFixed(1)} ${b[0].toFixed(1)} ${b[1].toFixed(1)}`, fill: 'none', stroke: hot || used ? V : C.left2, strokeWidth: hot ? 2.4 : used ? 1.7 : 1.3, strokeDasharray: hot ? '3 5' : '2 5', className: hot ? 'mx-flow' : undefined, filter: hot ? 'url(#mx-glow)' : undefined, opacity: hot ? 1 : used ? 0.7 : 0.4 }, h('title', {}, `${STATION_LABEL[st]}${on ? `：调用 ${fmt(hs.calls[st] ?? 0)} 次${live ? ` · 在途 ${live.st[stI] ?? 0}` : ''}` : ''}`)))
+          // 管子顺着地面网格走：正对的楼是一条直线（房子这头取和楼同一个 i）；不正对的（格式识别连读入楼、提取模型去核验楼复判）
+          // 先沿 j 出来到房前的一条走道，再沿 i 走到楼前，最后沿 j 进楼——和楼、传送带都是平行线，不再斜穿场景
+          const bi = Math.max(mi + 6, Math.min(mi + ma - 6, sp[0]))
+          const z = sp[2]
+          const lane = D + (st === 'format' ? 106 : 96) // 房子后沿（D+118）之前、排队数字之外
+          const route = bi === sp[0] ? [[bi, mj + 4], [sp[0], sp[1]]] : [[bi, mj + 4], [bi, lane], [sp[0], lane], [sp[0], sp[1]]]
+          const d = 'M' + route.map(([i, j]) => iso(i, j, z).map((v) => v.toFixed(1)).join(' ')).join(' L')
+          pipes.push(h('path', { key: `h${hi}p${st}`, d, strokeLinejoin: 'round', fill: 'none', stroke: hot || used ? V : C.left2, strokeWidth: hot ? 2.4 : used ? 1.7 : 1.3, strokeDasharray: hot ? '3 5' : '2 5', className: hot ? 'mx-flow' : undefined, filter: hot ? 'url(#mx-glow)' : undefined, opacity: hot ? 1 : used ? 0.7 : 0.4 }, h('title', {}, `${STATION_LABEL[st]}${on ? `：调用 ${fmt(hs.calls[st] ?? 0)} 次${live ? ` · 在途 ${live.st[stI] ?? 0}` : ''}` : ''}`)))
         })
         g.push(...isoBox('mb', mi, mj, 0, ma, mb, mh, on ? CL : CL2))
         // 窗户＝并发名额：一扇窗一个名额（上限多时两排；再多则一扇窗代表几个名额），亮几扇＝在途几个
