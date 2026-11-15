@@ -33,7 +33,7 @@ const DOC_SPEC = { recordType: '病程记录', written: ['WS09_00_053_01'], key:
 const LAB_SPEC = { recordType: '检验', written: ['WS06_00_926_01'], key: ['_id'], roles: { item: 'WS04_30_020_01', value: 'WS04_30_009_03', unit: 'WS04_30_016_01', ref: 'WS04_50_902_01', panel: 'WS02_10_916_01' }, note: '检验明细' }
 
 /** 假模型：格式提示按表名回答规格；其他提示（抽取）回空。variant 让核验模型在病程表上故意给不同的类别。 */
-function fakeModel(name, { disagreeOnDoc = false, yieldOnAdj = false, labRoles = null } = {}) {
+function fakeModel(name, { disagreeOnDoc = false, yieldOnAdj = false, labRoles = null, labMissing = false } = {}) {
   const seen = []
   return {
     model: name, seen,
@@ -53,6 +53,7 @@ function fakeModel(name, { disagreeOnDoc = false, yieldOnAdj = false, labRoles =
       // 复判：看到对方的版本后改口（yieldOnAdj）或坚持
       const lastUser = messages.filter((m) => m.role === 'user').at(-1).content
       if (lastUser.includes('有分歧的项') && yieldOnAdj && /病程/.test(brief.表)) return { content: JSON.stringify({ ...DOC_SPEC, reason: '有病例特点和诊疗计划栏目，是病程记录' }), ms: 1 }
+      if (labMissing && /检验/.test(brief.表)) return { content: JSON.stringify({ ...LAB_SPEC, roles: { item: 'WS04_30_020_01', unit: 'NOPE' } }), ms: 1 }
       const spec = /病程/.test(brief.表) ? { ...DOC_SPEC, ...(disagreeOnDoc ? { recordType: '会诊记录', sections: [['WS05_10_133_01', '病情摘要']] } : {}) } : /检验/.test(brief.表) ? { ...LAB_SPEC, ...(labRoles ? { roles: { ...LAB_SPEC.roles, ...labRoles }, written: ['WS06_00_926_01'] } : {}) } : { recordType: '忽略' }
       return { content: JSON.stringify(spec), ms: 1 }
     },
@@ -215,5 +216,19 @@ test('格式识别：结构化表只在本插件用不到的角色上有分歧�
   assert.ok(!b.seen.some((p) => p.includes('有分歧的项'))) // 没有复判
   assert.equal((await svc.formatDecide({ signature: t.signature, action: 'confirm' })).ok, true)
   assert.equal((await svc.formats(run.id)).tables.find((x) => x.signature === t.signature).scope, null)
+  await svc.dispose()
+})
+
+test('格式识别：结构化表缺本插件用不到的必填角色（校验未过）——按本插件够用修整后采用，只在本插件内', async () => {
+  const root = await tmp()
+  const input = await writeCoded(join(root, 'export'))
+  const svc = createService({ config: { extractMode: 'hybrid', template: 'mdd', workers: 1, verifySampleRate: 0 }, stateDir: join(root, 'state', 'medical-extract'), chatImpl: { extract: fakeModel('fake-a', { labMissing: true }), verify: fakeModel('fake-b', { labMissing: true }) } })
+  const run = await runToEnd(svc, { inputDir: input, outputRoot: join(root, 'out') })
+  assert.equal(run.format.held, 0); assert.equal(run.format.scoped, 1)
+  const t = (await svc.formats(run.id)).tables.find((x) => x.scope)
+  assert.equal(t.status, 'agreed'); assert.equal(t.spec.recordType, '检验')
+  assert.equal(t.spec.roles.unit, undefined) // 指向不存在字段的角色去掉了
+  assert.ok(t.partialDiffs.some((d) => d.includes('value')))
+  assert.equal(run.totals.structured, 4)
   await svc.dispose()
 })
