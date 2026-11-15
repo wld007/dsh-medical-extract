@@ -176,7 +176,7 @@ window.__ModuleLoader__.load({
 .mx-live.ok{color:var(--ok)}.mx-live.bad{color:var(--bad)}
 .mx-hero-err{margin:8px 0 0;align-self:flex-start;max-width:720px;font-size:12px}
 .mx-side{width:300px;flex:none;padding:12px 14px;display:flex;flex-direction:column;gap:2px}
-.mx-side-h{display:flex;align-items:center;gap:8px}.mx-side-h b{font-size:14px;letter-spacing:1px}.mx-side-h span:nth-child(2){font-weight:600;flex:1}
+.mx-side-h{display:flex;align-items:center;gap:8px}.mx-side-h b{font-size:14px;font-weight:600;flex:1}
 .mx-side-sec{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;letter-spacing:.5px;color:var(--ink3);margin-top:12px;padding-top:8px;border-top:1px solid var(--line2)}
 .mx-side{overflow-y:auto}
 .mx-sdesc{margin:6px 0 2px;font-size:11.5px;line-height:1.6;color:var(--ink2)}.mx-sdesc span{color:var(--ink3)}
@@ -497,7 +497,9 @@ window.__ModuleLoader__.load({
       const stOf = (s) => (broken ? (s === 'E5' || s === 'E6' || s === 'E7' ? 'idle' : 'part') : !running ? 'done' : s === 'E3' ? (stage === 'E3' ? 'run' : 'done') : stage === s ? 'run' : after(s) ? 'done' : 'idle')
       const gate = (id) => run.gates?.find((g) => g.id === id)
       const gateRow = (id, label, v) => [label, v ?? (gate(id) ? (gate(id).pass ? '通过' : '未过') : '—'), gate(id) ? (gate(id).pass ? 'ok' : 'warn') : '']
-      const st = (no, nm, sub, bigv, unit, rows, state, frac) => ({ no, nm, sub, big: bigv, unit, rows, state, frac })
+      // ab＝场景里屋顶标签用的两字工序名；no（E0–E7）只留作内部编号，不在界面上显示
+      const AB = { E0: '模板', E1: '读入', E2: '召回', E3: '取值', E4: '归一', E5: '汇总', E6: '核验', E7: '交付' }
+      const st = (no, nm, sub, bigv, unit, rows, state, frac) => ({ no, ab: AB[no], nm, sub, big: bigv, unit, rows, state, frac })
       const methods = t.byMethod ?? {}
       return [
         st('E1', '读入·切栏目', run.plan?.format ?? '规划输入', big(t.documents), '文书', [['分片', `${run.shards.done}/${run.shards.total}`, ''], ['速率', run.rate ? `${fmt(run.rate)}/秒` : '—', '']], stOf('E3'), shardFrac),
@@ -505,8 +507,8 @@ window.__ModuleLoader__.load({
         st('E3', '取值·模型补抽', '规则定值；定不了的片段送模型，引语回原文核对', big(t.values), '值', [gateRow('①', '验收①', `${fmt(t.quoteFail)} 丢弃`), ['规则', big(methods.rule), ''], ['模型', big((methods.model ?? 0) + (methods['model+rule'] ?? 0)), ''], ['模型调用', `${big(t.calls)}（缓存 ${big(t.cached)}）`, '']], stOf('E3'), shardFrac),
         st('E4', '归一·断言', '单位、日期、选项规范名；否认／既往／家族／计划', fmt(t.invalid + t.outOfRange), '不合规', [gateRow('②', '验收②')], stOf('E3'), shardFrac),
         st('E5', '汇总·派生', '按粒度与取值规则成格；派生字段；冲突登记', fmt(t.conflicts), '冲突', [['病人', big(t.patients), ''], gateRow('③', '验收③')], stOf('E5'), stage === 'E5' ? 0.5 : after('E5') ? 1 : 0),
-        st('E6', '抽样核验·复核', run.model?.verifyModel ? `核验模型 ${run.model.verifyModel}` : '未配置核验模型', fmt(t.review), '项待复核', [gateRow('④', '验收④')], t.review && !running ? 'hold' : stOf('E6'), after('E6') ? 1 : 0),
-        st('E7', '交付', '宽表 → 证据长表 → 冲突表 → 只读核对', run.output ? '已交付' : '—', '', [['输出', run.output ? '已写出' : '未交付', run.output ? 'ok' : '']], run.output ? 'done' : stOf('E7'), run.output ? 1 : 0),
+        st('E6', '抽样核验·复核', run.model?.verifyModel ? `核验模型 ${run.model.verifyModel}` : '未配置核验模型', fmt(t.review), '待复核', [gateRow('④', '验收④')], t.review && !running ? 'hold' : stOf('E6'), after('E6') ? 1 : 0),
+        st('E7', '交付', '宽表 → 证据长表 → 冲突表 → 只读核对', run.output ? '已写出' : '—', '', [['输出', run.output ? '已写出' : '未交付', run.output ? 'ok' : '']], run.output ? 'done' : stOf('E7'), run.output ? 1 : 0),
         st('E0', '模板', `${run.template.name} v${run.template.version}`, String(run.template.fields), '字段', [['模式', MODE_LABEL[run.mode], '']], 'done', 1),
       ]
     }
@@ -523,7 +525,7 @@ window.__ModuleLoader__.load({
             h('div', { className: 'mx-hero-cap' },
               h('span', { className: 'mx-cap', style: { color: 'var(--ink2)' } }, '处理流程'),
               h('span', { className: 'mx-sp' }),
-              run.status === 'failed' ? h('span', { className: 'mx-live bad' }, h('i'), '批次失败') : run.status === 'cancelled' ? h('span', { className: 'mx-live bad' }, h('i'), '已取消') : hot.length ? h('span', { className: 'mx-live' }, h('i'), hot.map((s) => `${s.no} ${STATE_LABEL[s.state]}`).join(' · ')) : h('span', { className: 'mx-live ok' }, h('i'), '全部完成')),
+              run.status === 'failed' ? h('span', { className: 'mx-live bad' }, h('i'), '批次失败') : run.status === 'cancelled' ? h('span', { className: 'mx-live bad' }, h('i'), '已取消') : hot.length ? h('span', { className: 'mx-live' }, h('i'), hot.map((s) => `${s.nm} ${STATE_LABEL[s.state]}`).join(' · ')) : h('span', { className: 'mx-live ok' }, h('i'), '全部完成')),
             run.status === 'failed' && run.error ? h('div', { className: 'mx-err mx-hero-err' }, h('b', {}, '批次失败：'), String(run.error).split('\n')[0].replace(/^Error:\s*/, '')) : null,
             h(PlantScene, { run, stations, sel: k, onSel: setSelK, goto }),
             h('div', { className: 'mx-hud br' },
@@ -653,7 +655,7 @@ window.__ModuleLoader__.load({
         for (let z = 66; z >= 14; z -= 13) for (let i = 8; i < 78; i += 12) wins.push([i, z])
         const litN = Math.round((s.frac ?? 0) * wins.length)
         wins.forEach(([i, z], q) => { const lit = q < litN; g.push(leftPatch(`w${z}-${i}`, i, i + 7, 108, z, z + 6, { fill: lit ? (s.state === 'run' ? A : C.lamp) : C.win, opacity: lit ? 0.95 : 0.55, filter: lit && s.state === 'run' ? 'url(#mx-glow)' : undefined })) })
-        els.push(h('g', { key: 'e1', ...click(0) }, h('title', {}, `${s.no} ${s.nm}`), g))
+        els.push(h('g', { key: 'e1', ...click(0) }, h('title', {}, s.nm), g))
       }
       // 走廊与验收门：①在 E3 出口，②在 E4 出口，③在 E5 出口，④在 E6 出口
       const gateOf = (id) => run.gates?.find((x) => x.id === id)
@@ -706,7 +708,7 @@ window.__ModuleLoader__.load({
         if (k === 4) [[i0 + 50, 20], [i0 + 54, 50], [i0 + 50, 80]].forEach(([ci, cj], q) => g.push(...isoCyl(`st${q}`, ci, cj, H, 5, 30 + q * 6, C)))
         if (k === 5) g.push(...isoBox('ctl', i0 + 36, 56, H, 26, 36, 16, CL2), leftPatch('ctlw', i0 + 39, i0 + 59, 92, H + 6, H + 12, { fill: c ?? C.win, opacity: c ? 0.9 : 0.6 }))
         if (sel === k) g.push(h('polygon', { key: 'selroof', points: pts([iso(i0 + 2, 2, H + 0.5), iso(i0 + bw - 2, 2, H + 0.5), iso(i0 + bw - 2, D - 2, H + 0.5), iso(i0 + 2, D - 2, H + 0.5)]), fill: 'none', stroke: A, strokeWidth: 1.4, strokeDasharray: '5 4', opacity: 0.9 }))
-        els.push(h('g', { key: `bay${k}`, className: s.state === 'hold' ? 'mx-breathe' : undefined, ...click(k) }, h('title', {}, `${s.no} ${s.nm}：${s.sub}`),
+        els.push(h('g', { key: `bay${k}`, className: s.state === 'hold' ? 'mx-breathe' : undefined, ...click(k) }, h('title', {}, `${s.nm}：${s.sub}`),
           h('polygon', { points: pts([iso(i0, 0, H), iso(i0 + bw, 0, H), iso(i0 + bw, D, H), iso(i0 + bw, D, 0), iso(i0, D, 0), iso(i0, D, H)]), fill: 'transparent' }), g))
       }
       els.push(corridor('co6', hallEnd, yard, 6))
@@ -734,7 +736,7 @@ window.__ModuleLoader__.load({
           const m = [[yard + 4, 10], [yard + 146, 10], [yard + 146, 132], [yard + 4, 132]]
           m.forEach(([ci, cj], q) => { const di = q === 0 || q === 3 ? 1 : -1; const dj = q < 2 ? 1 : -1; g.push(h('polyline', { key: `dk${q}`, points: pts([iso(ci + di * 12, cj, 4), iso(ci, cj, 4), iso(ci, cj + dj * 12, 4)]), fill: 'none', stroke: A, strokeWidth: 1.8, filter: 'url(#mx-glow)' })) })
         }
-        els.push(h('g', { key: 'e7', opacity: s.state === 'idle' ? 0.6 : 1, ...click(6) }, h('title', {}, `${s.no} ${s.nm}`), g))
+        els.push(h('g', { key: 'e7', opacity: s.state === 'idle' ? 0.6 : 1, ...click(6) }, h('title', {}, s.nm), g))
         const [x, y] = iso(yard + 6, 150)
         els.push(h('g', { key: 'yardcap', transform: `matrix(${IX[0]} ${IX[1]} ${JX[0]} ${JX[1]} ${x.toFixed(1)} ${y.toFixed(1)})`, pointerEvents: 'none' },
           h('text', { x: 0, y: 0, fill: P.ink3, fontSize: 9.5 }, '每个值带原文引语 · 只读核对 · 移交')))
@@ -803,7 +805,7 @@ window.__ModuleLoader__.load({
           h('path', { d: `M${a[0].toFixed(1)} ${a[1].toFixed(1)} Q${mx.toFixed(1)} ${my.toFixed(1)} ${b[0].toFixed(1)} ${b[1].toFixed(1)}`, fill: 'none', stroke: P.ink2, strokeWidth: 1.4, strokeDasharray: '5 5', markerEnd: 'url(#mx-arr)' }),
           h('text', { x: mx, y: my - 8, textAnchor: 'middle', fill: P.ink2, fontSize: 10, ...halo }, '裁定按稳定编号存 · 重跑沿用')))
       }
-      // 屋顶标签：贴在每栋楼顶上方的胶囊，不用引线；只放编号＋关键数＋单位，验收门一个色点；选中＝实心
+      // 屋顶标签：贴在每栋楼顶上方的胶囊，不用引线；只放两字工序名＋关键数＋单位，验收门一个色点；选中＝实心
       // 细节（阶段名、说明、各行数）在悬停提示和右侧阶段面板里
       const textW = (str, fs, mono) => [...String(str)].reduce((w, ch) => w + (/[\u2E80-\uFFFF]/.test(ch) ? fs : fs * (mono ? 0.62 : 0.56)), 0)
       const gateDot = { ok: P.ok, warn: P.bad, '': P.ink3 }
@@ -812,18 +814,18 @@ window.__ModuleLoader__.load({
         const [x, y] = anchor(k)
         const on = k === sel; const hotS = s.state === 'hold' || s.state === 'run'
         const g = s.rows.find((r) => /^验收/.test(r[0]))
-        const w = 9 + textW(s.no, 9, true) + 6 + textW(s.big, 12.5, true) + (s.unit ? textW(s.unit, 9.5) + 3 : 0) + (g ? 13 : 0) + 9
+        const w = 9 + textW(s.ab, 10.5) + 6 + textW(s.big, 12.5, true) + (s.unit ? textW(s.unit, 9.5) + 3 : 0) + (g ? 13 : 0) + 9
         const hh = 21; const x0 = x - w / 2; const y0 = y - hh - 5
         const bg = on ? A : C.card; const line = hotS || on ? A : C.cardLine
         bb.push([x0, y0], [x0 + w, y])
         els.push(h('g', { key: `tag${k}`, ...click(k) },
-          h('title', {}, [`${s.no} ${s.nm}：${s.sub}`, ...s.rows.map(([l, v]) => `${l}：${v}`)].join('\n')),
+          h('title', {}, [`${s.nm}：${s.sub}`, ...s.rows.map(([l, v]) => `${l}：${v}`)].join('\n')),
           h('rect', { x: x0, y: y0, width: w, height: hh, rx: hh / 2, fill: bg, stroke: line, strokeWidth: hotS ? 1.4 : 1 }),
           h('path', { d: `M${x - 4} ${y0 + hh - 0.5}L${x} ${y - 1}L${x + 4} ${y0 + hh - 0.5}Z`, fill: bg, stroke: line, strokeWidth: 1 }),
           h('rect', { x: x - 4.6, y: y0 + hh - 2, width: 9.2, height: 2.4, fill: bg }),
-          h('text', { x: x0 + 9, y: y0 + 14.5, fill: on ? '#fff' : hotS ? A : P.ink3, fontSize: 9, fontFamily: MONO, fontWeight: 600 }, s.no,
-            h('tspan', { dx: 6, fill: on ? '#fff' : P.ink, fontSize: 12.5, fontWeight: 700 }, s.big),
-            s.unit ? h('tspan', { dx: 3, fill: on ? 'rgba(255,255,255,.75)' : P.ink3, fontSize: 9.5, fontWeight: 400, fontFamily: 'inherit' }, s.unit) : null),
+          h('text', { x: x0 + 9, y: y0 + 14.5, fill: on ? '#fff' : hotS ? A : P.ink2, fontSize: 10.5, fontWeight: 600 }, s.ab,
+            h('tspan', { dx: 6, fill: on ? '#fff' : P.ink, fontSize: 12.5, fontWeight: 700, fontFamily: MONO }, s.big),
+            s.unit ? h('tspan', { dx: 3, fill: on ? 'rgba(255,255,255,.75)' : P.ink3, fontSize: 9.5, fontWeight: 400 }, s.unit) : null),
           g ? h('circle', { cx: x0 + w - 12, cy: y0 + hh / 2, r: 3.6, fill: gateDot[g[2]] ?? P.ink3, stroke: on ? '#fff' : 'none', strokeWidth: 1 }) : null))
       })
       for (const [i, j, a, b, z] of [[-60, 44, 60, 24, 8], [0, 8, 84, 100, 112], [h0, 0, hallEnd - h0, D, H + 70], [yard, 6, 150, 160, 30], [bay0(3) + 20, D + 110, 90, 60, 30]]) {
@@ -840,7 +842,7 @@ window.__ModuleLoader__.load({
         e.preventDefault()
         onSel(ORDER[(ORDER.indexOf(sel) + d + ORDER.length) % ORDER.length])
       }
-      return h('svg', { className: 'mx-scene', tabIndex: 0, role: 'group', 'aria-label': `处理流程，当前 ${stations[sel].no} ${stations[sel].nm}（←／→ 切换工序）`, onKeyDown, viewBox: `${x0} ${y0} ${x1 - x0} ${y1 - y0}`, preserveAspectRatio: 'xMidYMin meet', style: { maxHeight: 620, overflow: 'hidden' } }, h('defs', {}, defs), els)
+      return h('svg', { className: 'mx-scene', tabIndex: 0, role: 'group', 'aria-label': `处理流程，当前 ${stations[sel].nm}（←／→ 切换工序）`, onKeyDown, viewBox: `${x0} ${y0} ${x1 - x0} ${y1 - y0}`, preserveAspectRatio: 'xMidYMin meet', style: { maxHeight: 620, overflow: 'hidden' } }, h('defs', {}, defs), els)
     }
 
     /* 每道工序：做什么 → 产出什么（引擎的通用工序说明，不含病种内容） */
@@ -968,7 +970,7 @@ window.__ModuleLoader__.load({
       }
 
       return h('div', { className: 'mx-frame mx-side' },
-        h('div', { className: 'mx-side-h' }, h('b', { className: 'mx-num' }, s.no), h('span', {}, s.nm), h('span', { className: `mx-chip ${stateCls}` }, STATE_LABEL[s.state])),
+        h('div', { className: 'mx-side-h' }, h('b', {}, s.nm), h('span', { className: `mx-chip ${stateCls}` }, STATE_LABEL[s.state])),
         h('p', { className: 'mx-sdesc' }, what, h('br'), h('span', {}, `→ ${out}`)),
         h('div', { className: 'mx-shead' }, ring, kv(stats)),
         ...parts,
