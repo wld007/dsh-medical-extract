@@ -917,12 +917,38 @@ window.__ModuleLoader__.load({
 
       let ring = null; let stats = []; const parts = []; let action = null
       if (id === 'E0') {
-        ring = h(Ring, { v: 1, label: `${run.template.fields}`, sub: '个字段' })
-        stats = [['模板', run.template.name], ['版本', `v${run.template.version}`], ['模式', MODE_LABEL[run.mode] ?? run.mode], ['优先级', run.priorities?.length ? run.priorities.join('／') : '全部']]
+        // 不是模板本身的介绍（模板页有），而是这个模板在这批数据上用上了多少：哪些组一个值都没有，往往是模板选错或召回词没覆盖本院写法
+        const pri = run.priorities?.length ? run.priorities : null
+        const scope = fields.filter((f) => !pri || pri.includes(f.priority))
+        const filledOf = run.rollup?.filled ?? {}
+        const hasVal = (f) => (run.byField?.[f.id]?.values ?? 0) > 0 || (filledOf[f.id]?.filled ?? 0) > 0
+        const nScope = fields.length ? scope.length : run.template.fields
+        const nHit = fields.length ? scope.filter(hasVal).length : Object.keys(run.byField ?? {}).length
+        const started = (t.documents ?? 0) > 0
+        ring = h(Ring, { v: nScope ? nHit / nScope : 0, label: `${nHit}/${nScope}`, sub: '字段本批有值', hot: started && run.status !== 'running' && nScope > 0 && nHit / nScope < 0.5 })
+        stats = [['模板', run.template.name], ['版本', `v${run.template.version}`], ['字段', pri ? `${fmt(nScope)} / ${fmt(run.template.fields)}（只抽 ${pri.join('／')}）` : fmt(run.template.fields)]]
         const groups = tpl.value?.template?.groups ?? []
-        const byGroup = groups.map((g) => [g.name, fields.filter((f) => f.group === g.id).length]).filter((r) => r[1])
-        if (byGroup.length) parts.push(sec('各组字段数', h(RankBars, { rows: byGroup.map(([n, c]) => [n, c, String(c)]) })))
-        action = ['模板', 'template']
+        const byGroup = groups.map((g) => { const fs = scope.filter((f) => f.group === g.id); return [g.name, fs.length, fs.filter(hasVal).length, fs] }).filter((r) => r[1])
+        if (byGroup.length) {
+          const empty = byGroup.filter((r) => r[2] === 0).length
+          parts.push(sec('各组有值字段', h(React.Fragment, {},
+            h(RankBars, { max: 1, rows: byGroup.map(([n, all, hit, fs]) => [n, hit / all, `${hit} / ${all}`, started && !hit ? 'var(--warn)' : null,
+              `${n}：${hit} / ${all} 个字段有值${hit < all ? `\n没有值：${fs.filter((f) => !hasVal(f)).map((f) => f.name).join('、')}` : ''}`]) }),
+            started && empty ? note(`${empty} 个组一个值都没有：可能这批文书本来就不记录，也可能模板不对路或召回词没覆盖本院写法`) : null),
+          started ? `${byGroup.length - empty} / ${byGroup.length} 组有值` : '尚未开始'))
+        }
+        if (scope.length) {
+          const cnt = (key) => scope.reduce((m, f) => { const k = key(f); m[k] = (m[k] ?? 0) + 1; return m }, {})
+          const always = scope.filter((f) => f.model === 'always').length; const never = scope.filter((f) => f.model === 'never').length
+          const way = run.mode === 'rules' ? [['只用规则', scope.length]] : run.mode === 'model' ? [['送模型', scope.length - never], ['只用规则', never]] : [['规则优先，定不了再送模型', scope.length - always - never], ['必送模型', always], ['只用规则', never]]
+          const GR = { encounter: '就诊', patient: '病人', timepoint: '时间点', document: '文书' }
+          const gr = cnt((f) => f.granularity ?? 'encounter')
+          const line = (l, v) => h('p', { className: 'mx-snote' }, h('span', { style: { color: 'var(--ink3)', marginRight: 8 } }, l), v)
+          parts.push(sec('字段怎么取、汇总到哪', h(React.Fragment, {},
+            line('取值', way.filter((x) => x[1]).map(([k, n]) => `${k} ${n}`).join(' · ')),
+            line('汇总到', Object.keys(GR).filter((k) => gr[k]).map((k) => `${GR[k]} ${gr[k]}`).join(' · ')))))
+        }
+        action = ['查看字段清单', 'template']
       } else if (id === 'E1') {
         ring = h(Ring, { v: s.frac, label: `${Math.round((s.frac ?? 0) * 100)}%`, sub: shards, hot })
         stats = [['文书', big(t.documents)], ['结构化记录（不抽取）', t.structured == null ? '—' : big(t.structured)], ['速率', run.rate ? `${fmt(run.rate)} 份/秒` : '—'], ['跳过（截至时刻）', fmt(t.skipped)], ['输入格式', run.plan?.format ?? '—']]
@@ -936,7 +962,7 @@ window.__ModuleLoader__.load({
         parts.push(sec('数量对照', h(React.Fragment, {}, h(RankBars, { rows: [['文书', t.documents], ['候选', t.recalled], ['取到的值', t.values]] }), note('候选按「字段 × 文书」计；一个候选里可能取出多个值，也可能一个都取不到'))))
       } else if (id === 'E3') {
         ring = h(Ring, { v: s.frac, label: `${Math.round((s.frac ?? 0) * 100)}%`, sub: shards, hot })
-        stats = [['值', big(t.values)], ['模型调用', big(t.calls)], ['命中缓存', big(t.cached)], ['调用失败', fmt(t.failed), t.failed ? 'warn' : '']]
+        stats = [['值', big(t.values)], ['模式', MODE_LABEL[run.mode] ?? run.mode], ['模型调用', big(t.calls)], ['命中缓存', big(t.cached)], ['调用失败', fmt(t.failed), t.failed ? 'warn' : '']]
         parts.push(sec('取值途径', h(Split, { parts: [['规则', methods.rule ?? 0, 'var(--fact)'], ['模型', methods.model ?? 0, 'var(--vio)'], ['模型＋规则', methods['model+rule'] ?? 0, 'var(--decide)']] })))
         parts.push(gateLine('①', '引语与原文逐字一致'))
         if (!gate('①')) parts.push(note(`模型回答 ${fmt(mdl + t.quoteFail)} 条，引语对不上丢弃 ${fmt(t.quoteFail)} 条`))
