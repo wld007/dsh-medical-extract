@@ -8,7 +8,7 @@ import { join } from 'node:path'
 import { createService } from '../lib/service.js'
 import { openLibrary } from '../lib/recognize/library.js'
 import { loadElementDict } from '../lib/recognize/index.js'
-import { readCsv, readEvidence, runToEnd, tmp } from './helpers.mjs'
+import { readCsv, readEvidence, runToEnd, service, tmp } from './helpers.mjs'
 
 const ts = (s) => s.replace(/[-: ]/g, '') + '00'
 /** 两位虚构病人，三张表：首次病程记录（文书，正文分在三列）、检验结果（一行一项）、病案号表（无叙述，应被识别为忽略或其他）。 */
@@ -107,19 +107,28 @@ test('格式识别：分歧暂扣，先按通用读法；人工裁定后重跑�
   await svc.dispose()
 })
 
-test('格式识别：不配模型只有规则草稿（待确认）；借用病历事件还原已采用的规格', async () => {
+test('没配抽取模型：不能开始；仅规则模式已停用', async () => {
   const root = await tmp()
   const input = await writeCoded(join(root, 'export'))
-  const stateDir = join(root, 'state', 'medical-extract')
-  const svc = createService({ config: { extractMode: 'rules', template: 'mdd', workers: 1 }, stateDir })
-  const run = await runToEnd(svc, { inputDir: input, outputRoot: join(root, 'out') })
-  assert.equal(run.format.adopted, 0)
-  assert.ok(run.format.tables.every((t) => t.status === 'pending'))
+  const svc = createService({ config: { template: 'mdd', workers: 1 }, stateDir: join(root, 'state', 'medical-extract') })
+  await assert.rejects(svc.start({ inputDir: input, outputRoot: join(root, 'out') }), (e) => e.code === 'no-model' && /抽取模型/.test(e.message))
+  assert.equal((await svc.configInfo()).modelConfigured, false)
   await svc.dispose()
+  const withModel = await service({ template: 'mdd' }, { stateDir: join(root, 'state', 'medical-extract') })
+  await assert.rejects(withModel.start({ inputDir: input, outputRoot: join(root, 'out'), mode: 'rules' }), /仅规则模式已停用/)
+  await withModel.dispose()
+})
+
+test('格式识别：借用病历事件还原已采用的规格', async () => {
+  const root = await tmp()
+  const input = await writeCoded(join(root, 'export'))
+  const first = await service({ template: 'mdd' }, { stateDir: join(root, 'state', 'medical-extract') })
+  const run = await runToEnd(first, { inputDir: input, outputRoot: join(root, 'out') })
+  await first.dispose()
   // 兄弟插件的格式库里有同一张表的已采用规格 → 直接借用
   const sib = openLibrary(join(root, 'state2', 'medical-event'))
   const mine = openLibrary(join(root, 'state2', 'medical-extract'))
-  const fresh = createService({ config: { extractMode: 'rules', template: 'mdd', workers: 1 }, stateDir: join(root, 'state2', 'medical-extract') })
+  const fresh = await service({ template: 'mdd' }, { stateDir: join(root, 'state2', 'medical-extract') })
   for (const t of run.format.tables) {
     const spec = /病程/.test(t.table) ? DOC_SPEC : LAB_SPEC
     await sib.put({ signature: t.signature, table: t.table, status: 'agreed', spec: { ...spec, occur: [], patient: null, invalid: null, encounter: {}, measures: [], sections: spec.sections ?? [], roles: spec.roles ?? {}, origin: 'model' }, fields: [] })
@@ -134,7 +143,7 @@ test('格式识别：不配模型只有规则草稿（待确认）；借用病�
 test('没开格式识别：按叙述性判断，病程表是文书、检验表是结构化记录', async () => {
   const root = await tmp()
   const input = await writeCoded(join(root, 'export'))
-  const svc = createService({ config: { extractMode: 'rules', template: 'mdd', workers: 1, formatRecognition: false }, stateDir: join(root, 'state', 'medical-extract') })
+  const svc = await service({ template: 'mdd', formatRecognition: false }, { stateDir: join(root, 'state', 'medical-extract') })
   const run = await runToEnd(svc, { inputDir: input, outputRoot: join(root, 'out') })
   assert.ok(['completed', 'review'].includes(run.status), run.error)
   assert.equal(run.totals.documents, 4)
@@ -149,7 +158,7 @@ test('只有结构化记录的输入：没有文书，给出提示', async () =>
     { _id: 'L1', WS04_30_020_01: '血红蛋白量', WS04_30_009_03: '98', WS04_30_016_01: 'g/L', WS06_00_926_01: ts('2024-03-11 08:00') },
     { _id: 'L2', WS04_30_020_01: '血钾', WS04_30_009_03: '3.9', WS04_30_016_01: 'mmol/L', WS06_00_926_01: ts('2024-03-11 08:00') },
   ]))
-  const svc = createService({ config: { extractMode: 'rules', template: 'mdd', workers: 1, formatRecognition: false }, stateDir: join(root, 'state', 'medical-extract') })
+  const svc = await service({ template: 'mdd', formatRecognition: false }, { stateDir: join(root, 'state', 'medical-extract') })
   const run = await runToEnd(svc, { inputDir: join(root, 'export'), outputRoot: join(root, 'out') })
   assert.equal(run.totals.documents, 0)
   assert.equal(run.totals.structured, 2)

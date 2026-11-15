@@ -6,14 +6,13 @@
         outputRoot: ''
         # 默认抽取模板 id（内置：mdd、stroke-ais、ad、hf、t2dm、ckd-hd、nsclc；我的模板放在插件数据目录 templates/）
         template: mdd
-        # hybrid：模型通读＋规则票；model：模型通读，不出规则票；rules：不调模型，召回词定位后规则取值
+        # hybrid：模型通读＋规则票；model：模型通读，不出规则票。必须配置抽取模型（baseURL、model）才能运行
         extractMode: hybrid
         # 只跑这些优先级的字段（空 = 全部），如 [P0]
         priorities: []
         # 通用文件的字段映射（空 = 自动识别）：text、id、patient、encounter、type、time、title
         mapping: {}
         # 病历内容只发往这里配置的端点（通常为本机或内网）
-        modelEnabled: true
         baseURL: ''
         model: ''
         # 核验模型：抽样背靠背重抽，统计各字段一致率；空 = 不做抽样核验
@@ -21,8 +20,13 @@
         verifyModel: ''
         disableThinking: true
         timeoutMs: 120000
-        # 全局同时进行的模型请求数（分到各工作线程）
+        # 全局同时进行的模型请求数（所有工作线程共用）
         modelConcurrency: 8
+        # 分派：每个抽取任务最多多少字（更长的文书按栏目分段）、多少个字段
+        readMaxChars: 6000
+        readMaxFields: 30
+        # 成本开关：一份文书里一个模板关键词都没有就整份跳过（默认关：关键词漏掉的写法模型也就看不到）
+        skipNoKeyword: false
         # 工作线程数；0 = 自动（CPU 数 - 1，最多 8）
         workers: 0
         # p_doc 导出：每个分片的病人数

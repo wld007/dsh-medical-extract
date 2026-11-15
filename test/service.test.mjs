@@ -13,11 +13,11 @@ async function hashTree(dir) {
   return out
 }
 
-test('p_doc 导出，仅规则：宽表取值、证据逐字、源文件不变', async () => {
+test('p_doc 导出（本机假模型按规则作答）：宽表取值、证据逐字、源文件不变', async () => {
   const root = await tmp()
   const input = await writeMddPatients(join(root, 'in'))
   const before = await hashTree(input)
-  const svc = service({ extractMode: 'rules' })
+  const svc = await service()
   const run = await runToEnd(svc, { inputDir: input, outputRoot: join(root, 'out') })
   await svc.dispose()
   assert.equal(run.status, 'completed', run.error)
@@ -59,7 +59,7 @@ test('p_doc 导出，仅规则：宽表取值、证据逐字、源文件不变',
 test('证据：每个值的引语等于原文 [s,e)', async () => {
   const root = await tmp()
   const input = await writeMddPatients(join(root, 'in'))
-  const svc = service({ extractMode: 'rules' })
+  const svc = await service()
   const run = await runToEnd(svc, { inputDir: input, outputRoot: join(root, 'out') })
   const ev = await readEvidence(join(root, 'out', 'in', 'evidence'))
   const docs = new Map()
@@ -101,7 +101,7 @@ test('模型抽取：引语核对丢弃编造、缓存复用、核验一致率',
   const root = await tmp()
   const input = await writeMddPatients(join(root, 'in'))
   const extract = fakeModel('fake-a'); const verify = fakeModel('fake-b')
-  const svc = service({ extractMode: 'hybrid', verifySampleRate: 1 }, { chatImpl: { extract, verify } })
+  const svc = await service({ extractMode: 'hybrid', verifySampleRate: 1 }, { chatImpl: { extract, verify } })
   const run = await runToEnd(svc, { inputDir: input, outputRoot: join(root, 'out') })
   assert.ok(['completed', 'review'].includes(run.status), run.error)
   assert.ok(run.totals.calls > 0)
@@ -123,7 +123,7 @@ test('通用 ndjson：自动识别字段、多分片多线程、取消后继续'
   const root = await tmp()
   const file = await synthNdjson(join(root, 'notes.ndjson'), 6000, { seed: 3 })
   // 小单元强制切成多段字节区间
-  const svc = service({ extractMode: 'rules', workers: 3, unitBytes: 256 * 1024 })
+  const svc = await service({ workers: 3, unitBytes: 256 * 1024 })
   const r = await svc.start({ inputDir: file, outputRoot: join(root, 'out') })
   for (;;) { const { run } = await svc.status(r.runId); if (run.shards.done >= 1 || run.status !== 'running') break; await new Promise((s) => setTimeout(s, 20)) }
   svc.cancel(r.runId)
@@ -153,7 +153,7 @@ test('通用 ndjson：自动识别字段、多分片多线程、取消后继续'
 test('截至时刻：只用此前写成的文书', async () => {
   const root = await tmp()
   const input = await writeMddPatients(join(root, 'in'))
-  const svc = service({ extractMode: 'rules' })
+  const svc = await service()
   const run = await runToEnd(svc, { inputDir: input, outputRoot: join(root, 'out'), asOf: '2024-04-30 00:00' })
   await svc.dispose()
   assert.equal(run.status, 'completed', run.error)
@@ -165,7 +165,7 @@ test('截至时刻：只用此前写成的文书', async () => {
 test('人工裁定：改判值，重跑沿用', async () => {
   const root = await tmp()
   const input = await writeMddPatients(join(root, 'in'))
-  const svc = service({ extractMode: 'rules' })
+  const svc = await service()
   const run = await runToEnd(svc, { inputDir: input, outputRoot: join(root, 'out') })
   const ev = await readEvidence(join(root, 'out', 'in', 'evidence'))
   // 值级：两版入院记录各有一条"离异"，两条都改判
@@ -186,7 +186,7 @@ test('人工裁定：改判值，重跑沿用', async () => {
 test('输入保护：输出不能在输入里；模板不存在报错', async () => {
   const root = await tmp()
   const input = await writeMddPatients(join(root, 'in'))
-  const svc = service({ extractMode: 'rules' })
+  const svc = await service()
   await assert.rejects(svc.start({ inputDir: input, outputRoot: join(input, 'x') }), /不能/)
   await assert.rejects(svc.start({ inputDir: input, outputRoot: join(root, 'out'), template: 'nope' }), /找不到模板/)
   await writeFile(join(root, 'empty.txt'), '')
@@ -204,7 +204,7 @@ test('通用 json：数据元编码列名、病人按目录、多列正文、文
       { _id: `${pt}-2`, _SOURCE_DB: 'hisdb01', WS05_10_133_01: '病例特点：HAMD-17 评分 24分。', WS05_01_070_02: '', WS06_00_298_01: '20240311090000', JGID: '医院-000009' },
     ]))
   }
-  const svc = service({ extractMode: 'rules' })
+  const svc = await service()
   const run = await runToEnd(svc, { inputDir: input, outputRoot: join(root, 'out') })
   await svc.dispose()
   assert.equal(run.status, 'completed', run.error)

@@ -17,7 +17,7 @@ export const inject = ['tools']
 const CHANNEL = '/medical-extract'
 const ENTRY_ID = 'medical-extract'
 const VERSION = (() => { try { return JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')).version } catch { return null } })()
-const DATA_BOUNDARY = '病历内容只发往用户在插件设置中配置的模型端点（通常为本机或内网）；未配置模型时只在本机用规则处理。'
+const DATA_BOUNDARY = '病历内容只发往用户在插件设置中配置的模型端点（通常为本机或内网）；没有配置抽取模型时不能运行。'
 
 export function apply(ctx, config = {}) {
   const workingDirectory = ctx.get('workingDirectory')
@@ -35,13 +35,13 @@ export function apply(ctx, config = {}) {
       inputDir: { type: 'string', description: '输入目录或单个文件的绝对路径（或相对工作区）。' },
       template: { type: 'string', description: '模板 id（用 extract_templates 查看）；省略时用设置里的默认模板。' },
       outputRoot: { type: 'string', description: '输出根目录，不能与输入相同、不能放在输入里；省略时用设置里的默认值，再缺省为输入旁的 _medical-extract。' },
-      mode: { type: 'string', description: 'hybrid（默认：模型通读每份文书，写了明确规则的字段规则另出一票对照）、model（模型通读，不出规则票）或 rules（不调模型：召回词定位后规则取值）。' },
+      mode: { type: 'string', description: 'hybrid（默认：模型通读每份文书，写了明确规则的字段规则另出一票对照）或 model（模型通读，不出规则票）。必须先在插件设置里配置抽取模型，否则不能开始。' },
       priorities: { type: 'array', description: '只抽这些优先级的字段，如 ["P0"]；省略为全部。' },
       asOf: { type: 'string', description: '截至时刻 "YYYY-MM-DD HH:mm"：只用此刻以前写成的文书；省略则不截断。' },
       resumeFrom: { type: 'string', description: '继续一个已取消或失败的批次（填批次 id）；已完成的分片和模型调用直接复用。填写时可省略其他参数。' },
     },
     execute: async (args, exec) => service.start({ ...args, source: { kind: 'agent', sessionId: sessionIdOf(exec?.agent) } }),
-    render: (args, v) => [{ type: 'text', text: `已启动批次 ${v.runId}（模板 ${v.template}，${v.mode}，${v.modelConfigured ? `模型 ${v.model}` : '未配置模型，仅规则'}），输出到 ${v.outputRoot}。用 extract_status 查看进度。` }],
+    render: (args, v) => [{ type: 'text', text: `已启动批次 ${v.runId}（模板 ${v.template}，${v.mode}，模型 ${v.model}），输出到 ${v.outputRoot}。用 extract_status 查看进度。` }],
   }))
 
   ctx.tools.register(tool({
@@ -151,10 +151,10 @@ export function apply(ctx, config = {}) {
   }))
 
   ctx.inject(['commands'], (cmdCtx) => {
-    const usage = '用法：/extract <输入目录或文件> [--template 模板id] [--mode hybrid|model|rules] [--out 输出根目录] [--as-of "YYYY-MM-DD HH:mm"]'
+    const usage = '用法：/extract <输入目录或文件> [--template 模板id] [--mode hybrid|model] [--out 输出根目录] [--as-of "YYYY-MM-DD HH:mm"]'
     const dispose = cmdCtx.commands.register({
       name: 'extract',
-      description: '病历文书提取：/extract <输入> [--template mdd] [--mode hybrid|model|rules] [--out 输出根目录] [--as-of "YYYY-MM-DD HH:mm"]',
+      description: '病历文书提取：/extract <输入> [--template mdd] [--mode hybrid|model] [--out 输出根目录] [--as-of "YYYY-MM-DD HH:mm"]',
       input: { hint: '输入目录或文件 [--template mdd] [--mode hybrid] [--out 输出根目录]' },
       handler: async (invocation) => {
         const args = String(invocation.rawInput ?? '').match(/"[^"]*"|'[^']*'|\S+/g)?.map((x) => x.replace(/^["']|["']$/g, '')) ?? []
@@ -163,7 +163,7 @@ export function apply(ctx, config = {}) {
         if (!args[0]) return { kind: 'error', text: usage }
         try {
           const v = await service.start({ inputDir: args[0], outputRoot, asOf, template, mode, source: { kind: 'command', sessionId: sessionIdOf(invocation.agent) } })
-          return { kind: 'success', text: `已启动批次 ${v.runId}（模板 ${v.template}，${v.modelConfigured ? `模型 ${v.model}` : '仅规则'}），输出到 ${v.outputRoot}。用 extract_status 或左侧栏「病历文书提取」查看进度。` }
+          return { kind: 'success', text: `已启动批次 ${v.runId}（模板 ${v.template}，模型 ${v.model}），输出到 ${v.outputRoot}。用 extract_status 或左侧栏「病历文书提取」查看进度。` }
         } catch (error) {
           return { kind: 'error', text: String(error?.message ?? error) }
         }
