@@ -548,12 +548,12 @@ window.__ModuleLoader__.load({
       const gate = (id) => run.gates?.find((g) => g.id === id)
       const gateRow = (id, label, v) => [label, v ?? (gate(id) ? (gate(id).pass ? '通过' : '未过') : '—'), gate(id) ? (gate(id).pass ? 'ok' : 'warn') : '']
       // ab＝场景里屋顶标签用的两字工序名；no（E0–E7）只留作内部编号，不在界面上显示
-      const AB = { E0: '模板', E1: '读入', E2: '召回', E3: '取值', E4: '归一', E5: '汇总', E6: '核验', E7: '交付' }
+      const AB = { E0: '模板', E1: '读入', E2: '初筛', E3: '取值', E4: '归一', E5: '汇总', E6: '核验', E7: '交付' }
       const st = (no, nm, sub, bigv, unit, rows, state, frac) => ({ no, ab: AB[no], nm, sub, big: bigv, unit, rows, state, frac })
       const methods = t.byMethod ?? {}
       return [
         st('E1', '读入·切栏目', run.plan?.format ?? '规划输入', big(t.documents), '文书', [['分片', `${run.shards.done}/${run.shards.total}`, ''], ['结构化记录（不抽取）', t.structured == null ? '—' : big(t.structured), ''], ['速率', run.rate ? `${fmt(run.rate)}/秒` : '—', '']], stOf('E3'), shardFrac),
-        st('E2', '候选召回', '按文书类型、栏目过滤；召回词与正则', big(t.recalled), '字段·文书', [['跳过（截至时刻）', fmt(t.skipped), '']], stOf('E3'), shardFrac),
+        st('E2', '关键词初筛', '每个字段用关键词在文书里找，提到了才交给取值', big(t.recalled), '命中', [['跳过（截至时刻）', fmt(t.skipped), '']], stOf('E3'), shardFrac),
         st('E3', '取值·模型补抽', '规则定值；定不了的片段送模型，引语回原文核对', big(t.values), '值', [gateRow('①', '验收①', `${fmt(t.quoteFail)} 丢弃`), ['规则', big(methods.rule), ''], ['模型', big((methods.model ?? 0) + (methods['model+rule'] ?? 0)), ''], ['模型调用', `${big(t.calls)}（缓存 ${big(t.cached)}）`, '']], stOf('E3'), shardFrac),
         st('E4', '归一·断言', '单位、日期、选项规范名；否认／既往／家族／计划', fmt(t.invalid + t.outOfRange), '不合规', [gateRow('②', '验收②')], stOf('E3'), shardFrac),
         st('E5', '汇总·派生', '按粒度与取值规则成格；派生字段；冲突登记', fmt(t.conflicts), '冲突', [['病人', big(t.patients), ''], gateRow('③', '验收③')], stOf('E5'), stage === 'E5' ? 0.5 : after('E5') ? 1 : 0),
@@ -838,7 +838,7 @@ window.__ModuleLoader__.load({
       // 模型补抽（旁路）
       {
         const on = !!run.model; const V = P.vio
-        // 楼号：bay0(1)=召回 E2，bay0(2)=取值 E3（模型补抽在这里），bay0(5)=核验 E6（核验模型）
+        // 楼号：bay0(1)=初筛 E2，bay0(2)=取值 E3（模型补抽在这里），bay0(5)=核验 E6（核验模型）
         const mi = bay0(2) + 30; const mj = D + 118; const ma = 70; const mb = 42; const mh = 28
         const g = []
         g.push(...isoBox('mp', mi - 6, mj - 6, -3, ma + 12, mb + 12, 3, { top: C.pad, left: C.padL, right: C.padR }))
@@ -905,7 +905,7 @@ window.__ModuleLoader__.load({
     const STEP_HELP = {
       E0: ['载入抽取模板并校验：字段、取值类型、选项、召回词与规则', '字段规格，下发给后面每道工序'],
       E1: ['识别输入格式，切成分片并行处理；只留下文书（病历类），检验、医嘱、收费等结构化记录不进抽取，只取人口与就诊信息；文书按栏目切开，截至时刻以后写成的跳过', '文书与栏目'],
-      E2: ['按字段限定的文书类型、栏目过滤，再用召回词和正则找出可能有值的句子', '候选：字段 × 文书'],
+      E2: ['每个字段用它的关键词（召回词、正则）在每份文书里找，只看模板限定的文书类型和栏目；没提到的直接记「未提及」，提到了才把那几句交给下一步取值。这一步全是规则，不用模型', '命中的「字段 × 文书」及所在句子'],
       E3: ['规则能定的直接取值；定不了的片段送抽取模型，模型给的引语回原文逐字核对，对不上就丢弃', '值：每个都带原文引语、起止位置和出处（规则编号或模型）'],
       E4: ['统一单位、日期和选项写法；判断否认、既往、家族史、计划；类型、选项或值域不对的标为不合规', '规范值与断言'],
       E5: ['按字段粒度（文书／就诊／病人／时间点）和汇总规则合并成格，计算派生字段；同一格互斥取值登记为冲突，不自动选边', '宽表、时间点长表、冲突表'],
@@ -1007,8 +1007,8 @@ window.__ModuleLoader__.load({
         }
       } else if (id === 'E2') {
         ring = h(Ring, { v: s.frac, label: `${Math.round((s.frac ?? 0) * 100)}%`, sub: shards, hot })
-        stats = [['候选', big(t.recalled)], ['文书', big(t.documents)]]
-        parts.push(sec('数量对照', h(React.Fragment, {}, h(RankBars, { rows: [['文书', t.documents], ['候选', t.recalled], ['取到的值', t.values]] }), note('候选按「字段 × 文书」计；一个候选里可能取出多个值，也可能一个都取不到'))))
+        stats = [['命中（字段 × 文书）', big(t.recalled)], ['文书', big(t.documents)]]
+        parts.push(sec('数量对照', h(React.Fragment, {}, h(RankBars, { rows: [['文书', t.documents], ['命中', t.recalled], ['取到的值', t.values]] }), note('命中按「字段 × 文书」计：一个字段在一份文书里提到了算 1 个；一个命中里可能取出多个值，也可能一个都取不到（比如提到了但是否认）'))))
       } else if (id === 'E3') {
         ring = h(Ring, { v: s.frac, label: `${Math.round((s.frac ?? 0) * 100)}%`, sub: shards, hot })
         stats = [['值', big(t.values)], ['模式', MODE_LABEL[run.mode] ?? run.mode], ['模型调用', big(t.calls)], ['命中缓存', big(t.cached)], ['调用失败', fmt(t.failed), t.failed ? 'warn' : '']]
