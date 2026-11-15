@@ -33,7 +33,7 @@ const DOC_SPEC = { recordType: '病程记录', written: ['WS09_00_053_01'], key:
 const LAB_SPEC = { recordType: '检验', written: ['WS06_00_926_01'], key: ['_id'], roles: { item: 'WS04_30_020_01', value: 'WS04_30_009_03', unit: 'WS04_30_016_01', ref: 'WS04_50_902_01', panel: 'WS02_10_916_01' }, note: '检验明细' }
 
 /** 假模型：格式提示按表名回答规格；其他提示（抽取）回空。variant 让核验模型在病程表上故意给不同的类别。 */
-function fakeModel(name, { disagreeOnDoc = false } = {}) {
+function fakeModel(name, { disagreeOnDoc = false, yieldOnAdj = false } = {}) {
   const seen = []
   return {
     model: name, seen,
@@ -50,6 +50,9 @@ function fakeModel(name, { disagreeOnDoc = false } = {}) {
         return { content: JSON.stringify({ values }), ms: 1 }
       }
       const brief = JSON.parse(prompt.slice(prompt.lastIndexOf('表画像：') + 5))
+      // 复判：看到对方的版本后改口（yieldOnAdj）或坚持
+      const lastUser = messages.filter((m) => m.role === 'user').at(-1).content
+      if (lastUser.includes('有分歧的项') && yieldOnAdj && /病程/.test(brief.表)) return { content: JSON.stringify({ ...DOC_SPEC, reason: '有病例特点和诊疗计划栏目，是病程记录' }), ms: 1 }
       const spec = /病程/.test(brief.表) ? { ...DOC_SPEC, ...(disagreeOnDoc ? { recordType: '会诊记录', sections: [['WS05_10_133_01', '病情摘要']] } : {}) } : /检验/.test(brief.表) ? LAB_SPEC : { recordType: '忽略' }
       return { content: JSON.stringify(spec), ms: 1 }
     },
@@ -180,5 +183,22 @@ test('数据元对照表：编码忽略分隔符；中文名进画像', async ()
   assert.ok(seen.seen.some((p) => p.includes('"中文名":"病情记录"')))
   const t = (await svc.formats(run.id)).tables.find((x) => /病程/.test(x.table))
   assert.equal(t.fields.find((x) => x.name === 'WS05_10_133_01').label, '病情记录')
+  await svc.dispose()
+})
+
+test('格式识别：分歧先复判——核验模型看了对方的版本改口，复判第 1 轮一致即采用；记下每一轮', async () => {
+  const root = await tmp()
+  const input = await writeCoded(join(root, 'export'))
+  const b = fakeModel('fake-b', { disagreeOnDoc: true, yieldOnAdj: true })
+  const svc = createService({ config: { extractMode: 'hybrid', template: 'mdd', workers: 1, verifySampleRate: 0, maxRounds: 3 }, stateDir: join(root, 'state', 'medical-extract'), chatImpl: { extract: fakeModel('fake-a'), verify: b } })
+  const run = await runToEnd(svc, { inputDir: input, outputRoot: join(root, 'out') })
+  assert.equal(run.format.held, 0)
+  assert.equal(run.format.adjudicated, 1)
+  const t = (await svc.formats(run.id)).tables.find((x) => x.adjudicated)
+  assert.equal(t.status, 'agreed'); assert.equal(t.adjudicated, 1); assert.equal(t.spec.recordType, '病程记录')
+  assert.ok(t.firstDiffs.length); assert.equal(t.rounds.length, 1); assert.equal(t.rounds[0].verifyReason, '有病例特点和诊疗计划栏目，是病程记录')
+  // 复判提示里有分歧项、对方的版本；不发正文
+  const adjPrompt = b.seen.find((p) => p.includes('表画像'))
+  assert.ok(adjPrompt)
   await svc.dispose()
 })

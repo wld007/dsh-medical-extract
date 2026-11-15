@@ -1415,6 +1415,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         if (t.hollow != null) parts.push(sec('清洗', h(React.Fragment, {}, h(Split, { parts: [['进入提取的文书', t.documents, 'var(--teal)'], ['空壳文书', t.hollow, 'var(--warn)']] }), note(`解码 ${fmt(t.decoded)} 个字段值，去掉导出乱码 ${fmt(t.garbled)} 个字段值，去掉图片与二进制 ${fmt(t.media ?? 0)} 处${Object.keys(t.mediaKinds ?? {}).length ? `（${Object.entries(t.mediaKinds).map(([k, v]) => `${k} ${fmt(v)}`).join('，')}）` : ''}，图片里的文字不识别。空壳文书＝清洗后各栏目加起来不到 2 个汉字，如「护理观察：-」、只有编码的记录`))))
         if (run.format) {
           parts.push(sec('格式识别', h(Split, { parts: [['采用', run.format.adopted ?? 0, 'var(--teal)'], ['待确认', run.format.held ?? 0, 'var(--warn)'], ['跳过', run.format.ignored ?? 0, 'var(--line2)']] }), `${fmt((run.format.adopted ?? 0) + (run.format.held ?? 0) + (run.format.ignored ?? 0))} 张表`))
+          if (run.format.adjudicated || run.format.adjDisputed) parts.push(note(`两个模型背靠背各自起草，有分歧的表先复判（只重判有分歧的项，至多 ${run.maxRounds ?? 3} 轮）：复判后一致 ${fmt(run.format.adjudicated ?? 0)} 张${run.format.adjDisputed ? `，仍有分歧交人工 ${fmt(run.format.adjDisputed)} 张` : ''}`))
           if (run.format.held) action = [`去确认 ${run.format.held} 张表`, 'formats']
         }
       } else if (id === 'E2') {
@@ -1709,6 +1710,13 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         h('div', { className: 'mx-h' }, h('b', { className: 'mx-num', style: { wordBreak: 'break-all' } }, row.table), h('span', { className: `mx-chip ${cls}` }, label)),
         h('div', { className: 'mx-muted', style: { fontSize: 11.5, marginBottom: 8 } }, `${fmt(row.rows)} 行 · ${row.files} 个文件 · 字段 ${row.fields?.length ?? '—'}（空 ${row.fields?.filter((f) => f.kind === 'empty').length ?? '—'}）`),
         row.reason ? h('div', { className: 'mx-mo', style: { wordBreak: 'break-all' } }, row.reason, ...(row.diffs ?? []).map((d, i) => h('div', { key: i }, `· ${d}`)), ...(row.problems ?? []).map((d, i) => h('div', { key: `p${i}`, className: 'mx-warn' }, `· ${d}`))) : null,
+        row.rounds?.length ? h(React.Fragment, {},
+          h('div', { className: 'mx-sec' }, h('b', {}, '复判经过'), h('span', { className: 'mx-cap' }, row.adjudicated ? `第 ${row.adjudicated} 轮一致` : `${row.rounds.length} 轮仍不一致`)),
+          row.firstDiffs?.length ? h('div', { className: 'mx-faint', style: { fontSize: 11 } }, `起初的分歧：${row.firstDiffs.join('；')}`) : null,
+          h('div', { className: 'mx-rounds' }, row.rounds.map((rd) => h('div', { key: rd.round, className: 'mx-round' },
+            h('em', {}, `第 ${rd.round} 轮`),
+            h('div', {}, h('small', {}, '提取模型'), h('div', { style: { wordBreak: 'break-all' } }, specLine(rd.extract, labels)), rd.extractReason ? h('div', { className: 'mx-why' }, rd.extractReason) : null, rd.extractInvalid ? h('div', { className: 'mx-warn', style: { fontSize: 10.5 } }, `改出的规格没过校验，当作坚持：${rd.extractInvalid[0]}`) : null),
+            rd.verify ? h('div', {}, h('small', {}, '核验模型'), h('div', { style: { wordBreak: 'break-all' } }, specLine(rd.verify, labels)), rd.verifyReason ? h('div', { className: 'mx-why' }, rd.verifyReason) : null, rd.verifyInvalid ? h('div', { className: 'mx-warn', style: { fontSize: 10.5 } }, `改出的规格没过校验，当作坚持：${rd.verifyInvalid[0]}`) : null) : h('div', { className: 'mx-faint' }, rd.extract ? '（对照规则草稿，只复判 1 轮）' : ''))))) : null,
         h('div', { className: 'mx-sec' }, h('b', {}, '当前规格'), h('span', { className: 'mx-cap' }, FMT_ORIGIN[row.spec?.origin] ?? '')),
         h('div', { style: { fontSize: 12, lineHeight: 1.7, wordBreak: 'break-all' } }, specLine(row.spec, labels)),
         row.spec?.note ? h('div', { className: 'mx-faint', style: { fontSize: 11, marginTop: 4 } }, `依据：${row.spec.note}`) : null,
