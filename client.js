@@ -767,7 +767,7 @@ window.__ModuleLoader__.load({
       }
       // 验收门①：丢弃的引语（红箱）
       if (t.quoteFail) {
-        const gi = (bay0(3) + bw + bay0(4)) / 2 - 7; const gg = []
+        const gi = (bay0(2) + bw + bay0(3)) / 2 - 7; const gg = []
         for (let q = 0; q < Math.min(4, Math.ceil(t.quoteFail / 10)); q++) gg.push(...isoBox(`rq${q}`, gi + (q % 2) * 15 - 4, D + 6 + Math.floor(q / 2) * 13, 0, 13, 12, 11, RED))
         // 标签放在红箱正上方：左下是去模型旁路的斜管，下方是回 E6 的横管
         const lp = iso(gi + 5, D + 12, 22)
@@ -776,18 +776,19 @@ window.__ModuleLoader__.load({
       }
       // 处理中：发光的箱子
       if (running && run.current?.stage === 'E3') {
-        const at = [bay0(3) + 30, D + 6]; const tp = iso(at[0] + 8, at[1] + 14, 0)
+        const at = [bay0(2) + 30, D + 6]; const tp = iso(at[0] + 8, at[1] + 14, 0)
         els.push(h('g', { key: 'cur' }, h('g', { filter: 'url(#mx-glow)', className: 'mx-pulse' }, isoBox('cc', at[0], at[1], 0, 16, 14, 13, AMB)),
           h('text', { x: tp[0] - 14, y: tp[1] + 16, textAnchor: 'end', fill: A, fontSize: 10.5, fontWeight: 700, ...halo }, `处理中 · ${run.shards.running ?? 0} 个分片${run.rate ? ` · ${fmt(run.rate)} 份/秒` : ''}`)))
       }
       // 模型补抽（旁路）
       {
         const on = !!run.model; const V = P.vio
-        const mi = bay0(3) + 30; const mj = D + 118; const ma = 70; const mb = 42; const mh = 28
+        // 楼号：bay0(1)=召回 E2，bay0(2)=取值 E3（模型补抽在这里），bay0(5)=核验 E6（核验模型）
+        const mi = bay0(2) + 30; const mj = D + 118; const ma = 70; const mb = 42; const mh = 28
         const g = []
         g.push(...isoBox('mp', mi - 6, mj - 6, -3, ma + 12, mb + 12, 3, { top: C.pad, left: C.padL, right: C.padR }))
         const pipe = (key, from, to) => { const a = iso(...from); const b = iso(...to); return h('line', { key, x1: a[0], y1: a[1], x2: b[0], y2: b[1], stroke: on ? V : C.left2, strokeWidth: on ? 1.8 : 1.4, strokeDasharray: '3 6', className: on ? 'mx-flow' : undefined, filter: on ? 'url(#mx-glow)' : undefined, opacity: on ? 1 : 0.5 }) }
-        g.push(pipe('p1', [bay0(3) + 40, D, 22], [mi + 14, mj, mh - 4]), pipe('p2', [mi + ma - 14, mj, mh - 4], [bay0(5) + 22, D, 22]))
+        g.push(pipe('p1', [bay0(2) + 40, D, 22], [mi + 14, mj, mh - 4]), pipe('p2', [mi + ma - 14, mj, mh - 4], [bay0(5) + 22, D, 22]))
         g.push(...isoBox('mb', mi, mj, 0, ma, mb, mh, CL))
         for (let w = 0; w < 3; w++) g.push(leftPatch(`mw${w}`, mi + 8 + w * 20, mi + 20 + w * 20, mj + mb, 9, 19, { fill: on ? V : C.win, opacity: on ? 0.9 : 0.55, filter: on ? 'url(#mx-glow)' : undefined }))
         g.push(...isoBox('mbk', mi + 48, mj + 14, mh, 10, 10, 7, on ? { top: shade(V, 0.3), left: V, right: shade(V, -0.3) } : CL2))
