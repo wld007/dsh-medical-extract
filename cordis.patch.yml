@@ -6,7 +6,7 @@
         outputRoot: ''
         # 默认抽取模板 id（内置：mdd、stroke-ais、ad、hf、t2dm、ckd-hd、nsclc；我的模板放在插件数据目录 templates/）
         template: mdd
-        # hybrid：规则优先，规则定不了才送模型；model：召回到的字段都送模型，规则作第二票；rules：不调模型
+        # hybrid：模型通读＋规则票；model：模型通读，不出规则票；rules：不调模型，召回词定位后规则取值
         extractMode: hybrid
         # 只跑这些优先级的字段（空 = 全部），如 [P0]
         priorities: []

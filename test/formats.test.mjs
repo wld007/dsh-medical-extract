@@ -40,7 +40,15 @@ function fakeModel(name, { disagreeOnDoc = false } = {}) {
     async chat(messages) {
       const prompt = messages.find((m) => m.role === 'user').content
       seen.push(prompt)
-      if (!prompt.includes('表画像')) return { content: '{"values":[]}', ms: 1 }
+      if (!prompt.includes('表画像')) {
+        // 通读抽取：按原文里写明的几处作答（虚构）
+        const whole = prompt.match(/原文：\n<<<\n([\s\S]*)\n>>>/)?.[1] ?? ''
+        const ids = new Set(JSON.parse(prompt.match(/要抽取的字段：\n(.*?)\n原文/s)?.[1] ?? '[]').map((f) => f.id))
+        const values = [
+          ['D1', '否认自杀观念', '无', '否认'], ['F1', '舍曲林', '舍曲林', '阳性'], ['E1', 'HAMD-17 评分 24分', 24, '阳性'],
+        ].filter(([id, q]) => ids.has(id) && whole.includes(q)).map(([field, quote, value, assertion]) => ({ field, value, assertion, quote, variant: field === 'E1' ? 'HAMD-17' : null }))
+        return { content: JSON.stringify({ values }), ms: 1 }
+      }
       const brief = JSON.parse(prompt.slice(prompt.lastIndexOf('表画像：') + 5))
       const spec = /病程/.test(brief.表) ? { ...DOC_SPEC, ...(disagreeOnDoc ? { recordType: '会诊记录', sections: [['WS05_10_133_01', '病情摘要']] } : {}) } : /检验/.test(brief.表) ? LAB_SPEC : { recordType: '忽略' }
       return { content: JSON.stringify(spec), ms: 1 }

@@ -30,12 +30,12 @@ export function apply(ctx, config = {}) {
 
   ctx.tools.register(tool({
     name: 'extract_start',
-    description: `dsh-medical-extract 插件（病历文书提取）：按抽取模板（字段清单；内置抑郁障碍、急性缺血性卒中、阿尔茨海默病、心力衰竭、2 型糖尿病、慢性肾脏病与血透、非小细胞肺癌，也可自建）从病历文书里抽取内容，每个值带逐字原文引语与位置。输入可以是区域平台导出（p_doc_*.json，一位或多位病人）或通用文件（json／ndjson／jsonl／csv／tsv／txt／md，每行或每个文件一份文书），可到千万份文书：分片并行、可取消、可从取消或失败处继续。规则优先，规则定不了的片段送模型，引语回原文核对；可选核验模型做抽样核验。交付宽表（病人／就诊／文书）、时间点长表、证据长表、冲突表与报告；绝不修改源文件。${DATA_BOUNDARY}立即返回批次 id。`,
+    description: `dsh-medical-extract 插件（病历文书提取）：按抽取模板（字段清单；内置抑郁障碍、急性缺血性卒中、阿尔茨海默病、心力衰竭、2 型糖尿病、慢性肾脏病与血透、非小细胞肺癌，也可自建）从病历文书里抽取内容，每个值带逐字原文引语与位置。输入可以是区域平台导出（p_doc_*.json，一位或多位病人）或通用文件（json／ndjson／jsonl／csv／tsv／txt／md，每行或每个文件一份文书），可到千万份文书：分片并行、可取消、可从取消或失败处继续。只读文书（结构化记录不抽取），先清洗；按文书类型和栏目把字段派给文书，抽取模型通读，引语回原文核对，写了明确规则的字段规则另出一票对照；可选核验模型做抽样核验。交付宽表（病人／就诊／文书）、时间点长表、证据长表、冲突表与报告；绝不修改源文件。${DATA_BOUNDARY}立即返回批次 id。`,
     parameters: {
       inputDir: { type: 'string', description: '输入目录或单个文件的绝对路径（或相对工作区）。' },
       template: { type: 'string', description: '模板 id（用 extract_templates 查看）；省略时用设置里的默认模板。' },
       outputRoot: { type: 'string', description: '输出根目录，不能与输入相同、不能放在输入里；省略时用设置里的默认值，再缺省为输入旁的 _medical-extract。' },
-      mode: { type: 'string', description: 'hybrid（默认：规则优先，定不了才送模型）、model（召回到的字段都送模型，规则作第二票）或 rules（只跑规则）。' },
+      mode: { type: 'string', description: 'hybrid（默认：模型通读每份文书，写了明确规则的字段规则另出一票对照）、model（模型通读，不出规则票）或 rules（不调模型：召回词定位后规则取值）。' },
       priorities: { type: 'array', description: '只抽这些优先级的字段，如 ["P0"]；省略为全部。' },
       asOf: { type: 'string', description: '截至时刻 "YYYY-MM-DD HH:mm"：只用此刻以前写成的文书；省略则不截断。' },
       resumeFrom: { type: 'string', description: '继续一个已取消或失败的批次（填批次 id）；已完成的分片和模型调用直接复用。填写时可省略其他参数。' },

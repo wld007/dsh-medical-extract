@@ -10,6 +10,24 @@ import { pickCell } from '../lib/engine/rollup.js'
 import { sameConclusion } from '../lib/engine/shard.js'
 import { parseInstant } from '../lib/util.js'
 import { isNarrativeTable } from '../lib/source/narrative.js'
+import { cleanValue, decodeShortBase64, isHollow, isPlaceholder } from '../lib/source/clean.js'
+import { fieldsFor, segmentsOf, tasksFor } from '../lib/engine/dispatch.js'
+
+test('读入·清洗：解码短 base64、去掉 Java 对象残留、占位与空壳', () => {
+  assert.equal(decodeShortBase64('LQ=='), '-')
+  assert.equal(decodeShortBase64('null'), null)
+  assert.equal(decodeShortBase64('abcd'), null)
+  const cs = {}
+  assert.equal(cleanValue('瘤体约3"], org.dom4j.tree.DefaultText@3d859866 [Text: "×"], org.dom4j.tree.DefaultText@7486b6e2 [Text: "3cm"]]', cs), '瘤体约3×3cm')
+  assert.equal(cs.garbled, 1)
+  assert.equal(cleanValue('LQ==', cs), '-'); assert.equal(cs.decoded, 1)
+  assert.ok(isPlaceholder('-')); assert.ok(isPlaceholder('null')); assert.ok(!isPlaceholder('130/80')); assert.ok(!isPlaceholder('无'))
+  const doc = (text, sections) => ({ text, sections })
+  assert.ok(isHollow(doc('护理观察：-\n', [{ name: '护理观察', s: 5, e: 6 }])))
+  assert.ok(isHollow(doc('手术名称：43.7x00\n', [{ name: '手术名称', s: 5, e: 12 }])))
+  assert.ok(!isHollow(doc('主诉：情绪低落3月\n', [{ name: '主诉', s: 3, e: 9 }])))
+})
+
 
 test('文书判定兜底：叙述性文字才算文书', () => {
   assert.equal(isNarrativeTable([{ a: '患者情绪低落3月，睡眠差，食欲减退，否认自杀观念。' }, { a: '患者情绪较前好转，睡眠改善。' }]), true)
@@ -21,6 +39,26 @@ test('文书判定兜底：叙述性文字才算文书', () => {
 const lex = buildLexicon()
 const mdd = JSON.parse(await readFile(new URL('../templates/mdd.json', import.meta.url), 'utf8'))
 const at = (text, term, section = '现病史') => { const s = text.indexOf(term); return assess(text, s, s + term.length, section, lex).assertion }
+
+test('分派：按文书类型、栏目派字段；长文书按栏目切段；字段分组', () => {
+  const tpl = compileTemplate(mdd)
+  const text = `主诉：情绪低落3月\n${'现病史：'}${'患者睡眠差。'.repeat(400)}\n家族史：母亲有抑郁症病史。\n`
+  const sections = splitSections(text)
+  const doc = { id: 'D1', recordType: '入院记录', text, sections }
+  const fs = fieldsFor(doc, tpl)
+  assert.ok(fs.length > 0 && fs.every((f) => f.type !== 'derived'))
+  // 只限定出院记录的字段不派给入院记录
+  assert.ok(!fs.some((f) => f.recordTypes && !f.recordTypes.includes('入院记录')))
+  const segs = segmentsOf(doc, 1000)
+  assert.ok(segs.length > 1)
+  assert.equal(segs[0].s, 0); assert.equal(segs.at(-1).e, text.length)
+  for (let i = 1; i < segs.length; i++) assert.equal(segs[i].s, segs[i - 1].e)
+  assert.ok(segs.every((x) => x.e - x.s <= 1000))
+  const tasks = tasksFor(doc, tpl, { maxChars: 1000, maxFields: 20 })
+  assert.ok(tasks.every((t) => t.fields.length <= 20 && t.text === text.slice(t.s, t.e)))
+  // 同样输入，任务编号稳定
+  assert.deepEqual(tasks.map((t) => t.id), tasksFor(doc, tpl, { maxChars: 1000, maxFields: 20 }).map((t) => t.id))
+})
 
 test('断言：否认、作用域、伪否认、家族、既往、计划', () => {
   assert.equal(at('否认自杀观念及自伤行为。', '自伤'), '否认')
@@ -103,4 +141,39 @@ test('核验比较：忽略标点、顺序、拼接与日期精度', () => {
   assert.ok(sameConclusion(tpl.byId.get('B3'), '2024-10', '2024-10-06'))
   assert.ok(!sameConclusion(tpl.byId.get('B3'), '2024-10', '2024-12'))
   assert.ok(!sameConclusion(tpl.byId.get('C1'), '无', '未提及'))
+})
+
+test('规则票：与模型一致记 model+rule，模型答了别的值记为分歧（进复核）', async () => {
+  const { mergeVotes } = await import('../lib/engine/model.js')
+  const r = (value, s, e) => ({ field: 'E1', value, s, e, flags: ['规则票'], method: 'rule:hamd' })
+  const m = (value, s, e) => ({ field: 'E1', value, s, e, flags: [], method: 'model' })
+  const a = mergeVotes([r(24, 10, 20)], [m(24, 12, 18)], { answered: new Set(['E1']), anyFailed: false })
+  assert.equal(a.agree, 1); assert.equal(a.values[0].method, 'model+rule'); assert.equal(a.disputes.length, 0)
+  const b = mergeVotes([r(24, 10, 20)], [m(14, 40, 48)], { answered: new Set(['E1']), anyFailed: false })
+  assert.equal(b.disagree, 1); assert.equal(b.disputes.length, 1)
+  const c = mergeVotes([r(24, 10, 20)], [], { answered: new Set(), anyFailed: false })
+  assert.ok(c.values[0].flags.includes('模型未确认'))
+})
+
+test('读入·清洗：图片与二进制丢掉、HTML／RTF 转文字（图片丢掉）', async () => {
+  const { stripMedia, rtfToText } = await import('../lib/source/clean.js')
+  // 1×1 PNG（虚构）整段 base64：丢掉并计数
+  const png = Buffer.concat([Buffer.from('89504e470d0a1a0a', 'hex'), Buffer.alloc(80, 7)]).toString('base64')
+  const cs = {}
+  assert.equal(cleanValue(png, cs), ''); assert.equal(cs.media, 1); assert.equal(cs.mediaKinds['图片'], 1)
+  // HTML：图片标签与 data URI 丢掉，文字留下
+  const html = `<div><p>主诉：情绪低落3月</p><img src="data:image/png;base64,${png}"/><p>否认自杀观念。</p></div>`
+  const t = cleanValue(html, {})
+  assert.ok(t.includes('情绪低落3月') && t.includes('否认自杀观念') && !t.includes('base64') && !t.includes('<'))
+  // 文中夹的 data URI、长 base64 串
+  const cs2 = {}
+  assert.equal(stripMedia(`见附图 data:image/jpeg;base64,${png} 。`, cs2).replace(/\s+/g, ''), '见附图。'); assert.equal(cs2.media, 1)
+  assert.equal(stripMedia(`心电图：${'A'.repeat(300)}窦性心律`, {}), '心电图：窦性心律')
+  // RTF：GBK 文字解码，\pict 图片整组丢掉
+  const rtf = "{\\rtf1\\ansi\\ansicpg936{\\fonttbl{\\f0 \\'cb\\'ce\\'cc\\'e5;}}\\f0 \\'d6\\'f7\\'cb\\'df\\'a3\\'ba\\'d0\\'c4\\'c7\\'e9\\'b2\\'ee\\par{\\pict\\pngblip 89504e470d0a}\\'b7\\'f1\\'c8\\'cf\\par}"
+  const cs3 = {}
+  const r = rtfToText(rtf, cs3)
+  assert.equal(r, '主诉：心情差\n否认'); assert.equal(cs3.media, 1)
+  // 普通文字不受影响
+  assert.equal(cleanValue('血压 130/80mmHg，否认胸痛。'), '血压 130/80mmHg，否认胸痛。')
 })

@@ -79,8 +79,10 @@ function fakeModel(name = 'fake') {
     async chat(messages) {
       calls++
       const prompt = messages.at(-1).content
-      const fields = JSON.parse(prompt.match(/要抽取的字段：\n(.*)\n原文片段：/s)[1])
-      const snippets = [...prompt.matchAll(/^(S\d+): (.*)$/gm)].map((m) => ({ id: m[1], text: m[2] }))
+      // 两种提示：通读（原文：<<<…>>>）与旧流程的片段（原文片段：S1: …）
+      const fields = JSON.parse(prompt.match(/要抽取的字段：\n(.*?)\n原文(?:片段)?：/s)[1])
+      const whole = prompt.match(/原文：\n<<<\n([\s\S]*)\n>>>/)
+      const snippets = whole ? [{ id: 'T', text: whole[1] }] : [...prompt.matchAll(/^(S\d+): (.*)$/gm)].map((m) => ({ id: m[1], text: m[2] }))
       const values = []
       for (const f of fields) {
         for (const sn of snippets) {
