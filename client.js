@@ -424,21 +424,58 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
 .mx-mk.ab{background:color-mix(in srgb,var(--warn) 22%,transparent);border-bottom:2px solid var(--teal)}
 .mx-dc{display:grid;grid-template-columns:260px minmax(0,1fr) 380px;gap:8px;flex:1;min-height:0}
 .mx-dc-side{padding:10px;gap:8px;min-height:0}
-.mx-dc-search{display:flex;flex-direction:column;gap:6px}.mx-dc-tg{display:flex;gap:4px}
 .mx-dc-list{flex:1;border-top:1px solid var(--line);padding-top:6px}
-.mx-dc-p{display:grid;grid-template-columns:1fr auto;gap:1px 6px;padding:6px 8px;border-radius:5px;cursor:pointer}
-.mx-dc-p:hover{background:var(--panel2)}.mx-dc-p.on{background:var(--panel3);box-shadow:inset 3px 0 0 var(--teal)}
-.mx-dc-p b{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mx-dc-p span{grid-column:1/3;font-size:10.5px;color:var(--ink3)}
-.mx-dc-p i,.mx-dc-d i{font-style:normal;font-family:var(--mono);font-size:10.5px;color:var(--ink3)}.mx-dc-p i.hot,.mx-dc-d i.hot{color:var(--warn);font-weight:700}
-.mx-dc-d{display:grid;grid-template-columns:1fr auto;gap:1px 6px;padding:4px 8px 4px 20px;border-radius:4px;cursor:pointer;font-size:11.5px}
-.mx-dc-d:hover{background:var(--panel2)}.mx-dc-d.on{background:var(--tealdim);box-shadow:inset 3px 0 0 var(--teal)}
-.mx-dc-d span{grid-column:1/3;font-size:10.5px;color:var(--ink3)}.mx-dc-d.empty span{color:var(--warn)}
+.mx-dc-search{display:flex;flex-direction:column;gap:6px}
+.mx-dc-tgb{flex:1;border:1px solid var(--line2);background:var(--panel2);color:var(--ink2);border-radius:5px;padding:3px 6px;font:inherit;font-size:11.5px;cursor:pointer}
+.mx-dc-tgb.on{border-color:var(--teal);color:var(--teal2);background:var(--tealdim)}.mx-dc-tgb.hot:not(.on){color:var(--warn)}
+.mx-dc-pc{border-radius:7px;margin-bottom:4px;border:1px solid transparent}
+.mx-dc-pc.open{border-color:var(--line2);background:var(--panel2);padding-bottom:6px}
+.mx-dc-ph{display:flex;align-items:center;gap:5px;padding:7px 8px 2px;cursor:pointer;border-radius:6px}
+.mx-dc-pc:not(.open) .mx-dc-ph:hover{background:var(--panel2)}
+.mx-dc-ph b{font-size:12.5px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mx-dc-caret{color:var(--ink3);font-size:10px;width:10px}
+.mx-dc-pill{font-size:10px;line-height:16px;padding:0 6px;border-radius:8px;background:var(--panel3);color:var(--ink3);white-space:nowrap}
+.mx-dc-pill.hot{background:color-mix(in srgb,var(--warn) 16%,transparent);color:var(--warn);font-weight:600}
+.mx-dc-pm{font-size:10.5px;color:var(--ink3);padding:0 8px 6px 23px}
+.mx-dc-prog{height:3px;margin:0 8px 6px 23px;border-radius:2px;background:var(--line)}.mx-dc-prog i{display:block;height:100%;border-radius:2px;background:var(--ok)}
+.mx-dc-tl{padding:0 6px 0 10px}
+.mx-dc-enc{position:relative;margin-top:4px}
+.mx-dc-eh{display:flex;gap:6px;align-items:baseline;font-size:10.5px;color:var(--ink2);padding:2px 4px 2px 18px;font-weight:600}
+.mx-dc-eh span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mx-dc-eh em{font-style:normal;font-weight:400;color:var(--ink3);font-family:var(--mono)}
+.mx-dc-dr{position:relative;display:grid;grid-template-columns:14px minmax(0,1fr) auto auto;gap:6px;align-items:center;padding:4px 6px 4px 4px;border-radius:5px;cursor:pointer;font-size:11.5px}
+.mx-dc-dr::before{content:'';position:absolute;left:10px;top:-4px;bottom:-4px;width:1px;background:var(--line2)}
+.mx-dc-enc .mx-dc-dr:first-of-type::before{top:50%}.mx-dc-enc .mx-dc-dr:last-child::before{bottom:50%}.mx-dc-enc .mx-dc-dr:first-of-type:last-child::before{display:none}
+.mx-dc-dr:hover{background:var(--panel3)}
+.mx-dc-dr.on{background:var(--tealdim);box-shadow:inset 3px 0 0 var(--teal)}.mx-dc-dr.on b{color:var(--teal2)}
+.mx-dc-dr b{font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mx-dc-dot{position:relative;z-index:1;width:11px;height:11px;border-radius:50%;justify-self:center;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-size:8px;line-height:1;color:#fff}
+.mx-dc-dr.todo .mx-dc-dot{background:var(--warn)}.mx-dc-dr.val .mx-dc-dot{background:var(--teal)}
+.mx-dc-dr.seen .mx-dc-dot{background:var(--ok)}.mx-dc-dr.empty .mx-dc-dot{background:var(--panel);border:1.5px solid var(--ink3)}
+.mx-dc-time{font-size:10px;color:var(--ink3)}
+.mx-dc-st{font-size:10.5px;color:var(--ink3);font-family:var(--mono);min-width:34px;text-align:right}
+.mx-dc-dr.todo .mx-dc-st{color:var(--warn);font-weight:700}.mx-dc-dr.empty .mx-dc-st{color:var(--ink3)}
+.mx-dc-key{display:flex;gap:10px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:6px;font-size:10.5px;color:var(--ink3)}
+.mx-dc-key span::before{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:-1px;box-sizing:border-box}
+.mx-dc-key .todo::before{background:var(--warn)}.mx-dc-key .seen::before{background:var(--ok)}.mx-dc-key .val::before{background:var(--teal)}.mx-dc-key .empty::before{border:1.5px solid var(--ink3)}
+.mx-dc-bar2{padding:7px 12px}
+.mx-dc-swatch{display:flex;gap:10px;flex-wrap:wrap;font-size:10.5px;color:var(--ink3)}
+.mx-dc-swatch i{display:inline-block;width:12px;height:8px;border-radius:2px;margin-right:4px;vertical-align:0}
+.mx-dc-swatch i.val{background:color-mix(in srgb,var(--teal) 35%,transparent);border-bottom:2px solid var(--teal)}
+.mx-dc-swatch i.add{background:color-mix(in srgb,var(--decide) 35%,transparent);border-bottom:2px solid var(--decide)}
+.mx-dc-swatch i.other{background:color-mix(in srgb,var(--warn) 30%,transparent);border-bottom:2px dashed var(--warn)}
+.mx-dc-swatch i.rej{border-bottom:2px dotted var(--bad);height:4px}
+.mx-dc-swatch i.hit{border-bottom:2px dotted var(--warn);height:4px}
+.mx-dc-banner{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:7px 12px;background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--warn);font-size:12px;font-weight:600;border-bottom:1px solid color-mix(in srgb,var(--warn) 40%,transparent)}
+.mx-dc-text{flex:1;position:relative;background:var(--bg);padding:14px}
+.mx-dc-paper{max-width:860px;margin:0 auto;background:var(--panel);border:1px solid var(--line);border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:20px 26px 16px}
+.mx-dc-ttl{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:12px}
+.mx-dc-ttl b{font-size:16px}.mx-dc-ttl span{color:var(--ink2);font-size:12px}.mx-dc-ttl small{margin-left:auto;color:var(--ink3);font-size:10px}
+.mx-dc-body{font-size:13.5px;line-height:2.1}
+.mx-dc-tip{margin-top:14px;padding-top:8px;border-top:1px dashed var(--line);font-size:10.5px;color:var(--ink3);text-align:center}
 .mx-dc-page{display:flex;gap:6px;align-items:center;justify-content:center;padding:6px 0}
 .mx-dc-legacy{font-size:11px;padding:8px;line-height:1.6}
 .mx-dc-mid,.mx-dc-right{min-width:0;min-height:0;gap:0}
 .mx-dc-bar{display:flex;gap:8px;align-items:center;border-bottom:1px solid var(--line)}
-.mx-dc-legend{display:flex;gap:8px;align-items:center;padding:6px 14px;border-bottom:1px solid var(--line);font-size:11px;flex-wrap:wrap}
-.mx-dc-text{flex:1;position:relative;font-size:13.5px;line-height:2.1}
 .mx-dk{border-radius:2px;cursor:pointer}
 .mx-dk.val{background:color-mix(in srgb,var(--teal) 14%,transparent);border-bottom:2px solid var(--teal)}
 .mx-dk.add{background:color-mix(in srgb,var(--decide) 18%,transparent);border-bottom:2px solid var(--decide)}
@@ -2071,6 +2108,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
      * 值可以确认、去掉、改值；在原文上补的值出处记「人工」。判断后点「更新结果表」生效。
      */
     const ASSERTION_LIST = ['阳性', '否认', '可疑', '既往', '家族', '计划']
+    const shortTime = (w) => (w ? String(w).slice(5, 16) : '时间不详')
     const valueText = (v) => `${v.value ?? '待定'}${v.unit ? ` ${v.unit}` : ''}`
     function Source({ run, focus, setFocus, onError, onRunChanged }) {
       const [q, setQ] = useState('')
@@ -2084,10 +2122,13 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       const [busy, setBusy] = useState(false)
       const [note, setNote] = useState(null)
       const [showOther, setShowOther] = useState(false)
+      // 收起当前病人（文书仍是它的）
+      const [shut, setShut] = useState(false)
       const patient = focus?.patient ?? null
       const pl = useAsync(() => call('patients', { runId: run.id, offset, limit: 100, q: q.trim(), only: only === 'todo' ? 'todo' : null }), [run.id, offset, q, only])
       const dl = useAsync(() => (patient ? call('patientDocs', { runId: run.id, patient }) : null), [run.id, patient])
-      const docs = dl.value?.docs ?? []
+      // 按就诊分组后的顺序（组按第一份文书的时间），上一份／下一份也按这个顺序
+      const docs = (() => { const m = new Map(); for (const d of dl.value?.docs ?? []) { const k = d.encounter ?? ''; if (!m.has(k)) m.set(k, []); m.get(k).push(d) } return [...m.values()].flat() })()
       const docId = focus?.doc ?? (docs.find((d) => d.todo) ?? docs[0])?.doc ?? null
       const dv = useAsync(() => (patient && docId ? call('docView', { runId: run.id, patient, doc: docId }) : null), [run.id, patient, docId])
       useEffect(() => { setSelValue(null); setAdder(null); setEdit(null); setPending(null); setSelField(focus?.field ?? null) }, [docId])
@@ -2240,46 +2281,88 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         return () => window.removeEventListener('keydown', onKey)
       })
       const P = pl.value
+      // 看过的文书（本机记住，每个批次最多记 2 万份）
+      const seenKey = `mx-seen:${run.id}`
+      const [seen, setSeen] = useState(() => { try { return new Set(JSON.parse(localStorage.getItem(seenKey) ?? '[]')) } catch { return new Set() } })
+      useEffect(() => {
+        if (!docId || seen.has(docId)) return
+        const arr = [...seen, docId].slice(-20000)
+        try { localStorage.setItem(seenKey, JSON.stringify(arr)) } catch { /* 隐私模式 */ }
+        setSeen(new Set(arr))
+      }, [docId])
+      // 文书按就诊分组（组按第一份文书的时间排，组内按时间）
+      const encGroups = (() => {
+        const m = new Map()
+        for (const d of docs) {
+          const k = d.encounter ?? ''
+          if (!m.has(k)) m.set(k, { key: k || '-', label: k || '没有就诊号', day: d.written ? String(d.written).slice(0, 10) : null, docs: [] })
+          m.get(k).docs.push(d)
+        }
+        return [...m.values()]
+      })()
 
       return h('div', { className: 'mx-dc' },
-        // 左：病人与文书
+        // 左：病人与文书。病人一行是卡片头（待判断、无值文书两个小胶囊）；展开的病人下面按就诊分组、按时间排成时间线，
+        // 圆点＝状态：橙＝有待判断，绿勾＝看过，紫＝有值，空心＝一个值都没提到
         h('aside', { className: 'mx-frame mx-col mx-dc-side' },
           h('div', { className: 'mx-dc-search' },
-            h('input', { className: 'mx-input', placeholder: '病人编号', value: q, onChange: (e) => { setQ(e.target.value); setOffset(0) } }),
-            h('div', { className: 'mx-dc-tg' }, [['all', '全部'], ['todo', `有待判断${P?.todo ? ` ${fmt(P.todo)}` : ''}`]].map(([k, l]) => h('button', { key: k, className: `mx-btn sm${only === k ? ' on' : ''}`, onClick: () => { setOnly(k); setOffset(0) } }, l)))),
+            h('input', { className: 'mx-input', placeholder: '搜索病人编号', value: q, onChange: (e) => { setQ(e.target.value); setOffset(0) } }),
+            h('div', { className: 'mx-dc-tg' }, [['all', `全部${P ? ` ${fmt(P.total)}` : ''}`], ['todo', `有待判断${P?.todo ? ` ${fmt(P.todo)}` : ''}`]].map(([k, l]) => h('button', { key: k, className: `mx-dc-tgb${only === k ? ' on' : ''}${k === 'todo' && P?.todo ? ' hot' : ''}`, onClick: () => { setOnly(k); setOffset(0) } }, l)))),
           h('div', { className: 'mx-scroll mx-dc-list' },
             !P ? h('div', { className: 'mx-faint', style: { padding: 8 } }, pl.error ?? '加载中…')
               : !P.items.length ? h('div', { className: 'mx-faint', style: { padding: 8 } }, '没有符合的病人。')
-                : P.items.map((p) => h(React.Fragment, { key: p.patient },
-                  h('div', { className: `mx-dc-p${p.patient === patient ? ' on' : ''}`, onClick: () => setFocus({ patient: p.patient }) },
-                    h('b', { className: 'mx-num' }, p.patient), p.todo ? h('i', { className: 'hot' }, fmt(p.todo)) : null,
-                    h('span', {}, `${fmt(p.docs)} 份文书 · ${fmt(p.values)} 个值`)),
-                  p.patient === patient ? (dl.loading && !docs.length ? h('div', { className: 'mx-faint mx-dc-d' }, '加载中…')
-                    : docs.map((d) => h('div', { key: d.doc, className: `mx-dc-d${d.doc === docId ? ' on' : ''}${d.values ? '' : ' empty'}`, title: d.doc, onClick: () => setFocus({ patient, doc: d.doc }) },
-                      h('b', {}, d.recordType || '文书'), d.todo ? h('i', { className: 'hot' }, fmt(d.todo)) : null,
-                      h('span', {}, `${d.written ?? '时间不详'} · ${d.skipped ? '没送模型（无关键词）' : d.values ? `${d.values} 个值` : '一个值都没提到'}`)))) : null)),
+                : P.items.map((p) => {
+                  const open = p.patient === patient && !shut
+                  const seenN = open ? docs.filter((d) => seen.has(d.doc)).length : 0
+                  return h('div', { key: p.patient, className: `mx-dc-pc${open ? ' open' : ''}` },
+                    h('div', { className: 'mx-dc-ph', onClick: () => { if (p.patient === patient) setShut(!shut); else { setShut(false); setFocus({ patient: p.patient }) } } },
+                      h('span', { className: 'mx-dc-caret' }, open ? '▾' : '▸'),
+                      h('b', { className: 'mx-num', title: p.patient }, p.patient),
+                      h('span', { className: 'mx-sp' }),
+                      p.todo ? h('span', { className: 'mx-dc-pill hot', title: '还没判断的分歧项' }, `待判断 ${fmt(p.todo)}`) : null,
+                      p.empty ? h('span', { className: 'mx-dc-pill', title: '一个值都没提到的文书' }, `无值 ${fmt(p.empty)}`) : null),
+                    h('div', { className: 'mx-dc-pm' }, `${fmt(p.docs)} 份文书 · ${fmt(p.values)} 个值`, open && docs.length ? h('span', {}, ` · 看过 ${seenN}/${docs.length}`) : null),
+                    open && docs.length ? h('div', { className: 'mx-dc-prog' }, h('i', { style: { width: `${Math.round((seenN / docs.length) * 100)}%` } })) : null,
+                    open ? (dl.loading && !docs.length ? h('div', { className: 'mx-faint mx-dc-pm' }, '加载中…')
+                      : h('div', { className: 'mx-dc-tl' }, encGroups.map((g) => h('div', { key: g.key, className: 'mx-dc-enc' },
+                        h('div', { className: 'mx-dc-eh', title: g.label }, h('span', {}, g.label), h('em', {}, g.day ?? '')),
+                        g.docs.map((d) => {
+                          const st = d.todo ? 'todo' : seen.has(d.doc) ? 'seen' : d.values ? 'val' : 'empty'
+                          const tip = { todo: `待判断 ${d.todo} 项`, seen: '看过', val: `${d.values} 个值`, empty: d.skipped ? '没送模型（文书里没有模板关键词）' : '一个值都没提到' }[st]
+                          return h('div', { key: d.doc, className: `mx-dc-dr ${st}${d.doc === docId ? ' on' : ''}`, title: `${d.doc}\n${tip}`, onClick: () => setFocus({ patient, doc: d.doc }) },
+                            h('span', { className: 'mx-dc-dot' }, st === 'seen' ? '✓' : ''),
+                            h('b', {}, d.recordType || '文书'),
+                            h('span', { className: 'mx-dc-time mx-num' }, shortTime(d.written)),
+                            h('span', { className: 'mx-dc-st' }, d.todo ? `⚠ ${d.todo}` : d.values ? `${d.values} 值` : '无值'))
+                        })))) ) : null)
+                }),
             P && P.total > P.items.length ? h('div', { className: 'mx-dc-page' },
               h('button', { className: 'mx-btn sm', disabled: offset === 0, onClick: () => setOffset(Math.max(0, offset - 100)) }, '‹'),
               h('span', { className: 'mx-faint mx-num' }, `${fmt(offset + 1)}–${fmt(offset + P.items.length)} / ${fmt(P.total)}`),
               h('button', { className: 'mx-btn sm', disabled: offset + 100 >= P.total, onClick: () => setOffset(offset + 100) }, '›')) : null,
-            P?.legacy || dl.value?.legacy ? h('div', { className: 'mx-faint mx-dc-legacy' }, '这个批次是旧版本跑的：只列得出有提取值的文书。重跑后会列出全部文书。') : null)),
-        // 中：原文
+            P?.legacy || dl.value?.legacy ? h('div', { className: 'mx-faint mx-dc-legacy' }, '这个批次是旧版本跑的：只列得出有提取值的文书。重跑后会列出全部文书。') : null),
+          h('div', { className: 'mx-dc-key' }, h('span', { className: 'todo' }, '待判断'), h('span', { className: 'seen' }, '看过'), h('span', { className: 'val' }, '有值'), h('span', { className: 'empty' }, '无值'))),
+        // 中：原文。顶栏放文书切换和小色块图例（灰色小字，不像正文）；原文做成一张纸，纸上先是文书标题，再是正文
         h('section', { className: 'mx-frame mx-col mx-dc-mid' },
-          h('div', { className: 'mx-pad mx-dc-bar' },
-            v ? h(React.Fragment, {}, h('b', {}, v.doc.recordType || '文书'), h('span', { className: 'mx-faint' }, `${v.doc.written ?? '时间不详'}${v.doc.encounter ? ` · ${v.doc.encounter}` : ''}`), h('span', { className: 'mx-faint mx-num', title: v.doc.id }, v.doc.id.length > 18 ? `${v.doc.id.slice(0, 16)}…` : v.doc.id)) : h('b', {}, '原文'),
+          h('div', { className: 'mx-dc-bar mx-dc-bar2' },
+            h('span', { className: 'mx-dc-swatch' },
+              [['val', '提取到的值'], ['add', '人工补充'], ['other', '另一方引用'], ['rej', '已去掉'], ['hit', '关键词']].map(([k, l]) => h('span', { key: k }, h('i', { className: k }), l))),
             h('span', { className: 'mx-sp' }),
             docs.length ? h('span', { className: 'mx-faint mx-num' }, `${docIdx + 1} / ${docs.length}`) : null,
-            h('button', { className: 'mx-btn sm', disabled: docIdx <= 0, title: '上一份（K）', onClick: () => setFocus({ patient, doc: docs[docIdx - 1].doc }) }, '‹'),
-            h('button', { className: 'mx-btn sm', disabled: docIdx < 0 || docIdx >= docs.length - 1, title: '下一份（J）', onClick: () => setFocus({ patient, doc: docs[docIdx + 1].doc }) }, '›')),
-          h('div', { className: 'mx-dc-legend' },
-            h('span', { className: 'mx-dk val' }, '提取到的值'), h('span', { className: 'mx-dk add' }, '人工补充'), h('span', { className: 'mx-dk other' }, '另一方的引用'), h('span', { className: 'mx-dk rej' }, '已去掉'), h('span', { className: 'mx-dk hit' }, '关键词'),
-            h('span', { className: 'mx-sp' }),
-            h('span', { className: pending ? 'mx-warn' : 'mx-faint' }, pending ? `在原文里选中文字，补到「${v?.fields.find((f) => f.id === pending)?.name ?? pending}」（Esc 取消）` : '选中原文里的文字可以补漏提的值')),
-          h('div', { ref: textRef, className: 'mx-scroll mx-pad mx-doc mx-dc-text', onMouseUp: v ? onMouseUp : undefined },
-            !patient ? h('div', { className: 'mx-faint' }, '在左边选一位病人。')
-              : dv.loading && !v ? h('div', { className: 'mx-faint' }, '加载中…')
+            h('button', { className: 'mx-btn sm', disabled: docIdx <= 0, title: '上一份（K）', onClick: () => setFocus({ patient, doc: docs[docIdx - 1].doc }) }, '‹ 上一份'),
+            h('button', { className: 'mx-btn sm', disabled: docIdx < 0 || docIdx >= docs.length - 1, title: '下一份（J）', onClick: () => setFocus({ patient, doc: docs[docIdx + 1].doc }) }, '下一份 ›')),
+          pending ? h('div', { className: 'mx-dc-banner' }, `在原文里选中文字，补到「${v?.fields.find((f) => f.id === pending)?.name ?? pending}」`, h('button', { className: 'mx-btn sm', onClick: () => setPending(null) }, '取消（Esc）')) : null,
+          h('div', { ref: textRef, className: 'mx-scroll mx-dc-text', onMouseUp: v ? onMouseUp : undefined },
+            !patient ? h('div', { className: 'mx-faint mx-pad' }, '在左边选一位病人。')
+              : dv.loading && !v ? h('div', { className: 'mx-faint mx-pad' }, '加载中…')
                 : dv.error ? h('div', { className: 'mx-err' }, dv.error)
-                  : v ? segs : null,
+                  : v ? h('div', { className: 'mx-dc-paper' },
+                    h('div', { className: 'mx-dc-ttl' },
+                      h('b', {}, v.doc.recordType || '文书'),
+                      h('span', {}, [v.doc.written ?? '时间不详', v.doc.encounter, v.doc.patient].filter(Boolean).join(' · ')),
+                      h('small', { className: 'mx-num', title: '文书编号' }, v.doc.id)),
+                    h('div', { className: 'mx-doc mx-dc-body' }, segs),
+                    !pending ? h('div', { className: 'mx-dc-tip' }, '选中原文里的文字，可以补一个漏提的值') : null) : null,
             adder ? h('div', { className: 'mx-dc-add', style: { left: Math.max(4, adder.x), top: adder.y }, onMouseUp: (e) => e.stopPropagation() },
               h('div', { className: 'mx-dc-addq' }, `「${adder.text.length > 40 ? `${adder.text.slice(0, 40)}…` : adder.text}」`),
               h('label', {}, '字段', h('select', { className: 'mx-input', value: adder.field, onChange: (e) => { const f = v.fields.find((x) => x.id === e.target.value); setAdder({ ...adder, field: e.target.value, value: defaultValue(f, adder.text) }) } },
