@@ -834,6 +834,21 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       }
       // 规格总线
       const BUSJ = -24; const BUSZ = 74
+      // 复判回环：核验 → 提取。分歧由两个模型轮流复判（回到提取那一步重读原文），人工裁定按稳定编号存、重跑沿用。
+      // 画在规格总线和楼的后面（先画先被挡），只在屋顶以上露出一段；说明写在顶上的空处
+      {
+        const LJ = BUSJ - 22
+        const i1 = bay0(4) + bw / 2; const i0 = bay0(2) + bw / 2
+        const a = iso(i1, LJ, H + 4); const b = iso(i0, LJ, H + 4); const top = iso((i0 + i1) / 2, LJ, BUSZ + 74)
+        const d = `M${a[0].toFixed(1)} ${a[1].toFixed(1)} Q${top[0].toFixed(1)} ${top[1].toFixed(1)} ${b[0].toFixed(1)} ${b[1].toFixed(1)}`
+        const mid = [(a[0] + 2 * top[0] + b[0]) / 4, (a[1] + 2 * top[1] + b[1]) / 4]
+        els.push(h('g', { key: 'loop' },
+          h('title', {}, `分歧复判：核验分歧回到提取，由两个模型轮流重读原文复判，至多 ${run.maxRounds ?? 3} 轮；仍不一致的交人工\n人工裁定按稳定编号保存，重跑沿用`),
+          h('path', { d, fill: 'none', stroke: P.ink2, strokeWidth: 1.4, strokeDasharray: '5 5', markerEnd: 'url(#mx-arr)' }),
+          h('path', { d, fill: 'none', stroke: 'transparent', strokeWidth: 12 }),
+          h('text', { x: mid[0], y: mid[1] - 8, textAnchor: 'middle', fill: P.ink2, fontSize: 10, ...halo }, `分歧复判至多 ${run.maxRounds ?? 3} 轮 · 人工裁定重跑沿用`)))
+        bb.push([mid[0] - 110, mid[1] - 22], [mid[0] + 110, mid[1] - 22])
+      }
       {
         const g = []
         const a = iso(TW.i + TW.a / 2, TW.j + TW.b, BUSZ + 26); const b = iso(TW.i + TW.a / 2, BUSJ, BUSZ); const c = iso(bay0(5) + bw / 2, BUSJ, BUSZ)
@@ -1052,14 +1067,6 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         els.push(h('g', { key: `house${hi}`, ...click(8 + hi), style: { cursor: 'pointer' } }, h('title', {}, `${hs.model ?? hs.label}（${hs.roleText}）\n窗户＝并发名额（共 ${cap} 个${per > 1 ? `，每窗 ${per} 个` : ''}），亮着的＝在途${live ? ` ${live.inflight}` : ''}\n屋顶的箱子＝排队的请求${live ? ` ${live.waiting}` : ''}${recentFail ? '\n红窗＝最近 10 秒有调用失败' : ''}\n点开看模型状态`), g))
         bb.push(iso(mi - 6, mj + mb + 6), iso(mi - 170, mj + mb + 44), iso(mi + ma + 6, mj + mb + 6))
       })
-      // 复判与裁定：核验楼里两个模型轮流复判；人工裁定按稳定编号存，重跑沿用
-      {
-        const a = iso(bay0(4) + 50, D + 40); const b = iso(bay0(3) + 40, D + 40)
-        const mx = (a[0] + b[0]) / 2; const my = Math.max(a[1], b[1]) + 30
-        els.push(h('g', { key: 'loop', pointerEvents: 'none' },
-          h('path', { d: `M${a[0].toFixed(1)} ${a[1].toFixed(1)} Q${mx.toFixed(1)} ${my.toFixed(1)} ${b[0].toFixed(1)} ${b[1].toFixed(1)}`, fill: 'none', stroke: P.ink2, strokeWidth: 1.4, strokeDasharray: '5 5', markerEnd: 'url(#mx-arr)' }),
-          h('text', { x: mx, y: my - 6, textAnchor: 'middle', fill: P.ink2, fontSize: 10, ...halo }, `分歧复判至多 ${run.maxRounds ?? 3} 轮 · 人工裁定重跑沿用`)))
-      }
       // 屋顶标签：贴在每栋楼顶上方的胶囊，不用引线；只放两字工序名＋关键数＋单位，验收门一个色点；选中＝实心
       // 细节（阶段名、说明、各行数）在悬停提示和右侧阶段面板里
       const textW = (str, fs, mono) => [...String(str)].reduce((w, ch) => w + (/[\u2E80-\uFFFF]/.test(ch) ? fs : fs * (mono ? 0.62 : 0.56)), 0)
