@@ -1314,7 +1314,6 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       ]
       return h('div', { className: 'mx-frame mx-side mx-ov' },
         h('div', { className: 'mx-side-h' }, h('b', {}, '批次概览'), h('span', { className: 'mx-cap' }, 'BATCH OVERVIEW')),
-        h('p', { className: 'mx-snote', style: { margin: '2px 0 4px' } }, '点产线上的楼或模型房子看详情'),
         block('模型用量', 'WORKLOAD', all ? h(React.Fragment, {},
           h('div', { className: 'mx-stack', style: { height: 8 } }, [[sent, 'var(--teal)'], [reused, 'var(--ok)'], [free, 'var(--line2)']].map(([n, c], i) => (n ? h('span', { key: i, style: { width: `${(n / all) * 100}%`, background: c } }) : null))),
           h('div', { className: 'mx-legend' }, [['发送', sent, 'var(--teal)', '实际发给模型的文书字数（一份文书分几组字段、复判几轮就算几次）'], ['复用', reused, 'var(--ok)', '内容相同的调用直接用缓存的回复，不再发'], ['免送', free, 'var(--line2)', '不用交给模型的文书字数：空壳文书、截至时刻以后的、没派到字段的、成本开关跳过的']].map(([k, n, c, tip]) => h('span', { key: k, title: tip }, h('i', { style: { background: c } }), `${k} ${kfmt(n)} · ${pctOf(n)}`))),
