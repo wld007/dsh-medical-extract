@@ -325,7 +325,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
 .mx-slegacy{margin:6px 0 0;font-size:11px;line-height:1.55;padding:6px 8px}
 .mx-sdesc{margin:6px 0 2px;font-size:11.5px;line-height:1.6;color:var(--ink2)}.mx-sdesc span{color:var(--ink3)}
 .mx-shead{display:flex;flex-direction:column;gap:6px;margin-top:8px;padding-top:10px;border-top:1px solid var(--line2)}
-.mx-ring{display:flex;align-items:center;gap:10px}.mx-ring div{display:flex;flex-direction:column;min-width:0}.mx-ring b{font-size:20px;font-weight:400;color:var(--ink)}.mx-ring small{font-size:10.5px;color:var(--ink3)}
+.mx-ring{display:flex;flex-direction:column;gap:6px;min-width:0}.mx-ring-t{display:flex;align-items:baseline;gap:10px;min-width:0}.mx-ring b{font-size:22px;font-weight:500;color:var(--ink);line-height:1.1;white-space:nowrap}.mx-ring small{font-size:11px;color:var(--ink3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}.mx-ring-bar{height:6px;border-radius:3px;background:var(--line2);overflow:hidden}.mx-ring-bar i{display:block;height:100%;border-radius:3px}
 .mx-skv{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px}.mx-skv div{display:flex;flex-direction:column;min-width:0}
 .mx-skv span{font-size:10px;color:var(--ink3)}.mx-skv b{font-size:12.5px;font-weight:500;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mx-ssec{margin-top:10px;padding-top:8px;border-top:1px solid var(--line)}
@@ -1238,13 +1238,12 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
     }
 
     /** 小进度环 */
+    /** 面板头部的主指标：大字＋说明一行，下面一条占满宽度的横条（原来是小圆圈，右边空着） */
     function Ring({ v, label, sub, hot }) {
-      const r = 22; const c = 2 * Math.PI * r; const x = Math.max(0, Math.min(1, v ?? 0))
+      const x = Math.max(0, Math.min(1, v ?? 0))
       return h('div', { className: 'mx-ring' },
-        h('svg', { width: 56, height: 56, viewBox: '0 0 56 56', 'aria-hidden': 'true' },
-          h('circle', { cx: 28, cy: 28, r, fill: 'none', stroke: 'var(--line2)', strokeWidth: 4 }),
-          h('circle', { cx: 28, cy: 28, r, fill: 'none', stroke: hot ? 'var(--warn)' : 'var(--teal)', strokeWidth: 4, strokeLinecap: 'round', strokeDasharray: `${c * x} ${c}`, transform: 'rotate(-90 28 28)' })),
-        h('div', {}, h('b', { className: 'mx-num' }, label), sub ? h('small', {}, sub) : null))
+        h('div', { className: 'mx-ring-t' }, h('b', { className: 'mx-num' }, label), sub ? h('small', {}, sub) : null),
+        h('div', { className: 'mx-ring-bar', 'aria-hidden': 'true' }, h('i', { style: { width: `${x * 100}%`, background: hot ? 'var(--warn)' : 'var(--teal)' } })))
     }
 
     /** 带名字的横条：rows = [[名称, 数, 显示文本?, 颜色?, 提示?]] */
