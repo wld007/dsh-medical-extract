@@ -1012,13 +1012,10 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
           const stI = ['format', 'extract', 'verify', 'adjudicate'].indexOf(st)
           const hot = on && live && (live.st[stI] ?? 0) > 0
           const used = on && (hs.calls[st] ?? 0) > 0
-          // 管子顺着地面网格走：正对的楼是一条直线（房子这头取和楼同一个 i）；不正对的（格式识别连读入楼、提取模型去核验楼复判）
-          // 先沿 j 出来到房前的一条走道，再沿 i 走到楼前，最后沿 j 进楼——和楼、传送带都是平行线，不再斜穿场景
+          // 管子：从房子直接拉一条斜线到它服务的楼（正对的楼就是顺着网格的那条斜线；房子这头取和楼同一个 i，落在房子宽度内）
           const bi = Math.max(mi + 6, Math.min(mi + ma - 6, sp[0]))
           const z = sp[2]
-          const lane = D + (st === 'format' ? 106 : 96) // 房子后沿（D+118）之前、排队数字之外
-          const route = bi === sp[0] ? [[bi, mj + 4], [sp[0], sp[1]]] : [[bi, mj + 4], [bi, lane], [sp[0], lane], [sp[0], sp[1]]]
-          const d = 'M' + route.map(([i, j]) => iso(i, j, z).map((v) => v.toFixed(1)).join(' ')).join(' L')
+          const d = 'M' + [[bi, mj + 4], [sp[0], sp[1]]].map(([i, j]) => iso(i, j, z).map((v) => v.toFixed(1)).join(' ')).join(' L')
           pipes.push(h('path', { key: `h${hi}p${st}`, d, strokeLinejoin: 'round', fill: 'none', stroke: hot || used ? V : C.left2, strokeWidth: hot ? 2.4 : used ? 1.7 : 1.3, strokeDasharray: hot ? '3 5' : '2 5', className: hot ? 'mx-flow' : undefined, filter: hot ? 'url(#mx-glow)' : undefined, opacity: hot ? 1 : used ? 0.7 : 0.4 }, h('title', {}, `${STATION_LABEL[st]}${on ? `：调用 ${fmt(hs.calls[st] ?? 0)} 次${live ? ` · 在途 ${live.st[stI] ?? 0}` : ''}` : ''}`)))
         })
         g.push(...isoBox('mb', mi, mj, 0, ma, mb, mh, on ? CL : CL2))
