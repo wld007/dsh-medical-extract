@@ -213,6 +213,24 @@ window.__ModuleLoader__.load({
 .mx-hud-grid small{display:block;font-family:var(--mono);font-size:9px;color:var(--ink3);letter-spacing:.5px}.mx-hud-grid b{font-size:15px;font-weight:400;color:var(--ink)}
 .mx-hud-model{margin-top:8px;font-family:var(--mono);font-size:9.5px;color:var(--ink3);display:flex;align-items:center;gap:6px}
 .mx-hud-model i{width:6px;height:6px;border-radius:50%;background:var(--ink3)}.mx-hud-model i.on{background:var(--ok);box-shadow:0 0 5px var(--ok)}
+.mx-al-ov{position:absolute;z-index:2;top:34px;right:12px;width:300px;max-height:calc(100% - 60px);overflow:auto;display:flex;flex-direction:column;gap:2px;padding:6px 10px;background:color-mix(in srgb,var(--panel) 90%,transparent);border:1px solid var(--line2);border-radius:6px;backdrop-filter:blur(3px);font-size:11px}
+.mx-al-ov.crit{border-color:var(--bad);box-shadow:inset 3px 0 0 var(--bad)}.mx-al-ov.crit .mx-al-dot{animation:mx-pulse 1.4s ease-in-out infinite}
+.mx-al-ov.warn{box-shadow:inset 3px 0 0 var(--warn)}
+.mx-al-ov.ok{flex-direction:row;align-items:center;gap:6px;width:auto;color:var(--ink2)}.mx-al-ov.shut{width:auto}
+.mx-al-dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex:none}
+.mx-al-head{display:flex;align-items:center;gap:6px;background:none;border:0;padding:2px 0;cursor:pointer;color:var(--ink);font:inherit}.mx-al-head b{font-size:12px}.mx-al-head .mx-cap{flex:1;text-align:left}
+.mx-al-n{font-family:var(--mono);font-size:10.5px;color:var(--ink2);background:var(--panel3);border-radius:8px;padding:0 6px}
+.mx-al-list{display:flex;flex-direction:column}
+.mx-al-item{display:grid;grid-template-columns:8px minmax(0,1fr) auto;gap:8px;align-items:center;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:6px 2px;font:inherit;color:var(--ink);cursor:pointer}
+.mx-al-item:disabled{cursor:default}.mx-al-item:not(:disabled):hover{background:var(--panel2)}
+.mx-al-item>i{width:7px;height:7px;border-radius:50%}.mx-al-item b{display:block;font-weight:600;font-size:11.5px}.mx-al-item small{display:block;color:var(--ink3);font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mx-al-more{align-self:flex-end;font-size:11px;padding-top:4px}
+.mx-legend-fold{position:absolute;z-index:1;left:14px;bottom:10px;font-size:10px;color:var(--ink3);background:color-mix(in srgb,var(--panel) 85%,transparent);border:1px solid var(--line2);border-radius:5px;padding:3px 8px}
+.mx-lf-h{background:none;border:0;padding:0;font:inherit;color:var(--ink2);cursor:pointer;display:flex;gap:4px}
+.mx-lf-b{display:flex;flex-direction:column;gap:4px;padding:6px 0 3px}.mx-lf-b div{display:flex;align-items:center;gap:6px}
+.mx-legend-fold .sw{width:12px;height:8px;display:inline-block;border-radius:1px}
+.mx-legend-fold .sw.hot{background:var(--teal);box-shadow:0 0 5px var(--teal)}.mx-legend-fold .sw.clay{background:#c9c4d6}.mx-legend-fold .sw.box{background:#e9e6f0;border-top:2px solid var(--teal)}.mx-legend-fold .sw.red{background:var(--bad)}.mx-legend-fold .sw.vio{background:var(--vio);box-shadow:0 0 5px var(--vio)}
+.mx-legend-fold .sw.flow{height:2px;background:repeating-linear-gradient(90deg,var(--ink2) 0 4px,transparent 4px 7px)}
 .mx-hud.br{right:14px;top:36px;display:flex;flex-direction:column;gap:4px;font-size:10px;color:var(--ink3)}
 .mx-hud.br div{display:flex;align-items:center;gap:6px;justify-content:flex-end}
 .mx-hud .sw{width:12px;height:8px;display:inline-block;border-radius:1px}
@@ -625,10 +643,8 @@ window.__ModuleLoader__.load({
               run.status === 'failed' ? h('span', { className: 'mx-live bad' }, h('i'), '批次失败') : run.status === 'cancelled' ? h('span', { className: 'mx-live bad' }, h('i'), '已取消') : hot.length ? h('span', { className: 'mx-live' }, h('i'), hot.map((s) => `${s.nm} ${STATE_LABEL[s.state]}`).join(' · ')) : h('span', { className: 'mx-live ok' }, h('i'), '全部完成')),
             run.status === 'failed' && run.error ? h('div', { className: 'mx-err mx-hero-err' }, h('b', {}, '批次失败：'), String(run.error).split('\n')[0].replace(/^Error:\s*/, '')) : null,
             h(PlantScene, { run, stations, sel: k, onSel: setSelK, goto }),
-            h('div', { className: 'mx-hud br' },
-              h('div', {}, h('i', { className: 'sw hot' }), '运行中／待复核'), h('div', {}, h('i', { className: 'sw clay' }), '已完成'),
-              h('div', {}, h('i', { className: 'sw box' }), '箱子＝一个分片'), h('div', {}, h('i', { className: 'sw red' }), '红色＝验收门未过'),
-              h('div', {}, h('i', { className: 'sw vio' }), '青灯＝提取模型／核验模型'), h('div', {}, h('i', { className: 'sw flow' }), '紫色流线＝字段规格下发'))),
+            h(AlertsOverlay, { run, stations, goto, onSel: setSelK }),
+            h(LegendFold)),
           h('div', { className: 'mx-frame mx-bottom' },
             h(ProgressPanel, { run }),
             h(ResultsPanel, { run, stations, onSel: setSelK, goto }),
@@ -990,6 +1006,71 @@ window.__ModuleLoader__.load({
       return h(React.Fragment, {},
         h('div', { className: 'mx-stack' }, sum ? parts.map(([k, n, c]) => (n ? h('span', { key: k, style: { width: `${(n / sum) * 100}%`, background: c } }) : null)) : null),
         h('div', { className: 'mx-legend' }, parts.map(([k, n, c]) => h('span', { key: k }, h('i', { style: { background: c } }), `${k} ${big(n)}`))))
+    }
+
+    /* ------------------------------------------------------------- alerts */
+    /** 图例：左下角，可收起。第一次打开产线页时展开，之后默认收起（记在本机） */
+    function LegendFold() {
+      const KEY = 'medical-extract.legendSeen'
+      const [open, setOpen] = useState(() => { try { return !localStorage.getItem(KEY) } catch { return true } })
+      useEffect(() => { try { localStorage.setItem(KEY, '1') } catch { /* 无痕模式 */ } }, [])
+      return h('div', { className: `mx-legend-fold${open ? ' open' : ''}` },
+        h('button', { type: 'button', className: 'mx-lf-h', onClick: () => setOpen(!open), 'aria-expanded': open ? 'true' : 'false' }, '图例', h('span', {}, open ? '▾' : '▸')),
+        open ? h('div', { className: 'mx-lf-b' },
+          h('div', {}, h('i', { className: 'sw hot' }), '运行中／待复核'), h('div', {}, h('i', { className: 'sw clay' }), '已完成'),
+          h('div', {}, h('i', { className: 'sw box' }), '箱子＝一个分片'), h('div', {}, h('i', { className: 'sw red' }), '红色＝验收门未过'),
+          h('div', {}, h('i', { className: 'sw vio' }), '青灯＝提取模型／核验模型'), h('div', {}, h('i', { className: 'sw flow' }), '紫色流线＝字段规格下发')) : null)
+    }
+
+    /** 待办告警（同匿名化插件）：产线右上角，最严重的在前，最多 3 条（其余「再看 N 条」），点一条直接去处理；可收起 */
+    function AlertsOverlay({ run, stations, goto, onSel }) {
+      const [fold, setFold] = useState(false)
+      const [all, setAll] = useState(false)
+      const t = run.totals
+      const running = run.status === 'running'
+      const at = (no) => () => onSel(stations.findIndex((x) => x.no === no))
+      const GB = 1024 ** 3
+      const a = []
+      if (run.status === 'failed') a.push({ tone: 'crit', tag: '失败', title: '批次失败', sub: String(run.error ?? '').split('\n')[0].replace(/^Error:\s*/, '').slice(0, 80) })
+      if (run.sourceCheck?.changed) a.push({ tone: 'crit', tag: '源文件', title: `源文件有 ${fmt(run.sourceCheck.changed)} 个变化`, sub: '只读核对不一致：运行期间输入被改过', onClick: at('E7') })
+      const disk = run.disk
+      if (running && disk?.free != null && disk.free < 20 * GB) a.push({ tone: disk.free < 5 * GB ? 'crit' : 'warn', tag: '磁盘', title: `输出盘只剩 ${(disk.free / GB).toFixed(1)} GB`, sub: '空间不够时分片写不出来' })
+      const mem = run.memory
+      const memR = running && mem?.heapLimit ? mem.heapUsed / mem.heapLimit : null
+      if (memR != null && memR >= 0.7) a.push({ tone: memR >= 0.85 ? 'crit' : 'warn', tag: '内存', title: `堆内存用了 ${Math.round(memR * 100)}%`, sub: '可在设置里减少工作线程数' })
+      if (!running) for (const g of run.gates ?? []) if (!g.pass && !g.skipped) a.push({ tone: 'warn', tag: `门${g.id}`, title: `验收门${g.id}未过`, sub: g.detail, onClick: at({ '①': 'E3', '②': 'E4', '③': 'E5', '④': 'E6' }[g.id]) })
+      const rd = run.flow === 'read' ? t.ruleDisputes ?? 0 : 0
+      if (t.review) a.push({ tone: 'warn', tag: '复核', title: `待复核 ${fmt(t.review)} 项`, sub: rd ? `核验分歧 ${fmt(Math.max(0, t.review - rd))} · 规则票不一致 ${fmt(rd)}` : '核验分歧', onClick: () => goto('review') })
+      if (run.format?.held) a.push({ tone: 'warn', tag: '格式', title: `${fmt(run.format.held)} 张表的格式待确认`, sub: run.format.heldPolicy === 'skip' ? '这些表先跳过了' : '先按通用读法读了，确认后重跑更准', onClick: () => goto('formats') })
+      for (const role of ['extract', 'verify']) {
+        const m = run.models?.[role]
+        const fr = m?.calls ? m.failed / m.calls : 0
+        if (m?.calls >= 20 && fr > 0.02) a.push({ tone: 'warn', tag: '模型', title: `${role === 'extract' ? '提取' : '核验'}模型失败率 ${(fr * 100).toFixed(1)}%`, sub: `已自动重试 ${fmt(m.retries ?? 0)} 次；失败的调用没有值`, onClick: () => goto('calls') })
+      }
+      if (t.quoteFail) a.push({ tone: 'warn', tag: '引语', title: `${fmt(t.quoteFail)} 条模型回答被丢弃`, sub: '引语在原文里找不到，或不支持所给的值', onClick: at('E3') })
+      if (t.conflicts) a.push({ tone: 'info', tag: '冲突', title: `${fmt(t.conflicts)} 个格子有冲突`, sub: '同一格子互斥的值，不自动选边', onClick: () => goto('wide') })
+      const docsAll = (t.documents ?? 0) + (t.hollow ?? 0)
+      if (t.hollow && docsAll && t.hollow / docsAll >= 0.3) a.push({ tone: 'info', tag: '读入', title: `空壳文书 ${fmt(t.hollow)} 份（${Math.round((t.hollow / docsAll) * 100)}%）`, sub: '清洗后没有内容，没有交给模型', onClick: at('E1') })
+      const zipped = t.mediaKinds?.['压缩文书（未解）']
+      if (zipped) a.push({ tone: 'info', tag: '读入', title: `${fmt(zipped)} 份压缩文书没有解开`, sub: '内容没有读到', onClick: at('E1') })
+      if (!run.model?.verifyModel && run.flow === 'read') a.push({ tone: 'info', tag: '核验', title: '未配置核验模型', sub: '不做抽样核验，验收门④跳过' })
+      if (run.warnings?.length) a.push({ tone: 'info', tag: '提示', title: `${fmt(run.warnings.length)} 条提示`, sub: run.warnings[0].slice(0, 60), onClick: () => goto('report') })
+      if (run.status === 'cancelled') a.push({ tone: 'info', tag: '续跑', title: '批次已取消', sub: '点「＋ 新批次」里的「↻ 继续」接着跑，已完成的分片直接复用' })
+      const RANK = { crit: 0, warn: 1, info: 2 }
+      a.sort((x, y) => RANK[x.tone] - RANK[y.tone])
+      const COLOR = { crit: 'var(--bad)', warn: 'var(--warn)', info: 'var(--ink3)', ok: 'var(--ok)' }
+      if (!a.length) return h('div', { className: 'mx-al-ov ok' }, h('i', { className: 'mx-al-dot', style: { background: COLOR.ok } }), running ? '运行正常' : '全部完成，没有待办')
+      const worst = a[0].tone
+      const shown = all ? a : a.slice(0, 3)
+      return h('div', { className: `mx-al-ov ${worst}${fold ? ' shut' : ''}` },
+        h('button', { type: 'button', className: 'mx-al-head', onClick: () => setFold(!fold), title: fold ? '展开' : '收起' },
+          h('i', { className: 'mx-al-dot', style: { background: COLOR[worst] } }), h('b', {}, '待办告警'), h('span', { className: 'mx-cap' }, 'ALERTS'), h('span', { className: 'mx-al-n' }, String(a.length))),
+        fold ? null : h('div', { className: 'mx-al-list' },
+          shown.map((x, i) => h('button', { key: i, type: 'button', className: `mx-al-item ${x.tone}`, onClick: x.onClick, disabled: !x.onClick },
+            h('i', { style: { background: COLOR[x.tone] } }),
+            h('div', {}, h('b', {}, x.title), x.sub ? h('small', {}, x.sub) : null),
+            h('span', { className: `mx-chip ${x.tone === 'crit' ? 'b' : x.tone === 'warn' ? 'w' : ''}` }, x.tag))),
+          a.length > 3 ? h('button', { type: 'button', className: 'mx-link mx-al-more', onClick: () => setAll(!all) }, all ? '收起' : `再看 ${a.length - 3} 条`) : null))
     }
 
     /* ------------------------------------------------------------ overview */
