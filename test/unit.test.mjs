@@ -158,7 +158,7 @@ test('规则票：与模型一致记 model+rule，模型答了别的值记为分
 test('读入·清洗：图片与二进制丢掉、HTML／RTF 转文字（图片丢掉）', async () => {
   const { stripMedia, rtfToText } = await import('../lib/source/clean.js')
   // 1×1 PNG（虚构）整段 base64：丢掉并计数
-  const png = Buffer.concat([Buffer.from('89504e470d0a1a0a', 'hex'), Buffer.alloc(80, 7)]).toString('base64')
+  const png = Buffer.concat([Buffer.from('89504e470d0a1a0a', 'hex'), Buffer.from(Array.from({ length: 96 }, (_, i) => (i * 97 + 13) % 256))]).toString('base64')
   const cs = {}
   assert.equal(cleanValue(png, cs), ''); assert.equal(cs.media, 1); assert.equal(cs.mediaKinds['图片'], 1)
   // HTML：图片标签与 data URI 丢掉，文字留下
@@ -168,7 +168,8 @@ test('读入·清洗：图片与二进制丢掉、HTML／RTF 转文字（图片�
   // 文中夹的 data URI、长 base64 串
   const cs2 = {}
   assert.equal(stripMedia(`见附图 data:image/jpeg;base64,${png} 。`, cs2).replace(/\s+/g, ''), '见附图。'); assert.equal(cs2.media, 1)
-  assert.equal(stripMedia(`心电图：${'A'.repeat(300)}窦性心律`, {}), '心电图：窦性心律')
+  const big = Buffer.from(Array.from({ length: 300 }, (_, i) => (i * 131 + 7) % 256)).toString('base64')
+  assert.equal(stripMedia(`心电图：${big}窦性心律`, {}), '心电图：窦性心律')
   // RTF：GBK 文字解码，\pict 图片整组丢掉
   const rtf = "{\\rtf1\\ansi\\ansicpg936{\\fonttbl{\\f0 \\'cb\\'ce\\'cc\\'e5;}}\\f0 \\'d6\\'f7\\'cb\\'df\\'a3\\'ba\\'d0\\'c4\\'c7\\'e9\\'b2\\'ee\\par{\\pict\\pngblip 89504e470d0a}\\'b7\\'f1\\'c8\\'cf\\par}"
   const cs3 = {}
@@ -186,4 +187,18 @@ test('全局模型并发：多个限流器共用一个计数，不超过上限',
   const job = (lim) => lim(async () => { now++; peak = Math.max(peak, now); await new Promise((r) => setTimeout(r, 5)); now-- })
   await Promise.all([...Array(10)].flatMap(() => [job(a), job(b)]))
   assert.equal(peak, 3); assert.equal(new Int32Array(sab)[0], 0)
+})
+
+test('读入·清洗：base64 的文字解出来；编码串、哈希不当二进制；压缩文书计数不解', async () => {
+  const { stripMedia } = await import('../lib/source/clean.js')
+  const txt = '护理观察：患者神志清，精神可，夜间睡眠差，诉心情低落，无自伤言行。'
+  const cs = {}
+  assert.equal(stripMedia(Buffer.from(txt).toString('base64'), cs), txt); assert.equal(cs.decoded, 1)
+  const codes = 'LIS26504+LIS26507+LIS26506+LIS26505+LIS26508+LIS01887+LIS26502+LIS26501+LIS26500'
+  assert.equal(stripMedia(codes, {}), codes)
+  const hash = 'a3f1'.repeat(16)
+  assert.equal(stripMedia(hash, {}), hash)
+  const zipped = Buffer.from(`<document compression="7zip" type="" version="1"><content encoding="utf-8">${Buffer.alloc(120, 9).toString('base64')}</content></document>`).toString('base64')
+  const cs2 = {}
+  assert.equal(stripMedia(zipped, cs2), ''); assert.equal(cs2.mediaKinds['压缩文书（未解）'], 1)
 })
