@@ -247,6 +247,10 @@ export function apply(ctx, config = {}) {
           case 'table': return service.table(r.runId, r)
           case 'evidence': return service.evidence(r.runId, r)
           case 'document': return service.document(r.runId, r)
+          case 'patients': return service.patients(r.runId, r)
+          case 'patientDocs': return service.patientDocs(r.runId, r)
+          case 'docView': return service.docView(r.runId, r)
+          case 'addValue': return service.addValue(r.runId, r)
           case 'calls': return service.calls(r.runId)
           case 'pickFolder': return { path: await pickFolder() }
           case 'saveDefaults': return saveDefaults(r)
