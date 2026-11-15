@@ -17,7 +17,7 @@ export const inject = ['tools']
 const CHANNEL = '/medical-extract'
 const ENTRY_ID = 'medical-extract'
 const VERSION = (() => { try { return JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')).version } catch { return null } })()
-const DATA_BOUNDARY = '病历内容只发往用户在插件设置中配置的模型端点（通常为本机或内网）；没有配置抽取模型时不能运行。'
+const DATA_BOUNDARY = '病历内容只发往用户在插件设置中配置的模型端点（通常为本机或内网）；没有配置提取模型时不能运行。'
 
 export function apply(ctx, config = {}) {
   const workingDirectory = ctx.get('workingDirectory')
@@ -30,13 +30,13 @@ export function apply(ctx, config = {}) {
 
   ctx.tools.register(tool({
     name: 'extract_start',
-    description: `dsh-medical-extract 插件（病历文书提取）：按抽取模板（字段清单；内置抑郁障碍、急性缺血性卒中、阿尔茨海默病、心力衰竭、2 型糖尿病、慢性肾脏病与血透、非小细胞肺癌，也可自建）从病历文书里抽取内容，每个值带逐字原文引语与位置。输入可以是区域平台导出（p_doc_*.json，一位或多位病人）或通用文件（json／ndjson／jsonl／csv／tsv／txt／md，每行或每个文件一份文书），可到千万份文书：分片并行、可取消、可从取消或失败处继续。只读文书（结构化记录不抽取），先清洗；按文书类型和栏目把字段派给文书，抽取模型通读，引语回原文核对，写了明确规则的字段规则另出一票对照；可选核验模型做抽样核验。交付宽表（病人／就诊／文书）、时间点长表、证据长表、冲突表与报告；绝不修改源文件。${DATA_BOUNDARY}立即返回批次 id。`,
+    description: `dsh-medical-extract 插件（病历文书提取）：按提取模板（字段清单；内置抑郁障碍、急性缺血性卒中、阿尔茨海默病、心力衰竭、2 型糖尿病、慢性肾脏病与血透、非小细胞肺癌，也可自建）从病历文书里提取内容，每个值带逐字原文引语与位置。输入可以是区域平台导出（p_doc_*.json，一位或多位病人）或通用文件（json／ndjson／jsonl／csv／tsv／txt／md，每行或每个文件一份文书），可到千万份文书：分片并行、可取消、可从取消或失败处继续。只读文书（结构化记录不提取），先清洗；按文书类型和栏目把字段派给文书，提取模型通读，引语回原文核对，写了明确规则的字段规则另出一票对照；可选核验模型做抽样核验。交付宽表（病人／就诊／文书）、时间点长表、证据长表、冲突表与报告；绝不修改源文件。${DATA_BOUNDARY}立即返回批次 id。`,
     parameters: {
       inputDir: { type: 'string', description: '输入目录或单个文件的绝对路径（或相对工作区）。' },
       template: { type: 'string', description: '模板 id（用 extract_templates 查看）；省略时用设置里的默认模板。' },
       outputRoot: { type: 'string', description: '输出根目录，不能与输入相同、不能放在输入里；省略时用设置里的默认值，再缺省为输入旁的 _medical-extract。' },
-      mode: { type: 'string', description: 'hybrid（默认：模型通读每份文书，写了明确规则的字段规则另出一票对照）或 model（模型通读，不出规则票）。必须先在插件设置里配置抽取模型，否则不能开始。' },
-      priorities: { type: 'array', description: '只抽这些优先级的字段，如 ["P0"]；省略为全部。' },
+      mode: { type: 'string', description: 'hybrid（默认：模型通读每份文书，写了明确规则的字段规则另出一票对照）或 model（模型通读，不出规则票）。必须先在插件设置里配置提取模型，否则不能开始。' },
+      priorities: { type: 'array', description: '只提取这些优先级的字段，如 ["P0"]；省略为全部。' },
       asOf: { type: 'string', description: '截至时刻 "YYYY-MM-DD HH:mm"：只用此刻以前写成的文书；省略则不截断。' },
       resumeFrom: { type: 'string', description: '继续一个已取消或失败的批次（填批次 id）；已完成的分片和模型调用直接复用。填写时可省略其他参数。' },
     },
@@ -46,7 +46,7 @@ export function apply(ctx, config = {}) {
 
   ctx.tools.register(tool({
     name: 'extract_status',
-    description: '查看病历文书提取批次的状态、进度（分片、文书、速率）、取值统计、验收门与待复核数。省略 runId 时看最近一批。',
+    description: '查看病历文书提取批次的状态、进度（分片、文书、速率）、提取值统计、验收门与待复核数。省略 runId 时看最近一批。',
     parameters: { runId: { type: 'string', description: '批次 id；省略则取最近一批。' } },
     execute: async (args) => service.status(args.runId),
     render: (args, value) => {
@@ -68,7 +68,7 @@ export function apply(ctx, config = {}) {
 
   ctx.tools.register(tool({
     name: 'extract_report',
-    description: '读取病历文书提取批次的 Markdown 报告（汇总、验收门、各字段取值与填充率、抽样一致率）。报告不含病历原文。',
+    description: '读取病历文书提取批次的 Markdown 报告（汇总、验收门、各字段提取值与填充率、抽样一致率）。报告不含病历原文。',
     parameters: { runId: { type: 'string', description: '批次 id；省略则取最近一批。' } },
     execute: async (args) => service.report(args.runId),
     render: (args, v) => [{ type: 'text', text: v.markdown.length > 8000 ? `${v.markdown.slice(0, 8000)}\n…（完整内容见 ${v.path}）` : v.markdown }],
@@ -92,7 +92,7 @@ export function apply(ctx, config = {}) {
 
   ctx.tools.register(tool({
     name: 'extract_templates',
-    description: '列出可用的抽取模板（插件内置的病种模板与我的模板库），或给 id 查看一个模板的字段清单。',
+    description: '列出可用的提取模板（插件内置的病种模板与我的模板库），或给 id 查看一个模板的字段清单。',
     parameters: { id: { type: 'string', description: '模板 id；省略则列出全部。' } },
     execute: async (args) => (args.id ? service.template(args.id) : service.templates()),
     render: (args, v) => {
@@ -104,7 +104,7 @@ export function apply(ctx, config = {}) {
 
   ctx.tools.register(tool({
     name: 'extract_save_template',
-    description: '把一个抽取模板（JSON 对象，格式 extract-template/1，见插件 docs/template.md）校验后存入用户模板库；同 id 覆盖。校验不通过时返回问题清单，不保存。',
+    description: '把一个提取模板（JSON 对象，格式 extract-template/1，见插件 docs/template.md）校验后存入用户模板库；同 id 覆盖。校验不通过时返回问题清单，不保存。',
     parameters: { template: { type: 'object', description: '模板 JSON 对象。', required: true } },
     execute: async (args) => service.saveTemplate(args.template),
     render: (args, v) => [{ type: 'text', text: v.saved ? '已保存。' : `未保存，校验问题：\n- ${v.problems.join('\n- ')}` }],
@@ -130,7 +130,7 @@ export function apply(ctx, config = {}) {
 
   ctx.tools.register(tool({
     name: 'extract_template_excel',
-    description: '抽取模板与 Excel 互转。export：把模板（或空白模板）导出成 xlsx 文件写到 outPath；import：读本机 xlsx（模板、字段、规则三张表，格式同导出），校验后存入用户模板库（同 id 覆盖），校验不通过时返回问题清单（到行到列）、不保存。',
+    description: '提取模板与 Excel 互转。export：把模板（或空白模板）导出成 xlsx 文件写到 outPath；import：读本机 xlsx（模板、字段、规则三张表，格式同导出），校验后存入用户模板库（同 id 覆盖），校验不通过时返回问题清单（到行到列）、不保存。',
     parameters: {
       action: { type: 'string', description: 'export 或 import。', required: true },
       id: { type: 'string', description: 'export 时：模板 id；省略且 blank 为 true 时导出空白模板。' },
@@ -258,7 +258,7 @@ export function apply(ctx, config = {}) {
 
 function pickFolder() {
   if (process.platform !== 'darwin') return Promise.reject(Object.assign(new Error('系统文件夹对话框目前只支持 macOS；请直接在输入框里填写完整路径'), { code: 'unsupported' }))
-  const script = 'POSIX path of (choose folder with prompt "选择要抽取的病历目录")'
+  const script = 'POSIX path of (choose folder with prompt "选择要提取的病历目录")'
   return new Promise((resolve, reject) => {
     execFile('osascript', ['-e', script], { timeout: 10 * 60 * 1000 }, (error, stdout, stderr) => {
       if (error) {

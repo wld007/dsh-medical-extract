@@ -107,11 +107,11 @@ test('格式识别：分歧暂扣，先按通用读法；人工裁定后重跑�
   await svc.dispose()
 })
 
-test('没配抽取模型：不能开始；仅规则模式已停用', async () => {
+test('没配提取模型：不能开始；仅规则模式已停用', async () => {
   const root = await tmp()
   const input = await writeCoded(join(root, 'export'))
   const svc = createService({ config: { template: 'mdd', workers: 1 }, stateDir: join(root, 'state', 'medical-extract') })
-  await assert.rejects(svc.start({ inputDir: input, outputRoot: join(root, 'out') }), (e) => e.code === 'no-model' && /抽取模型/.test(e.message))
+  await assert.rejects(svc.start({ inputDir: input, outputRoot: join(root, 'out') }), (e) => e.code === 'no-model' && /提取模型/.test(e.message))
   assert.equal((await svc.configInfo()).modelConfigured, false)
   await svc.dispose()
   const withModel = await service({ template: 'mdd' }, { stateDir: join(root, 'state', 'medical-extract') })

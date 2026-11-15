@@ -1,4 +1,4 @@
-# 抽取模板格式（`extract-template/1`）
+# 提取模板格式（`extract-template/1`）
 
 > 模板是插件的唯一"病种知识"入口。插件代码里不写任何病种内容。
 > 模板是一个 JSON 文件，放在 `templates/<id>.json`（插件内置模板）或用户的模板库（`<stateDir>/templates/`）。
@@ -25,7 +25,7 @@
 | `format` | 是 | 固定 `extract-template/1` |
 | `id` | 是 | `^[a-z][a-z0-9-]*$`，模板库内唯一 |
 | `name`、`version`、`description` | 是 | 版本用 semver；报告、manifest 会记下 |
-| `documents` | 否 | 全模板的文书类型过滤（`recordTypes` 为空＝全部；`excludeRecordTypes` 排除）；字段级 `sources` 再细分。只对文书起作用：检验、医嘱、处方、诊断明细、收费等结构化记录本来就不进抽取，不必排除 |
+| `documents` | 否 | 全模板的文书类型过滤（`recordTypes` 为空＝全部；`excludeRecordTypes` 排除）；字段级 `sources` 再细分。只对文书起作用：检验、医嘱、处方、诊断明细、收费等结构化记录本来就不进提取，不必排除 |
 | `groups` | 否 | 字段分组（界面、宽表列顺序） |
 | `lexicon` | 否 | 追加到通用断言词表的词（见 §4），不替换 |
 | `domain` | 否 | 学科／病种分类（界面分组用），如 `精神`、`神经`、`心血管` |
@@ -66,7 +66,7 @@
 | `examples` | 否 | `[{text, value}]`，给模型看的例子（虚构） |
 | `sources` | 否 | `recordTypes`、`sections`：只在这些文书类型、栏目里召回；空＝全部。栏目名按数据源层切出的栏目名匹配（包含即可，如 `史` 不建议） |
 | `recall` | 否* | `terms`（字面量；英文缩写按整词匹配，4 个字母以上不分大小写，更短的按原样大小写，如 AVF 不匹配 aVF）、`regex`（JS 正则源码，无分隔符；隐含 `u` 标志）。只在三处用：规则票（定位后再跑 `rules`）、`model: never` 字段的关键词定位、可选的成本开关 `skipNoKeyword`；模型通读不看关键词。*派生字段不需要；其他类型没写 `recall` 时，用 `name`、`include` 当召回词 |
-| `rules` | 否 | 规则抽取，见 §5 |
+| `rules` | 否 | 规则提取，见 §5 |
 | `accept` | 否 | 哪些断言算"有该值"，默认 `["阳性"]`。既往史类字段写 `["阳性","既往"]`，家族史字段写 `["家族"]` |
 | `granularity` | 否 | `document`／`encounter`（默认）／`patient`／`timepoint` |
 | `pick` | 否 | 汇总规则，见 §6；默认按类型 |
@@ -105,7 +105,7 @@
 
 ## 5. 规则 `rules`
 
-规则是**规则票**：只对写了 `rules` 的字段，按召回词定位后跑规则，结果与模型通读的结果对照（一致记 `model+rule`，不一致进人工复核）；不用关键词猜否认、选项。`model: never` 的字段例外，规则就是取值本身。
+规则是**规则票**：只对写了 `rules` 的字段，按召回词定位后跑规则，结果与模型通读的结果对照（一致记 `model+rule`，不一致进人工复核）；不用关键词猜否认、选项。`model: never` 的字段例外，规则直接定值。
 
 ```json
 { "id": "hamd-total", "regex": "HAMD(?:-?(?<variant>17|24))?\\s*(?:总分|评分)?\\s*[:：为]?\\s*(?<v>\\d{1,2})\\s*分", "value": null }

@@ -81,7 +81,7 @@ test('服务：导入 Excel 存进我的模板，列表里能选；校验不过�
   assert.ok(r2.problems.some((p) => p.includes('type')))
   // 导出：内置与空白
   const x = await svc.templateXlsx({ id: 'hf' })
-  assert.match(x.name, /抽取模板-hf-v/)
+  assert.match(x.name, /提取模板-hf-v/)
   assert.deepEqual(xlsxToTemplate(Buffer.from(x.base64, 'base64')).template, builtins.find((t) => t.id === 'hf'))
   await svc.dispose()
 })

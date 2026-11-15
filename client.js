@@ -516,7 +516,7 @@ window.__ModuleLoader__.load({
         error ? h('div', { className: 'mx-err', onClick: () => setError('') }, error) : null,
         h('div', { className: 'mx-body' },
           tab === 'template' ? h(Templates, { run, onError: setError })
-            : !run ? h('div', { className: 'mx-frame mx-empty', style: { flex: 1 } }, runs.length ? '加载中…' : '还没有批次。点右上角「＋ 新批次」选择病历目录或文件，选一个抽取模板开始。')
+            : !run ? h('div', { className: 'mx-frame mx-empty', style: { flex: 1 } }, runs.length ? '加载中…' : '还没有批次。点右上角「＋ 新批次」选择病历目录或文件，选一个提取模板开始。')
               : tab === 'line' ? h(Pipeline, { run, goto: setTab, openPatient })
                 : tab === 'formats' ? h(Formats, { run, busy: !!activeId, onRerun: (id) => { setRunId(id); setRun(null); refreshList(); setTab('line') }, onError: setError })
                 : tab === 'wide' ? h(Wide, { run, openPatient })
@@ -551,29 +551,29 @@ window.__ModuleLoader__.load({
       }
       const go = async (payload) => { setBusy(true); try { const v = await call('start', payload); onStarted(v.runId) } catch (e) { onError(msg(e)) } finally { setBusy(false) } }
       const tplList = tpls.value?.templates ?? []
-      // 本插件只用模型从文书里抽取：没配抽取模型不能开始
+      // 本插件只用模型从文书里提取：没配提取模型不能开始
       const noModel = cfg.value && !cfg.value.modelConfigured
       const curMode = MODE_LABEL[mode] ? mode : MODE_LABEL[cfg.value?.mode] ? cfg.value.mode : 'hybrid'
       const resumeOk = resumable && resumable.flow === 'read'
       return h('div', { className: 'mx-pop', role: 'dialog', 'aria-label': '新批次' },
         h('div', { className: 'mx-pop-h' }, h('b', {}, '新批次'), h('button', { className: 'mx-btn sm', onClick: onClose, 'aria-label': '关闭' }, '✕')),
-        noModel ? h('div', { className: 'mx-err', style: { margin: 0 } }, '还没有配置抽取模型。本插件只用模型从文书里抽取：先在设置里填写模型端点和模型名称。',
+        noModel ? h('div', { className: 'mx-err', style: { margin: 0 } }, '还没有配置提取模型。本插件只用模型从文书里提取：先在设置里填写模型端点和模型名称。',
           openSettings ? h('button', { className: 'mx-btn sm', style: { marginLeft: 8 }, onClick: openSettings }, '去设置') : null) : null,
         h('label', { className: 'mx-field' }, '病历目录或文件',
           h('input', { className: 'mx-input', value: inputDir, onChange: (e) => setInput(e.target.value), placeholder: '/path/to/_medical-anonymizer/… 或 notes.ndjson', autoFocus: true }),
           h('div', { className: 'mx-pick' }, h('button', { className: 'mx-btn sm', onClick: pick, disabled: picking }, picking ? '请在弹出的窗口里选择…' : '选择文件夹…'), h('span', { className: 'mx-faint' }, 'p_doc 导出，或 json／ndjson／csv／txt 文书'))),
         h('div', { className: 'mx-grid2 tm' },
-          h('label', { className: 'mx-field' }, '抽取模板',
+          h('label', { className: 'mx-field' }, '提取模板',
             h('select', { className: 'mx-input', value: template, title: tplList.find((t) => t.id === template)?.name ?? '', onChange: (e) => setTemplate(e.target.value) },
               h('option', { value: '', disabled: true }, '请选择模板…'), tplList.map((t) => h('option', { key: t.id, value: t.id }, `${t.domain ? `${t.domain} · ` : ''}${t.name} · ${t.fields} 字段${t.origin === 'builtin' ? '' : '（我的）'}`)))),
           h('label', { className: 'mx-field' }, '模式',
             h('select', { className: 'mx-input', value: curMode, onChange: (e) => setMode(e.target.value) },
               Object.entries(MODE_LABEL).map(([k, l]) => h('option', { key: k, value: k }, l))))),
-        h('label', { className: 'mx-pick', style: { fontSize: 11.5 } }, h('input', { type: 'checkbox', checked: p0, onChange: (e) => setP0(e.target.checked) }), '只抽 P0 字段'),
+        h('label', { className: 'mx-pick', style: { fontSize: 11.5 } }, h('input', { type: 'checkbox', checked: p0, onChange: (e) => setP0(e.target.checked) }), '只提取 P0 字段'),
         h('label', { className: 'mx-field' }, '输出根目录', h('input', { className: 'mx-input', value: outputRoot, onChange: (e) => setOut(e.target.value), placeholder: '空＝设置里的默认值，再缺省为输入旁的 _medical-extract' })),
         h('label', { className: 'mx-field' }, '截至时刻（可空）', h('input', { className: 'mx-input', value: asOf, onChange: (e) => setAsOf(e.target.value), placeholder: 'YYYY-MM-DD HH:mm · 只用此刻以前写成的文书' })),
         h('div', { className: 'mx-pop-act' },
-          h('button', { className: 'mx-btn mx-new', style: { flex: 1 }, disabled: !inputDir || !template || busy || noModel, title: noModel ? '先在设置里配置抽取模型' : !template ? '先选择抽取模板' : undefined, onClick: () => go({ inputDir, outputRoot, template, mode: curMode, asOf, priorities: p0 ? ['P0'] : undefined }) }, busy ? '启动中…' : '▶ 开始'),
+          h('button', { className: 'mx-btn mx-new', style: { flex: 1 }, disabled: !inputDir || !template || busy || noModel, title: noModel ? '先在设置里配置提取模型' : !template ? '先选择提取模板' : undefined, onClick: () => go({ inputDir, outputRoot, template, mode: curMode, asOf, priorities: p0 ? ['P0'] : undefined }) }, busy ? '启动中…' : '▶ 开始'),
           resumeOk ? h('button', { className: 'mx-btn', disabled: busy || noModel, title: `继续批次 ${resumable.id}：已完成的分片和模型调用直接复用`, onClick: () => go({ resumeFrom: resumable.id }) }, '↻ 继续') : null))
     }
 
@@ -590,18 +590,18 @@ window.__ModuleLoader__.load({
       const gate = (id) => run.gates?.find((g) => g.id === id)
       const gateRow = (id, label, v) => [label, v ?? (gate(id) ? (gate(id).pass ? '通过' : '未过') : '—'), gate(id) ? (gate(id).pass ? 'ok' : 'warn') : '']
       // ab＝场景里屋顶标签用的两字工序名；no（E0–E7）只留作内部编号，不在界面上显示
-      const AB = { E0: '模板', E1: '读入', E2: '分派', E3: '取值', E4: '归一', E5: '汇总', E6: '核验', E7: '交付' }
+      const AB = { E0: '模板', E1: '读入', E2: '分派', E3: '提取', E4: '归一', E5: '汇总', E6: '核验', E7: '交付' }
       const st = (no, nm, sub, bigv, unit, rows, state, frac) => ({ no, ab: AB[no], nm, sub, big: bigv, unit, rows, state, frac })
       const methods = t.byMethod ?? {}
       const legacy = run.flow !== 'read'
       return [
-        st('E1', '读入·清洗', '只读文书；解码、去图片与乱码、剔除空壳', big(t.documents), '文书', [['分片', `${run.shards.done}/${run.shards.total}`, ''], ['结构化记录（不抽取）', t.structured == null ? '—' : big(t.structured), ''], ['空壳文书', t.hollow == null ? '—' : big(t.hollow), ''], ['跳过（截至时刻）', fmt(t.skipped), '']], stOf('E3'), shardFrac),
+        st('E1', '读入·清洗', '只读文书；解码、去图片与乱码、剔除空壳', big(t.documents), '文书', [['分片', `${run.shards.done}/${run.shards.total}`, ''], ['结构化记录（不提取）', t.structured == null ? '—' : big(t.structured), ''], ['空壳文书', t.hollow == null ? '—' : big(t.hollow), ''], ['跳过（截至时刻）', fmt(t.skipped), '']], stOf('E3'), shardFrac),
         legacy
           ? st('E2', '关键词定位（旧）', '旧批次：每个字段用关键词在文书里找命中', big(t.recalled), '命中', [], stOf('E3'), shardFrac)
-          : st('E2', '分派', '按文书类型、栏目把字段派给文书，切成抽取任务', big(t.tasks), '任务', [['字段 × 文书', big(t.assigned), '']], stOf('E3'), shardFrac),
-        st('E3', '取值', legacy ? '旧批次：规则定值，定不了的片段送模型' : '抽取模型通读每个任务，引语回原文定位；规则出规则票', big(t.values), '值', [gateRow('①', '验收①', `${fmt(t.quoteFail)} 丢弃`), ['模型调用', `${big(t.calls)}（缓存 ${big(t.cached)}）`, ''], ...(legacy ? [] : [['规则票不一致', fmt(t.ruleDisputes ?? 0), t.ruleDisputes ? 'warn' : '']])], stOf('E3'), shardFrac),
+          : st('E2', '分派', '按文书类型、栏目把字段派给文书，切成提取任务', big(t.tasks), '任务', [['字段 × 文书', big(t.assigned), '']], stOf('E3'), shardFrac),
+        st('E3', '提取', legacy ? '旧批次：规则定值，定不了的片段送模型' : '提取模型通读每个任务，引语回原文定位；规则出规则票', big(t.values), '值', [gateRow('①', '验收①', `${fmt(t.quoteFail)} 丢弃`), ['模型调用', `${big(t.calls)}（缓存 ${big(t.cached)}）`, ''], ...(legacy ? [] : [['规则票不一致', fmt(t.ruleDisputes ?? 0), t.ruleDisputes ? 'warn' : '']])], stOf('E3'), shardFrac),
         st('E4', '归一', '单位、日期、选项写法统一；类型、选项、值域校验', fmt(t.invalid + t.outOfRange), '不合规', [gateRow('②', '验收②')], stOf('E3'), shardFrac),
-        st('E5', '汇总·派生', '按粒度与取值规则成格；派生字段；冲突登记', fmt(t.conflicts), '冲突', [['病人', big(t.patients), ''], gateRow('③', '验收③')], stOf('E5'), stage === 'E5' ? 0.5 : after('E5') ? 1 : 0),
+        st('E5', '汇总·派生', '按粒度与汇总规则成格；派生字段；冲突登记', fmt(t.conflicts), '冲突', [['病人', big(t.patients), ''], gateRow('③', '验收③')], stOf('E5'), stage === 'E5' ? 0.5 : after('E5') ? 1 : 0),
         st('E6', '抽样核验·复核', run.model?.verifyModel ? `核验模型 ${run.model.verifyModel}` : '未配置核验模型', fmt(t.review), '待复核', [gateRow('④', '验收④')], t.review && !running ? 'hold' : stOf('E6'), after('E6') ? 1 : 0),
         st('E7', '交付', '宽表 → 证据长表 → 冲突表 → 只读核对', run.output ? '已写出' : '—', '', [['输出', run.output ? '已写出' : '未交付', run.output ? 'ok' : '']], run.output ? 'done' : stOf('E7'), run.output ? 1 : 0),
         st('E0', '模板', `${run.template.name} v${run.template.version}`, String(run.template.fields), '字段', [['模式', modeLabel(run.mode), '']], 'done', 1),
@@ -628,7 +628,7 @@ window.__ModuleLoader__.load({
             h('div', { className: 'mx-hud br' },
               h('div', {}, h('i', { className: 'sw hot' }), '运行中／待复核'), h('div', {}, h('i', { className: 'sw clay' }), '已完成'),
               h('div', {}, h('i', { className: 'sw box' }), '箱子＝一个分片'), h('div', {}, h('i', { className: 'sw red' }), '红色＝验收门未过'),
-              h('div', {}, h('i', { className: 'sw vio' }), '青灯＝抽取模型（取值时通读）'), h('div', {}, h('i', { className: 'sw flow' }), '紫色流线＝字段规格下发'))),
+              h('div', {}, h('i', { className: 'sw vio' }), '青灯＝提取模型／核验模型'), h('div', {}, h('i', { className: 'sw flow' }), '紫色流线＝字段规格下发'))),
           h('div', { className: 'mx-frame mx-bottom' },
             h(ProgressPanel, { run }),
             h(ResultsPanel, { run, stations, onSel: setSelK, goto }),
@@ -663,7 +663,7 @@ window.__ModuleLoader__.load({
 
     /**
      * 产线主视图：后方的模板塔（E0）经规格总线把字段规格下发到每道工序；
-     * E1 读入楼 → E2–E6 五栋工序楼 → E7 交付堆场；箱子＝一个分片；抽取模型挂在取值楼旁。
+     * E1 读入楼 → E2–E6 五栋工序楼 → E7 交付堆场；箱子＝一个分片；提取模型挂在提取楼旁，核验模型挂在核验楼旁。
      */
     function PlantScene({ run, stations, sel, onSel, goto }) {
       const [P, C] = useClay()
@@ -710,7 +710,7 @@ window.__ModuleLoader__.load({
         })
         }
       }
-      // E0 模板塔：窗户＝字段（点亮＝本批抽到值的字段）
+      // E0 模板塔：窗户＝字段（点亮＝本批提取到值的字段）
       {
         const { i, j, a, b, hh } = TW; const g = []
         g.push(...isoBox('tp', i - 10, j - 10, 0, a + 20, b + 20, 4, { top: C.pad, left: C.padL, right: C.padR }))
@@ -882,24 +882,28 @@ window.__ModuleLoader__.load({
         els.push(h('g', { key: 'cur' }, h('g', { filter: 'url(#mx-glow)', className: 'mx-pulse' }, isoBox('cc', at[0], at[1], 0, 16, 14, 13, AMB)),
           h('text', { x: tp[0] - 14, y: tp[1] + 16, textAnchor: 'end', fill: A, fontSize: 10.5, fontWeight: 700, ...halo }, `处理中 · ${run.shards.running ?? 0} 个分片${run.rate ? ` · ${fmt(run.rate)} 份/秒` : ''}`)))
       }
-      // 抽取模型（取值时通读）
-      {
-        const on = !!run.model; const V = P.vio
-        // 楼号：bay0(1)=分派 E2，bay0(2)=取值 E3（抽取模型在这里），bay0(5)=核验 E6（核验模型）
-        const mi = bay0(2) + 30; const mj = D + 118; const ma = 70; const mb = 42; const mh = 28
+      // 模型小楼：提取模型挂在提取楼旁，核验模型挂在核验楼旁（楼号：bay0(2)=提取 E3，bay0(5)=核验 E6）
+      const kiosk = ({ key, bay, k, name, model, stats, label, side }) => {
+        const on = !!model; const V = P.vio
+        // 核验模型往右下放，让开「裁定回流」的弧线和说明
+        const mi = bay0(bay) + (side === 'left' ? 30 : 46); const mj = D + (side === 'left' ? 118 : 156); const ma = 70; const mb = 42; const mh = 28
         const g = []
         g.push(...isoBox('mp', mi - 6, mj - 6, -3, ma + 12, mb + 12, 3, { top: C.pad, left: C.padL, right: C.padR }))
-        const pipe = (key, from, to) => { const a = iso(...from); const b = iso(...to); return h('line', { key, x1: a[0], y1: a[1], x2: b[0], y2: b[1], stroke: on ? V : C.left2, strokeWidth: on ? 1.8 : 1.4, strokeDasharray: '3 6', className: on ? 'mx-flow' : undefined, filter: on ? 'url(#mx-glow)' : undefined, opacity: on ? 1 : 0.5 }) }
-        g.push(pipe('p1', [bay0(2) + 40, D, 22], [mi + 14, mj, mh - 4]), pipe('p2', [mi + ma - 14, mj, mh - 4], [bay0(5) + 22, D, 22]))
+        const a = iso(bay0(bay) + 40, D, 22); const b = iso(mi + ma / 2, mj, mh - 4)
+        g.push(h('line', { key: 'p', x1: a[0], y1: a[1], x2: b[0], y2: b[1], stroke: on ? V : C.left2, strokeWidth: on ? 1.8 : 1.4, strokeDasharray: '3 6', className: on && running ? 'mx-flow' : undefined, filter: on ? 'url(#mx-glow)' : undefined, opacity: on ? 1 : 0.5 }))
         g.push(...isoBox('mb', mi, mj, 0, ma, mb, mh, CL))
         for (let w = 0; w < 3; w++) g.push(leftPatch(`mw${w}`, mi + 8 + w * 20, mi + 20 + w * 20, mj + mb, 9, 19, { fill: on ? V : C.win, opacity: on ? 0.9 : 0.55, filter: on ? 'url(#mx-glow)' : undefined }))
         g.push(...isoBox('mbk', mi + 48, mj + 14, mh, 10, 10, 7, on ? { top: shade(V, 0.3), left: V, right: shade(V, -0.3) } : CL2))
-        const lt = iso(mi - 10, mj + mb + 10)
-        g.push(h('text', { key: 't1', x: lt[0], y: lt[1] + 6, textAnchor: 'end', fill: on ? V : P.ink3, fontSize: 11, fontWeight: 600, ...halo }, '抽取模型（通读）'),
-          h('text', { key: 't2', x: lt[0], y: lt[1] + 20, textAnchor: 'end', fill: P.ink2, fontSize: 9.5, ...halo }, on ? `调用 ${big(t.calls)} · 缓存 ${big(t.cached)} · 引语回原文核对` : '未配置模型 · 只跑规则'))
-        els.push(h('g', { key: 'model', ...click(2) }, h('title', {}, on ? `抽取模型 ${run.model.model}${run.model.verifyModel ? `；核验模型 ${run.model.verifyModel}` : ''}` : '未配置模型'), g))
-        bb.push(iso(mi - 6, mj + mb + 6), iso(mi - 160, mj + mb + 40), iso(mi + ma, mj + mb + 6))
+        const lt = side === 'left' ? iso(mi - 10, mj + mb + 10) : iso(mi + ma + 14, mj + mb + 4)
+        const anchorT = side === 'left' ? 'end' : 'start'
+        g.push(h('text', { key: 't1', x: lt[0], y: lt[1] + 6, textAnchor: anchorT, fill: on ? V : P.ink3, fontSize: 11, fontWeight: 600, ...halo }, name),
+          h('text', { key: 't2', x: lt[0], y: lt[1] + 20, textAnchor: anchorT, fill: P.ink2, fontSize: 9.5, ...halo }, on ? stats : label))
+        els.push(h('g', { key, ...click(k) }, h('title', {}, on ? `${name}：${model}` : `${name}：${label}`), g))
+        bb.push(iso(mi - 6, mj + mb + 6), side === 'left' ? iso(mi - 160, mj + mb + 40) : iso(mi + ma + 170, mj + mb + 34), iso(mi + ma, mj + mb + 6))
       }
+      const mE = run.models?.extract; const mV = run.models?.verify
+      kiosk({ key: 'model', bay: 2, k: 2, side: 'left', name: '提取模型', model: run.model?.model, stats: `调用 ${big(mE?.calls ?? t.calls)} · 缓存 ${big(mE?.cached ?? t.cached)} · 引语回原文核对`, label: '未配置 · 不能开始批次' })
+      kiosk({ key: 'vmodel', bay: 5, k: 5, side: 'right', name: '核验模型', model: run.model?.verifyModel, stats: mV ? `调用 ${big(mV.calls)} · 缓存 ${big(mV.cached)} · 背靠背重新提取` : '抽样背靠背重新提取', label: '未配置 · 不做抽样核验' })
       // 裁定回流
       {
         const a = iso(bay0(5) + 40, D + 40); const b = iso(bay0(4) + 50, D + 40)
@@ -951,14 +955,14 @@ window.__ModuleLoader__.load({
 
     /* 每道工序：做什么 → 产出什么（引擎的通用工序说明，不含病种内容） */
     const STEP_HELP = {
-      E0: ['载入抽取模板并校验：每个字段的定义、取值类型、选项、值域、粒度，适用的文书类型和栏目，以及规则（出规则票）', '字段规格，下发给后面每道工序'],
+      E0: ['载入提取模板并校验：每个字段的定义、值类型、选项、值域、粒度，适用的文书类型和栏目，以及规则（出规则票）', '字段规格，下发给后面每道工序'],
       E1: ['识别格式，按表判定类别：文书表读入，检验、医嘱、收费等结构化表只取人口与就诊，忽略的表不读。清洗：解码嵌入内容（base64、HTML／XML、RTF），去掉图片等二进制（不识别图片里的文字）和导出残留的乱码，切栏目，剔除清洗后没有内容的空壳文书；截至时刻以后写成的跳过', '干净的文书与栏目'],
-      E2: ['按文书类型和栏目决定每份文书要抽哪些字段，不看关键词；字段多的分组（每组约 30 个），太长的文书按栏目分段。这一步是规则，不用模型', '抽取任务（文书或其中一段 × 一组字段）'],
-      E3: ['抽取模型通读每个任务，返回值、断言（阳性／否认／既往／家族／计划）和逐字引语；插件在原文里定位引语，对不上的丢弃；模板写了明确规则的字段，规则另出一票对照；内容相同的任务只调一次模型', '值：每个都带原文引语、起止位置和出处'],
+      E2: ['按文书类型和栏目决定每份文书要提取哪些字段，不看关键词；字段多的分组（每组约 30 个），太长的文书按栏目分段。这一步是规则，不用模型', '提取任务（文书或其中一段 × 一组字段）'],
+      E3: ['提取模型通读每个任务，返回值、断言（阳性／否认／既往／家族／计划）和逐字引语；插件在原文里定位引语，对不上的丢弃；模板写了明确规则的字段，规则另出一票对照；内容相同的任务只调一次模型', '值：每个都带原文引语、起止位置和出处'],
       E2old: ['当时的做法：每个字段用关键词（召回词、正则）在文书里找命中，只看限定的文书类型和栏目；没提到的记「未提及」', '命中的「字段 × 文书」'],
-      E3old: ['当时的做法：规则对命中处取值，规则定不了的命中句送模型（仅规则模式下不送，记「待定」）', '值：每个都带原文引语、起止位置和出处'],
+      E3old: ['当时的做法：规则对命中处定值，规则定不了的命中句送模型（仅规则模式下不送，记「待定」）', '值：每个都带原文引语、起止位置和出处'],
       E4: ['统一单位、日期和选项写法；按类型、选项、值域校验，不合的丢弃或标出', '规范值'],
-      E5: ['按字段粒度（文书／就诊／病人／时间点）和汇总规则合并成格，计算派生字段；同一格互斥取值登记为冲突，不自动选边', '宽表、时间点长表、冲突表'],
+      E5: ['按字段粒度（文书／就诊／病人／时间点）和汇总规则合并成格，计算派生字段；同一格互斥的值登记为冲突，不自动选边', '宽表、时间点长表、冲突表'],
       E6: ['核验模型抽样，对同样的任务背靠背通读重抽，按字段算一致率；核验分歧和规则票不一致的进人工复核；裁定按稳定编号保存，重跑沿用', '一致率与复核单'],
       E7: ['写出宽表、证据长表、冲突表和报告，再只读核对源文件没有被改动', '交付目录'],
     }
@@ -990,7 +994,7 @@ window.__ModuleLoader__.load({
 
     /* ------------------------------------------------------------ overview */
     const kfmt = (n) => (n == null ? '—' : n >= 1e9 ? `${(n / 1e9).toFixed(1)}G` : n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1e3 ? `${(n / 1e3).toFixed(1)}k` : fmt(Math.round(n)))
-    const ROLE_NM = { extract: '抽取', verify: '核验' }
+    const ROLE_NM = { extract: '提取', verify: '核验' }
     const LAT_LABELS = ['<.5', '.5', '1', '2', '4', '8', '16+']
 
     /** 一个角色的并发曲线：在途（阶梯线）、上限（虚线）、吞吐（token/秒，自身峰值归一）、排队（零线以下） */
@@ -1045,7 +1049,7 @@ window.__ModuleLoader__.load({
             h('div', {}, h('span', {}, '调用'), h('b', {}, fmt(sum('calls')))),
             h('div', {}, h('span', {}, '复用'), h('b', {}, fmt(sum('cached')))),
             h('div', {}, h('span', {}, 'Token'), h('b', {}, kfmt(sum('pt') + sum('ct'))))),
-          t.structured ? h('p', { className: 'mx-snote' }, `另有结构化记录 ${big(t.structured)} 条不抽取，不计在内`) : null)
+          t.structured ? h('p', { className: 'mx-snote' }, `另有结构化记录 ${big(t.structured)} 条不提取，不计在内`) : null)
           : h('p', { className: 'mx-snote' }, legacy ? '这个批次没有记录送审字数（旧版本跑的）' : '还没有送审')),
         block('模型表现', 'MODELS', roles.length ? h('div', { className: 'mx-ob-models', style: { gridTemplateColumns: `76px repeat(${roles.length}, minmax(0,1fr))` } },
           h('span', {}), ...roles.map((r) => h('div', { key: r, className: 'mx-ob-mh' }, h('b', {}, ROLE_NM[r]), h('small', { title: nm(r) }, h('i', { className: M[r]?.failed && M[r].calls && M[r].failed / M[r].calls > 0.05 ? 'bad' : '' }), nm(r)))),
@@ -1060,7 +1064,7 @@ window.__ModuleLoader__.load({
           roles.map((r) => h('div', { key: r, className: 'mx-ob-conc' },
             h('div', { className: 'mx-ob-ch' }, h('b', {}, ROLE_NM[r]), h('span', {}, '并发峰值 ', h('b', {}, fmt(peak(r)))), h('span', { className: 'tp' }, '吞吐峰值 ', h('b', {}, `${kfmt(peakT(r))}`), ' token/秒')),
             h(ConcChart, { series, role: r, limit: run.modelConcurrency }))),
-          h('p', { className: 'mx-snote' }, `上限 ${fmt(run.modelConcurrency ?? 0) || '—'}：抽取和核验共用一个并发上限（设置里的「全局同时进行的模型请求数」），各工作线程共用`))),
+          h('p', { className: 'mx-snote' }, `上限 ${fmt(run.modelConcurrency ?? 0) || '—'}：提取和核验共用一个并发上限（设置里的「全局同时进行的模型请求数」），各工作线程共用`))),
         block('核验与复核', 'CROSS-CHECK', h(React.Fragment, {},
           h('p', { className: 'mx-snote' }, run.model?.verifyModel ? `抽样核验 ${fmt(vn)} 次（字段 × 文书）· 一致 ${vn ? pct(va / vn) : '—'} · 核验分歧 ${fmt(Math.max(0, t.review - rd))}` : '未配置核验模型，不做抽样核验'),
           !legacy && run.mode !== 'model' ? h('p', { className: 'mx-snote' }, `规则票 ${fmt(t.votes ?? 0)} · 与模型一致 ${fmt(t.agree ?? 0)} · 不一致 ${fmt(rd)}`) : null,
@@ -1106,7 +1110,7 @@ window.__ModuleLoader__.load({
         const nHit = fields.length ? scope.filter(hasVal).length : Object.keys(run.byField ?? {}).length
         const started = (t.documents ?? 0) > 0
         ring = h(Ring, { v: nScope ? nHit / nScope : 0, label: `${nHit}/${nScope}`, sub: '字段本批有值', hot: started && run.status !== 'running' && nScope > 0 && nHit / nScope < 0.5 })
-        stats = [['模板', run.template.name], ['版本', `v${run.template.version}`], ['字段', pri ? `${fmt(nScope)} / ${fmt(run.template.fields)}（只抽 ${pri.join('／')}）` : fmt(run.template.fields)], ['模式', legacy ? (run.mode === 'rules' ? '仅规则（已停用）' : '规则优先（已停用）') : modeLabel(run.mode)]]
+        stats = [['模板', run.template.name], ['版本', `v${run.template.version}`], ['字段', pri ? `${fmt(nScope)} / ${fmt(run.template.fields)}（只提取 ${pri.join('／')}）` : fmt(run.template.fields)], ['模式', legacy ? (run.mode === 'rules' ? '仅规则（已停用）' : '规则优先（已停用）') : modeLabel(run.mode)]]
         const groups = tpl.value?.template?.groups ?? []
         const byGroup = groups.map((g) => { const fs = scope.filter((f) => f.group === g.id); return [g.name, fs.length, fs.filter(hasVal).length, fs] }).filter((r) => r[1])
         if (byGroup.length) {
@@ -1121,20 +1125,20 @@ window.__ModuleLoader__.load({
           const cnt = (key) => scope.reduce((m, f) => { const k = key(f); m[k] = (m[k] ?? 0) + 1; return m }, {})
           const never = scope.filter((f) => f.model === 'never').length
           const voted = scope.filter((f) => f.model !== 'never' && f.rules?.length).length
-          const way = legacy ? [[run.mode === 'rules' ? '只用规则（旧批次）' : '关键词定位＋模型补抽（旧批次）', scope.length]] : [['模型通读', scope.length - never - (run.mode === 'model' ? 0 : voted)], ...(run.mode === 'model' ? [] : [['模型通读＋规则票', voted]]), ['只用规则（model: never）', never]]
+          const way = legacy ? [[run.mode === 'rules' ? '只用规则（旧批次）' : '关键词定位＋模型补充提取（旧批次）', scope.length]] : [['模型通读', scope.length - never - (run.mode === 'model' ? 0 : voted)], ...(run.mode === 'model' ? [] : [['模型通读＋规则票', voted]]), ['只用规则（model: never）', never]]
           const GR = { encounter: '就诊', patient: '病人', timepoint: '时间点', document: '文书' }
           const gr = cnt((f) => f.granularity ?? 'encounter')
           const line = (l, v) => h('p', { className: 'mx-snote' }, h('span', { style: { color: 'var(--ink3)', marginRight: 8 } }, l), v)
           parts.push(sec('字段怎么取、汇总到哪', h(React.Fragment, {},
-            line('取值', way.filter((x) => x[1]).map(([k, n]) => `${k} ${n}`).join(' · ')),
+            line('提取', way.filter((x) => x[1]).map(([k, n]) => `${k} ${n}`).join(' · ')),
             line('汇总到', Object.keys(GR).filter((k) => gr[k]).map((k) => `${GR[k]} ${gr[k]}`).join(' · ')))))
         }
         action = ['查看字段清单', 'template']
       } else if (id === 'E1') {
         ring = h(Ring, { v: s.frac, label: `${Math.round((s.frac ?? 0) * 100)}%`, sub: shards, hot })
-        stats = [['进入抽取的文书', big(t.documents)], ['结构化记录（不抽取）', t.structured == null ? '—' : big(t.structured)], ['空壳文书（不抽取）', t.hollow == null ? '—' : big(t.hollow), t.hollow ? 'warn' : ''], ['跳过（截至时刻）', fmt(t.skipped)], ['速率', run.rate ? `${fmt(run.rate)} 份/秒` : '—'], ['输入格式', run.plan?.format ?? '—']]
+        stats = [['进入提取的文书', big(t.documents)], ['结构化记录（不提取）', t.structured == null ? '—' : big(t.structured)], ['空壳文书（不提取）', t.hollow == null ? '—' : big(t.hollow), t.hollow ? 'warn' : ''], ['跳过（截至时刻）', fmt(t.skipped)], ['速率', run.rate ? `${fmt(run.rate)} 份/秒` : '—'], ['输入格式', run.plan?.format ?? '—']]
         if (t.structured != null) parts.push(sec('读入了什么', h(Split, { parts: [['文书', (t.documents ?? 0) + (t.hollow ?? 0), 'var(--teal)'], ['结构化记录', t.structured ?? 0, 'var(--line2)']] }), '按表判定'))
-        if (t.hollow != null) parts.push(sec('清洗', h(React.Fragment, {}, h(Split, { parts: [['进入抽取的文书', t.documents, 'var(--teal)'], ['空壳文书', t.hollow, 'var(--warn)']] }), note(`解码 ${fmt(t.decoded)} 个取值，去掉导出乱码 ${fmt(t.garbled)} 个取值，去掉图片与二进制 ${fmt(t.media ?? 0)} 处${Object.keys(t.mediaKinds ?? {}).length ? `（${Object.entries(t.mediaKinds).map(([k, v]) => `${k} ${fmt(v)}`).join('，')}）` : ''}，图片里的文字不识别。空壳文书＝清洗后各栏目加起来不到 2 个汉字，如「护理观察：-」、只有编码的记录`))))
+        if (t.hollow != null) parts.push(sec('清洗', h(React.Fragment, {}, h(Split, { parts: [['进入提取的文书', t.documents, 'var(--teal)'], ['空壳文书', t.hollow, 'var(--warn)']] }), note(`解码 ${fmt(t.decoded)} 个字段值，去掉导出乱码 ${fmt(t.garbled)} 个字段值，去掉图片与二进制 ${fmt(t.media ?? 0)} 处${Object.keys(t.mediaKinds ?? {}).length ? `（${Object.entries(t.mediaKinds).map(([k, v]) => `${k} ${fmt(v)}`).join('，')}）` : ''}，图片里的文字不识别。空壳文书＝清洗后各栏目加起来不到 2 个汉字，如「护理观察：-」、只有编码的记录`))))
         if (run.format) {
           parts.push(sec('格式识别', h(Split, { parts: [['采用', run.format.adopted ?? 0, 'var(--teal)'], ['待确认', run.format.held ?? 0, 'var(--warn)'], ['跳过', run.format.ignored ?? 0, 'var(--line2)']] }), `${fmt((run.format.adopted ?? 0) + (run.format.held ?? 0) + (run.format.ignored ?? 0))} 张表`))
           if (run.format.held) action = [`去确认 ${run.format.held} 张表`, 'formats']
@@ -1143,19 +1147,19 @@ window.__ModuleLoader__.load({
         ring = h(Ring, { v: s.frac, label: `${Math.round((s.frac ?? 0) * 100)}%`, sub: shards, hot })
         if (!legacy) {
           const per = (n) => (t.documents ? (n / t.documents).toFixed(1) : '—')
-          stats = [['抽取任务', big(t.tasks)], ['字段 × 文书', big(t.assigned)], ['每份文书派到', `${per(t.assigned)} 个字段`], ['每份文书', `${per(t.tasks)} 个任务`]]
+          stats = [['提取任务', big(t.tasks)], ['字段 × 文书', big(t.assigned)], ['每份文书派到', `${per(t.assigned)} 个字段`], ['每份文书', `${per(t.tasks)} 个任务`]]
           parts.push(sec('怎么派', h(React.Fragment, {},
             note(`按文书类型和栏目派：字段限定了文书类型的只派给这些文书，限定了栏目的只派给有这些栏目的文书；不看关键词，原文换个写法也不会漏。共 ${fmt(t.documents)} 份文书，平均每份派到 ${per(t.assigned)} 个字段（模板 ${fmt(run.template.fields)} 个）`),
             note('任务＝文书（超过 6000 字按栏目分段）× 一组字段（每组至多 30 个），是送模型的最小单位；内容相同的任务只调一次模型'))))
           if (t.noKeyword) parts.push(sec('成本开关', note(`已开：${fmt(t.noKeyword)} 份文书一个模板关键词都没有，整份跳过（这些文书没有交给模型）`)))
         } else {
           stats = [['命中（字段 × 文书）', big(t.recalled)], ['文书', big(t.documents)]]
-          parts.push(sec('数量对照', h(React.Fragment, {}, h(RankBars, { rows: [['文书', t.documents], ['命中', t.recalled], ['取到的值', t.values]] }), note('命中按「字段 × 文书」计：一个字段在一份文书里提到了算 1 个；一个命中里可能取出多个值，也可能一个都取不到（比如提到了但是否认）'))))
+          parts.push(sec('数量对照', h(React.Fragment, {}, h(RankBars, { rows: [['文书', t.documents], ['命中', t.recalled], ['提取的值', t.values]] }), note('命中按「字段 × 文书」计：一个字段在一份文书里提到了算 1 个；一个命中里可能提取出多个值，也可能一个都没有（比如提到了但是否认）'))))
         }
       } else if (id === 'E3') {
         ring = h(Ring, { v: s.frac, label: `${Math.round((s.frac ?? 0) * 100)}%`, sub: shards, hot })
-        stats = [['值', big(t.values)], ['抽取模型', run.model?.model ?? '—'], ['模型调用', big(t.calls)], ['命中缓存', big(t.cached)], ['调用失败', fmt(t.failed), t.failed ? 'warn' : ''], ['引语对不上丢弃', fmt(t.quoteFail), t.quoteFail ? 'warn' : '']]
-        parts.push(sec('值从哪来', h(Split, { parts: legacy
+        stats = [['值', big(t.values)], ['提取模型', run.model?.model ?? '—'], ['模型调用', big(t.calls)], ['命中缓存', big(t.cached)], ['调用失败', fmt(t.failed), t.failed ? 'warn' : ''], ['引语对不上丢弃', fmt(t.quoteFail), t.quoteFail ? 'warn' : '']]
+        parts.push(sec('值的来源', h(Split, { parts: legacy
           ? [['规则', methods.rule ?? 0, 'var(--fact)'], ['模型', methods.model ?? 0, 'var(--vio)'], ['模型＋规则', methods['model+rule'] ?? 0, 'var(--decide)']]
           : [['模型', methods.model ?? 0, 'var(--vio)'], ['模型（规则票一致）', methods['model+rule'] ?? 0, 'var(--decide)'], ['只用规则的字段', methods.rule ?? 0, 'var(--fact)']] })))
         if (!legacy && run.mode !== 'model') parts.push(sec('规则票', note(t.votes ? `模板写了明确规则的字段，规则另出了 ${fmt(t.votes)} 票：与模型一致 ${fmt(t.agree)}，不一致 ${fmt(t.ruleDisputes)} 项进人工复核` : '这批文书里规则没有命中（模板写了明确规则的字段才出规则票）'), t.ruleDisputes ? h('b', { className: 'mx-warn' }, `${fmt(t.ruleDisputes)} 项待复核`) : null))
@@ -1164,7 +1168,7 @@ window.__ModuleLoader__.load({
         const qp = (run.problems ?? []).filter((x) => /引语/.test(x.problem))
         if (qp.length) parts.push(sec('被丢弃的回答（举例）', h('ul', { className: 'mx-slist' }, qp.slice(0, 5).map((x, i) => h('li', { key: i }, `${nameOf(x.field)}：${x.problem}`)))))
         const rows = top(Object.entries(run.byField ?? {}), 'values').map(([f, v]) => [nameOf(f), v.values, null, null, `${nameOf(f)}（${f}）：${fmt(v.values)} 个值，${fmt(v.docs)} 份文书`])
-        parts.push(sec('取值最多的字段', rows.length ? h(RankBars, { rows }) : note('还没有值'), `${Object.keys(run.byField ?? {}).length} / ${run.template.fields} 个字段有值`))
+        parts.push(sec('提取值最多的字段', rows.length ? h(RankBars, { rows }) : note('还没有值'), `${Object.keys(run.byField ?? {}).length} / ${run.template.fields} 个字段有值`))
         if (run.model) action = ['模型调用', 'calls']
       } else if (id === 'E4') {
         const bad = t.invalid + t.outOfRange
@@ -1190,7 +1194,7 @@ window.__ModuleLoader__.load({
         ring = h(Ring, { v: vn ? va / vn : 0, label: vn ? pct(va / vn) : '—', sub: '核验一致率', hot: vn > 0 && va / vn < 0.9 })
         const rd = legacy ? 0 : t.ruleDisputes ?? 0
         stats = [['核验模型', run.model?.verifyModel || '未配置'], ['抽样（字段 × 文书）', vn ? `${fmt(vn)} 次` : '—'], ['待复核', fmt(t.review), t.review ? 'warn' : ''], ...(legacy ? [] : [['其中核验分歧', fmt(Math.max(0, t.review - rd))], ['其中规则票不一致', fmt(rd)]])]
-        if (!legacy) parts.push(sec('怎么核验', note(`核验模型对同样的抽取任务背靠背通读（按文书抽样，另保证每个有值的字段都核验到），按字段比较文书级结论；两边都「未提及」的不计入一致率`)))
+        if (!legacy) parts.push(sec('怎么核验', note(`核验模型对同样的提取任务背靠背通读（按文书抽样，另保证每个有值的字段都核验到），按字段比较文书级结论；两边都「未提及」的不计入一致率`)))
         const weak = verify.filter(([, x]) => x.n >= 3).map(([f, x]) => [f, x.agree / x.n, x]).sort((a, b) => a[1] - b[1]).slice(0, 5)
         parts.push(sec('一致率最低的字段', weak.length ? h(RankBars, { max: 1, rows: weak.map(([f, r, x]) => [nameOf(f), r, r.toFixed(2), r < 0.9 ? 'var(--warn)' : 'var(--teal)', `${nameOf(f)}（${f}）：${x.agree} / ${x.n} 次一致`]) }) : note(run.model?.verifyModel ? '抽样不足（每个字段至少 3 次）' : '在设置里配置核验模型后才会抽样核验')))
         parts.push(gateLine('④', '抽样核验一致率'))
@@ -1206,7 +1210,7 @@ window.__ModuleLoader__.load({
 
       return h('div', { className: 'mx-frame mx-side' },
         h('div', { className: 'mx-side-h' }, h('b', {}, s.nm), h('span', { className: `mx-chip ${stateCls}` }, STATE_LABEL[s.state]), onBack ? h('button', { className: 'mx-link mx-back', onClick: onBack }, '← 概览') : null),
-        legacy ? h('div', { className: 'mx-err mx-slegacy' }, `旧版本跑的批次：${t.structured == null ? '那时检验、医嘱、收费等结构化记录也当文书读、没有清洗，' : ''}取值走关键词定位${run.mode === 'rules' ? '＋规则' : '＋模型补抽'}，这些做法已停用。数字是当时的口径，重跑一次看新流程的结果`) : null,
+        legacy ? h('div', { className: 'mx-err mx-slegacy' }, `旧版本跑的批次：${t.structured == null ? '那时检验、医嘱、收费等结构化记录也当文书读、没有清洗，' : ''}提取走关键词定位${run.mode === 'rules' ? '＋规则' : '＋模型补充提取'}，这些做法已停用。数字是当时的口径，重跑一次看新流程的结果`) : null,
         h('p', { className: 'mx-sdesc' }, what, h('br'), h('span', {}, `→ ${out}`)),
         h('div', { className: 'mx-shead' }, ring, kv(stats)),
         ...parts,
@@ -1276,11 +1280,11 @@ window.__ModuleLoader__.load({
           h('div', { title: dur(running ? eta : elapsed) }, h('span', {}, running ? '预计剩余' : '用时'), h('b', {}, ...clockParts(running ? eta : elapsed)))),
         h('div', { className: 'mx-kv2' },
           h('p', {}, h('span', {}, '分片'), h('b', {}, fmt(sh.done), h('small', {}, ` / ${fmt(sh.total)}`))),
-          h('p', {}, h('span', {}, '文书'), h('b', {}, big(t.documents)), t.structured ? h('small', {}, `（另有结构化记录 ${big(t.structured)}，不抽取）`) : null)),
+          h('p', {}, h('span', {}, '文书'), h('b', {}, big(t.documents)), t.structured ? h('small', {}, `（另有结构化记录 ${big(t.structured)}，不提取）`) : null)),
         h(Spark, { run }))
     }
 
-    /** 处理结果：值、病人、就诊，取值途径比例条，验收门，待复核与冲突，交付位置。 */
+    /** 处理结果：值、病人、就诊，值的来源比例条，验收门，待复核与冲突，交付位置。 */
     function ResultsPanel({ run, stations, onSel, goto }) {
       const t = run.totals
       const [copied, setCopied] = useState(false)
@@ -1341,8 +1345,8 @@ window.__ModuleLoader__.load({
 
     /* --------------------------------------------------------------- formats */
     const FMT_STATUS = { agreed: ['自动采用', 'ok'], confirmed: ['已确认', 'ok'], disputed: ['有分歧', 'w'], invalid: ['校验未过', 'w'], pending: ['待确认', 'w'], failed: ['调用失败', 'b'], rejected: ['已跳过', ''] }
-    const FMT_ORIGIN = { model: '抽取模型', verify: '核验模型', rule: '规则', user: '人工' }
-    const DRAFT_LABEL = { model: '抽取模型草稿', verify: '核验模型草稿', rule: '规则草稿' }
+    const FMT_ORIGIN = { model: '提取模型', verify: '核验模型', rule: '规则', user: '人工' }
+    const DRAFT_LABEL = { model: '提取模型草稿', verify: '核验模型草稿', rule: '规则草稿' }
     const FIELD_KIND = { time: '时间', number: '数', code: '代码', text: '短文', long: '长文', embedded: '嵌入文书', pseudonym: '假名' }
     const stripSpec = (s) => { if (!s) return {}; const { origin, accept, ...rest } = s; return rest }
     /** 规格的一句话小结；labels：字段 → 中文名（数据元对照表） */
@@ -1589,11 +1593,11 @@ window.__ModuleLoader__.load({
         h('div', { className: 'mx-frame mx-col mx-pad', style: { minHeight: 0 } },
           h('div', { style: { display: 'flex', gap: 6 } }, h('input', { className: 'mx-input', style: { flex: 1 }, placeholder: '病人编号', value: input, onChange: (e) => setInput(e.target.value), onKeyDown: (e) => { if (e.key === 'Enter') { setPatient(input.trim()); setDoc(null) } } }), h('button', { className: 'mx-btn', onClick: () => { setPatient(input.trim()); setDoc(null) } }, '查看')),
           !patient ? h('div', { className: 'mx-faint', style: { marginTop: 10 } }, '在「宽表」里点一行，或输入病人编号。') : ev.loading ? h('div', { className: 'mx-faint' }, '加载中…') : h('div', { className: 'mx-scroll', style: { marginTop: 8, flex: 1 } },
-            h('div', { className: 'mx-faint', style: { fontSize: 11, marginBottom: 4 } }, `${docs.length} 份文书有抽取值 · 共 ${values.length} 个值`),
+            h('div', { className: 'mx-faint', style: { fontSize: 11, marginBottom: 4 } }, `${docs.length} 份文书有提取值 · 共 ${values.length} 个值`),
             docs.map((d) => h('div', { key: d.id, className: `mx-pi${d.id === curDoc ? ' on' : ''}`, onClick: () => { setDoc(d.id); setSel(null) } }, h('b', {}, d.recordType), h('span', {}, `${d.n} 值`), h('span', { style: { gridColumn: '1 / 3' } }, `${d.written ?? '时间不详'}${d.encounter ? ` · ${d.encounter}` : ''}`))))),
         h('div', { className: 'mx-frame mx-col', style: { minWidth: 0 } },
           h('div', { className: 'mx-pad', style: { borderBottom: '1px solid var(--line)', display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' } },
-            h('b', {}, '原文标注'), h('span', { className: 'mx-q' }, '阳性'), h('span', { className: 'mx-q neg' }, '否认'), h('span', { className: 'mx-q hx' }, '既往'), h('span', { className: 'mx-q fam' }, '家族'), h('span', { className: 'mx-q mdl' }, '模型取值（青边）'),
+            h('b', {}, '原文标注'), h('span', { className: 'mx-q' }, '阳性'), h('span', { className: 'mx-q neg' }, '否认'), h('span', { className: 'mx-q hx' }, '既往'), h('span', { className: 'mx-q fam' }, '家族'), h('span', { className: 'mx-q mdl' }, '模型提取的值（青边）'),
             h('span', { className: 'mx-sp' }), h('span', { className: 'mx-faint' }, '原文只在本机读取显示，不写入任何记录')),
           h('div', { style: { display: 'grid', gridTemplateColumns: '1fr 300px', flex: 1, minHeight: 0 } },
             h('div', { className: 'mx-scroll mx-pad mx-doc', style: { lineHeight: 2 } }, text.loading ? '加载中…' : text.error ? h('div', { className: 'mx-err' }, text.error) : parts),
@@ -1653,7 +1657,7 @@ window.__ModuleLoader__.load({
         h('div', { className: 'mx-h' }, h('b', {}, '模型调用'), h('span', { className: 'mx-cap' }, 'MODELS'), h('span', { className: 'mx-faint' }, '按角色与模型累计；不记提示词与回复内容（回复缓存在记录库，供重跑复用）')),
         !v?.byModel?.length ? h('div', { className: 'mx-empty' }, run.model ? '还没有调用。' : '本批次未配置模型。') : h('table', {},
           h('thead', {}, h('tr', {}, ['角色', '模型', '调用', '失败', '缓存复用', '平均耗时', '输入 Token', '输出 Token'].map((x) => h('th', { key: x }, x)))),
-          h('tbody', {}, v.byModel.map((m) => h('tr', { key: m.role + m.model }, h('td', {}, m.role === 'extract' ? '抽取' : '核验'), h('td', {}, m.model), h('td', { className: 'mx-num' }, fmt(m.calls)), h('td', { className: `mx-num ${m.failed ? 'mx-bad' : ''}` }, fmt(m.failed)), h('td', { className: 'mx-num' }, fmt(m.cached)),
+          h('tbody', {}, v.byModel.map((m) => h('tr', { key: m.role + m.model }, h('td', {}, m.role === 'extract' ? '提取' : '核验'), h('td', {}, m.model), h('td', { className: 'mx-num' }, fmt(m.calls)), h('td', { className: `mx-num ${m.failed ? 'mx-bad' : ''}` }, fmt(m.failed)), h('td', { className: 'mx-num' }, fmt(m.cached)),
             h('td', { className: 'mx-num' }, m.calls ? `${(m.ms / m.calls / 1000).toFixed(1)}s` : '—'), h('td', { className: 'mx-num' }, fmt(m.prompt_tokens)), h('td', { className: 'mx-num' }, fmt(m.completion_tokens)))))),
         v?.errors?.length ? h(React.Fragment, {}, h('div', { className: 'mx-sec' }, h('b', {}, '最近的失败')),
           h('table', {}, h('tbody', {}, v.errors.map((c, i) => h('tr', { key: i }, h('td', { className: 'mx-num mx-faint' }, fmtTime(c.at)), h('td', {}, c.role), h('td', {}, c.model), h('td', { className: 'mx-bad' }, c.error)))))) : null)
@@ -1690,21 +1694,21 @@ window.__ModuleLoader__.load({
       }
       return h('div', { className: 'mx-settings' }, h('style', {}, CSS),
         inModal ? null : h('p', { style: { margin: 0, color: 'var(--dsw-alias-label-secondary)' } }, '这里只放配置。运行批次、看宽表与复核，请到左侧栏的「病历文书提取」，或在聊天框使用 /extract。'),
-        h('h3', { style: { margin: '6px 0 0' } }, '抽取'),
+        h('h3', { style: { margin: '6px 0 0' } }, '提取'),
         h('div', { className: 'mx-grid2' },
           field('template', '默认模板 id'),
           h('label', { className: 'mx-field' }, '模式', h('select', { className: 'mx-input', value: MODE_LABEL[form.extractMode] ? form.extractMode : 'hybrid', onChange: (e) => setForm({ ...form, extractMode: e.target.value }) }, Object.entries(MODE_LABEL).map(([k, l]) => h('option', { key: k, value: k }, l)))),
-          field('priorities', '只抽这些优先级（逗号分隔；空＝全部）'), field('mapping', '通用文件字段映射（JSON；空＝自动识别）', { placeholder: '{"text":"content","patient":"patient_id"}' })),
+          field('priorities', '只提取这些优先级（逗号分隔；空＝全部）'), field('mapping', '通用文件字段映射（JSON；空＝自动识别）', { placeholder: '{"text":"content","patient":"patient_id"}' })),
         h('h3', { style: { margin: '6px 0 0' } }, '模型'),
-        h('p', { style: { margin: 0, fontSize: 12, color: 'var(--dsw-alias-label-tertiary)' } }, '规则定不了的片段送抽取模型；核验模型按字段抽样背靠背重抽。病历内容只发往这里配置的端点，Agent 不能更改。'),
-        h('div', { className: 'mx-grid2' }, field('baseURL', '抽取模型端点（OpenAI 兼容）', { placeholder: 'http://127.0.0.1:11434/v1' }), field('model', '抽取模型'),
+        h('p', { style: { margin: 0, fontSize: 12, color: 'var(--dsw-alias-label-tertiary)' } }, '提取模型通读每份文书提取字段值（必须配置，否则不能开始批次）；核验模型抽样，对同样的任务背靠背重新提取，统计一致率（可不配）。格式识别两个都用。病历内容只发往这里配置的端点，Agent 不能更改。'),
+        h('div', { className: 'mx-grid2' }, field('baseURL', '提取模型端点（OpenAI 兼容）', { placeholder: 'http://127.0.0.1:11434/v1' }), field('model', '提取模型'),
           field('verifyBaseURL', '核验模型端点（空＝同上）'), field('verifyModel', '核验模型（空＝不做抽样核验）'),
           field('apiKey', 'API Key（留空不修改）', { type: 'password' }), field('timeoutMs', '单次调用超时（毫秒）'),
           field('modelConcurrency', '全局同时进行的模型请求数'), field('verifySampleRate', '核验抽样比例（0–1）'),
           field('verifyMinPerField', '每字段每分片至少核验几份'), field('verifyThreshold', '验收门④一致率阈值')),
         check('disableThinking', '关闭思考模式（推理模型更快）'),
         h('h3', { style: { margin: '6px 0 0' } }, '格式识别（通用文件）'),
-        h('p', { style: { margin: 0, fontSize: 12, color: 'var(--dsw-alias-label-tertiary)' } }, '按表识别类别、写成时间、病人、就诊与栏目：规则草稿＋抽取模型起草＋核验模型背靠背，一致才自动采用，其余在「格式」页确认。只发字段名、统计和截短样例，不发正文。'),
+        h('p', { style: { margin: 0, fontSize: 12, color: 'var(--dsw-alias-label-tertiary)' } }, '按表识别类别、写成时间、病人、就诊与栏目：规则草稿＋提取模型起草＋核验模型背靠背，一致才自动采用，其余在「格式」页确认。只发字段名、统计和截短样例，不发正文。'),
         check('formatRecognition', '启用格式识别'),
         check('borrowFormats', '借用病历事件还原插件已采用的识别结果'),
         h('div', { className: 'mx-grid2' }, field('elementDict', '数据元对照表（csv／xlsx／json，两列：编码、名称；可空）'),

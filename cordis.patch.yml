@@ -4,9 +4,9 @@
       config:
         # 输出根目录；空 = 输入旁的 _medical-extract
         outputRoot: ''
-        # 默认抽取模板 id（内置：mdd、stroke-ais、ad、hf、t2dm、ckd-hd、nsclc；我的模板放在插件数据目录 templates/）
+        # 默认提取模板 id（内置：mdd、stroke-ais、ad、hf、t2dm、ckd-hd、nsclc；我的模板放在插件数据目录 templates/）
         template: mdd
-        # hybrid：模型通读＋规则票；model：模型通读，不出规则票。必须配置抽取模型（baseURL、model）才能运行
+        # hybrid：模型通读＋规则票；model：模型通读，不出规则票。必须配置提取模型（baseURL、model）才能运行
         extractMode: hybrid
         # 只跑这些优先级的字段（空 = 全部），如 [P0]
         priorities: []
@@ -22,7 +22,7 @@
         timeoutMs: 120000
         # 全局同时进行的模型请求数（所有工作线程共用）
         modelConcurrency: 8
-        # 分派：每个抽取任务最多多少字（更长的文书按栏目分段）、多少个字段
+        # 分派：每个提取任务最多多少字（更长的文书按栏目分段）、多少个字段
         readMaxChars: 6000
         readMaxFields: 30
         # 成本开关：一份文书里一个模板关键词都没有就整份跳过（默认关：关键词漏掉的写法模型也就看不到）
