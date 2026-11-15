@@ -178,7 +178,7 @@ window.__ModuleLoader__.load({
 .mx-side{width:300px;flex:none;padding:12px 14px;display:flex;flex-direction:column;gap:2px}
 .mx-side-h{display:flex;align-items:center;gap:8px}.mx-side-h b{font-size:14px;font-weight:600;flex:1}
 .mx-side-sec{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;letter-spacing:.5px;color:var(--ink3);margin-top:12px;padding-top:8px;border-top:1px solid var(--line2)}
-.mx-side{overflow-y:auto}
+.mx-side{overflow-y:auto;contain:size}.mx-side>*{flex:none}
 .mx-sdesc{margin:6px 0 2px;font-size:11.5px;line-height:1.6;color:var(--ink2)}.mx-sdesc span{color:var(--ink3)}
 .mx-shead{display:flex;flex-direction:column;gap:6px;margin-top:8px;padding-top:10px;border-top:1px solid var(--line2)}
 .mx-ring{display:flex;align-items:center;gap:10px}.mx-ring div{display:flex;flex-direction:column;min-width:0}.mx-ring b{font-size:20px;font-weight:400;color:var(--ink)}.mx-ring small{font-size:10.5px;color:var(--ink3)}
