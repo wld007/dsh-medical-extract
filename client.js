@@ -381,6 +381,8 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
 .mx-fr b{font-family:var(--mono);font-weight:500;text-align:right;font-size:10.5px;color:var(--ink2)}
 .mx-legend{display:flex;gap:10px;flex-wrap:wrap;font-size:10.5px;color:var(--ink2);margin-top:auto;padding-top:6px}
 .mx-legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px}
+/* 一行放下：不折行，三项平分宽度，太窄时各自省略号（悬停看全） */
+.mx-legend.mx-lg1{flex-wrap:nowrap;gap:8px;justify-content:space-between}.mx-legend.mx-lg1>span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mx-ev{display:grid;grid-template-columns:76px 1fr 44px;gap:8px;align-items:center;font-size:11px;margin-bottom:5px}
 .mx-ev b{font-family:var(--mono);font-weight:500;text-align:right}
 .mx-ev .mx-ticks{margin:0;height:10px}
@@ -1317,7 +1319,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         h('div', { className: 'mx-side-h' }, h('b', {}, '批次概览'), h('span', { className: 'mx-cap' }, 'BATCH OVERVIEW')),
         block('模型用量', 'WORKLOAD', all ? h(React.Fragment, {},
           h('div', { className: 'mx-stack', style: { height: 8 } }, [[sent, 'var(--teal)'], [reused, 'var(--ok)'], [free, 'var(--line2)']].map(([n, c], i) => (n ? h('span', { key: i, style: { width: `${(n / all) * 100}%`, background: c } }) : null))),
-          h('div', { className: 'mx-legend' }, [['发送', sent, 'var(--teal)', '实际发给模型的文书字数（一份文书分几组字段、复判几轮就算几次）'], ['复用', reused, 'var(--ok)', '内容相同的调用直接用缓存的回复，不再发'], ['免送', free, 'var(--line2)', '不用交给模型的文书字数：空壳文书、截至时刻以后的、没派到字段的、成本开关跳过的']].map(([k, n, c, tip]) => h('span', { key: k, title: tip }, h('i', { style: { background: c } }), `${k} ${kfmt(n)} · ${pctOf(n)}`))),
+          h('div', { className: 'mx-legend mx-lg1' }, [['发送', sent, 'var(--teal)', '实际发给模型的文书字数（一份文书分几组字段、复判几轮就算几次）'], ['复用', reused, 'var(--ok)', '内容相同的调用直接用缓存的回复，不再发'], ['免送', free, 'var(--line2)', '不用交给模型的文书字数：空壳文书、截至时刻以后的、没派到字段的、成本开关跳过的']].map(([k, n, c, tip]) => h('span', { key: k, title: tip }, h('i', { style: { background: c } }), `${k} ${kfmt(n)} · ${pctOf(n)}`))),
           h('div', { className: 'mx-ob-kv' },
             h('div', {}, h('span', {}, '调用'), h('b', {}, fmt(sum('calls')))),
             h('div', {}, h('span', {}, '复用'), h('b', {}, fmt(sum('cached')))),
