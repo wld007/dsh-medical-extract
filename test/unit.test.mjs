@@ -247,3 +247,24 @@ test('复判：改口即采用；双方都不改提前交人工；核验模型�
   r = await adjudicate({ ...base, mine: [], other: [has], extract: E, verify: V, maxRounds: 1 })
   assert.equal(r.resolved, false); assert.equal(r.stats.quoteFail, 1)
 })
+
+test('自动调并发：满载有排队就加、加了吞吐不涨就退回并记上限、出错就降；服务器满时试降；读 vLLM 指标', async () => {
+  const { createTuner, parseServerMetrics } = await import('../lib/engine/gate.js')
+  let t = 0; let g = { active: 8, queued: 20, limit: 8, done: 0, tokens: 0, failed: 0 }
+  const state = { start: 8, limit: 8, ceiling: null, history: [] }
+  let srv = null
+  const tick = createTuner({ state, windowMs: 1000, now: () => t, read: () => ({ ...g, limit: state.limit, active: state.limit }), set: () => {}, server: () => srv })
+  const step = (done, tokens, failed = 0) => { for (let i = 0; i < 5; i++) { t += 250; g = { ...g, done, tokens, failed }; tick() } }
+  step(100, 100000)                       // 第 1 窗：满载有排队 → 加一半
+  assert.equal(state.limit, 12); assert.equal(state.history.at(-1).reason, 'up')
+  step(200, 200000)                       // 吞吐不涨 → 退回，记上限
+  assert.equal(state.limit, 8); assert.equal(state.history.at(-1).reason, 'flat'); assert.equal(state.ceiling, 12)
+  step(300, 300000, 20)                   // 失败 ≥ 5% → 降四分之一
+  assert.equal(state.limit, 6); assert.equal(state.history.at(-1).reason, 'errors')
+  srv = { available: true, samples: [[6, 4, 0.5]] }
+  step(400, 450000, 20)                   // 服务器排队 → 试降
+  assert.equal(state.history.at(-1).reason, 'server'); assert.ok(state.limit < 6)
+  const m = parseServerMetrics('vllm:num_requests_running{model_name="m"} 5\nvllm:num_requests_waiting{model_name="m"} 2\nvllm:kv_cache_usage_perc{model_name="m"} 0.4\nvllm:num_requests_running{model_name="x"} 9\n', 'm')
+  assert.deepEqual([m.running, m.waiting, m.kv], [5, 2, 0.4])
+  assert.equal(parseServerMetrics('# nothing', 'm'), null)
+})

@@ -269,6 +269,24 @@ window.__ModuleLoader__.load({
 .mx-round small{display:block;font-size:10px;color:var(--ink3)}.mx-why{font-size:10.5px;color:var(--ink2);margin-top:2px}
 .mx-nd{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-rows:auto auto;column-gap:8px;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:5px 2px;font:inherit;color:var(--ink);cursor:pointer}
 .mx-nd:hover{background:var(--panel2)}.mx-nd span{font-size:11.5px;font-weight:600}.mx-nd small{grid-column:1;grid-row:2;font-size:10.5px;color:var(--ink3)}.mx-nd b{grid-column:2;grid-row:1/3;align-self:center}.mx-nd i{grid-column:3;grid-row:1/3;align-self:center;font-style:normal;font-size:11px;color:var(--teal)}
+.mx-ob-models .z{background:var(--panel2)}
+button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);font:inherit;color:var(--ink);cursor:pointer;padding:0 0 3px;text-align:right}button.mx-ob-mh:hover b{color:var(--teal)}
+.mx-conc2{display:flex;flex-direction:column;gap:3px;padding-top:4px}
+.mx-conc2-h{display:flex;align-items:baseline;gap:10px;font-size:11px;color:var(--ink3);flex-wrap:wrap}.mx-conc2-h>b{color:var(--ink);font-size:12px}
+.mx-conc2-h em{font-style:normal;font-family:var(--mono);font-weight:700;color:var(--ink);font-size:12.5px}.mx-conc2-h .thr,.mx-conc2-h .thr em{color:var(--vio)}
+.mx-conc2-chip{margin-left:auto;font-size:10.5px;border-radius:3px;padding:0 6px;line-height:17px;border:1px solid var(--line2)}
+.mx-conc2-chip.up{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 45%,transparent);background:color-mix(in srgb,var(--ok) 8%,transparent)}
+.mx-conc2-chip.full{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 45%,transparent);background:color-mix(in srgb,var(--warn) 8%,transparent)}
+.mx-conc2-plot{position:relative;display:grid;grid-template-columns:22px minmax(0,1fr) 28px;align-items:stretch;height:76px}
+.mx-conc2-plot .gut{display:flex;flex-direction:column;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--ink3);text-align:right;padding-right:3px}.mx-conc2-plot .gut .z{margin-top:auto;margin-bottom:12px}
+.mx-conc2-plot svg{width:100%;height:76px;display:block}.mx-conc2-plot svg path,.mx-conc2-plot svg line{vector-effect:non-scaling-stroke}
+.mx-conc2-plot .fa{fill:color-mix(in srgb,var(--teal) 14%,transparent);stroke:none}.mx-conc2-plot .al{fill:none;stroke:var(--teal);stroke-width:2}
+.mx-conc2-plot .lim{fill:none;stroke:var(--ink3);stroke-width:1;stroke-dasharray:4 3}.mx-conc2-plot .tl{fill:none;stroke:var(--vio);stroke-width:1.2;opacity:.8}
+.mx-conc2-plot .q{fill:none;stroke:var(--teal);stroke-width:1;opacity:.55}.mx-conc2-plot .sq{fill:none;stroke:var(--warn);stroke-width:1.2;stroke-dasharray:3 2}.mx-conc2-plot .ax{stroke:var(--line2);stroke-width:1}
+.mx-conc2-plot .rg{font-family:var(--mono);font-size:9px;color:var(--vio);padding-left:3px}.mx-conc2-plot .wait{position:absolute;left:30px;top:24px;font-size:10.5px;color:var(--ink3)}
+.mx-conc2-srv{font-size:10.5px;color:var(--ink2)}.mx-conc2-srv .k{display:inline-block;background:var(--panel3);border-radius:3px;padding:0 5px;margin-right:6px;color:var(--ink3)}
+.mx-conc2-f{display:flex;justify-content:space-between;gap:8px;font-size:10.5px;color:var(--ink3)}.mx-conc2-f .mono{font-family:var(--mono);color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mx-legend i.ln.sq{background:repeating-linear-gradient(90deg,var(--warn) 0 3px,transparent 3px 5px);height:2px}
 .mx-ob-house{display:grid;grid-template-columns:8px minmax(0,1fr) auto 12px;gap:8px;align-items:center;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:6px 2px;font:inherit;color:var(--ink);cursor:pointer}
 .mx-ob-house:first-child{border-top:0}.mx-ob-house:disabled{cursor:default;opacity:.7}.mx-ob-house:not(:disabled):hover{background:var(--panel2)}
 .mx-ob-house>i{width:7px;height:7px;border-radius:50%;background:var(--ink3)}.mx-ob-house>i.on{background:var(--ok)}.mx-ob-house>i.bad{background:var(--bad)}
@@ -971,7 +989,8 @@ window.__ModuleLoader__.load({
         })
         g.push(...isoBox('mb', mi, mj, 0, ma, mb, mh, on ? CL : CL2))
         // 窗户＝并发名额：一扇窗一个名额（上限多时两排；再多则一扇窗代表几个名额），亮几扇＝在途几个
-        const cap = on ? Math.max(1, hs.max) : 8
+        // 当前上限：自动调并发会改，取最新的采样点
+        const cap = on ? Math.max(1, last?.length >= 22 && last[20 + hs.slot] > 0 ? last[20 + hs.slot] : run.autoTune?.[hs.slot]?.limit ?? hs.max) : 8
         const per = cap <= 32 ? 1 : Math.ceil(cap / 32)
         const nWin = Math.ceil(cap / per); const rowsW = nWin > 12 ? 2 : 1; const perRow = Math.ceil(nWin / rowsW)
         const litWin = on && live ? Math.min(nWin, Math.ceil(live.inflight / per)) : 0
@@ -998,7 +1017,7 @@ window.__ModuleLoader__.load({
         if (sel === 8 + hi) g.push(h('polygon', { key: 'selroof', points: pts([iso(mi + 2, mj + 2, mh + 0.5), iso(mi + ma - 2, mj + 2, mh + 0.5), iso(mi + ma - 2, mj + mb - 2, mh + 0.5), iso(mi + 2, mj + mb - 2, mh + 0.5)]), fill: 'none', stroke: A, strokeWidth: 1.4, strokeDasharray: '5 4' }))
         const lt = iso(mi - 8, mj + mb + 12)
         const name = hs.model ? shortModel(hs.model) : hs.label
-        const sub = !on ? hs.why : live ? `在途 ${live.inflight}／${hs.max}${live.waiting ? ` · 排队 ${live.waiting}` : ''}` : `调用 ${big(hs.total)}${hs.failed ? ` · 失败 ${fmt(hs.failed)}` : ''}`
+        const sub = !on ? hs.why : live ? `在途 ${live.inflight}／${cap}${live.waiting ? ` · 排队 ${live.waiting}` : ''}` : `调用 ${big(hs.total)}${hs.failed ? ` · 失败 ${fmt(hs.failed)}` : ''}`
         g.push(h('text', { key: 't1', x: lt[0], y: lt[1] + 4, textAnchor: 'end', fill: on ? V : P.ink3, fontSize: 11, fontWeight: 700, fontFamily: MONO, ...halo }, name),
           h('text', { key: 't2', x: lt[0], y: lt[1] + 17, textAnchor: 'end', fill: P.ink2, fontSize: 9.5, ...halo }, hs.roleText),
           h('text', { key: 't3', x: lt[0], y: lt[1] + 30, textAnchor: 'end', fill: live?.inflight ? V : P.ink3, fontSize: 9.5, fontWeight: live?.inflight ? 600 : 400, ...halo }, sub))
@@ -1151,73 +1170,132 @@ window.__ModuleLoader__.load({
     const ROLE_NM = { extract: '提取', verify: '核验' }
     const LAT_LABELS = ['<.5', '.5', '1', '2', '4', '8', '16+']
 
-    /** 一个角色的并发曲线：在途（阶梯线）、上限（虚线）、吞吐（token/秒，自身峰值归一）、排队（零线以下） */
-    function ConcChart({ series, role, slot, limit }) {
-      const W = 280; const H = 74; const Q = 16; const top = 6; const base = H - Q
-      const i = slot ?? (role === 'verify' ? 1 : 0)
-      const pts0 = (series ?? []).filter((p) => p.length >= 10)
-      if (pts0.length < 3) return h('p', { className: 'mx-snote' }, '采样点不够，画不出曲线（批次太短，或是旧版本跑的）')
-      const t1 = pts0[pts0.length - 1][0] || 1
-      const X = (ms) => (ms / t1) * W
-      const inflight = pts0.map((p) => p[2 + i]); const waiting = pts0.map((p) => p[4 + i])
-      const tput = pts0.map((p, j) => (j ? Math.max(0, (p[8 + i] - pts0[j - 1][8 + i]) / Math.max(0.001, (p[0] - pts0[j - 1][0]) / 1000)) : 0))
-      const lim = Math.max(1, limit ?? Math.max(...inflight))
-      const maxQ = Math.max(1, ...waiting); const maxT = Math.max(1, ...tput)
-      const Y = (v) => base - (v / lim) * (base - top)
-      const step = pts0.map((p, j) => `${j ? `L${X(p[0]).toFixed(1)} ${Y(inflight[j - 1]).toFixed(1)} ` : 'M0 ' + Y(inflight[0]).toFixed(1) + ' '}L${X(p[0]).toFixed(1)} ${Y(inflight[j]).toFixed(1)}`).join(' ')
-      const tp = pts0.map((p, j) => `${X(p[0]).toFixed(1)},${(base - (tput[j] / maxT) * (base - top)).toFixed(1)}`).join(' ')
-      const qa = `M0 ${base} ${pts0.map((p, j) => `L${X(p[0]).toFixed(1)} ${(base + (waiting[j] / maxQ) * (Q - 2)).toFixed(1)}`).join(' ')} L${W} ${base} Z`
-      return h('svg', { className: 'mx-conc', viewBox: `0 0 ${W} ${H}`, preserveAspectRatio: 'none' },
-        h('path', { className: 'lim', d: `M0 ${Y(lim)}H${W}` }),
-        h('path', { className: 'zero', d: `M0 ${base}H${W}` }),
-        h('path', { className: 'q', d: qa }),
-        h('polyline', { className: 'tp', points: tp }),
-        h('path', { className: 'in', d: step }))
+
+    /** 一栋模型房子（一个模型服务）的合计表现：各角色（格式识别、提取、核验、复判）加起来 */
+    function houseAgg(hs) {
+      const a = { calls: 0, cached: 0, failed: 0, retries: 0, ms: 0, pt: 0, ct: 0, ptMax: 0, sentChars: 0, reusedChars: 0, hist: [0, 0, 0, 0, 0, 0, 0] }
+      for (const [, , p] of hs.perf) { for (const k of ['calls', 'cached', 'failed', 'retries', 'ms', 'pt', 'ct', 'sentChars', 'reusedChars']) a[k] += p[k] ?? 0; a.ptMax = Math.max(a.ptMax, p.ptMax ?? 0); a.hist = a.hist.map((x, i) => x + (p.hist?.[i] ?? 0)) }
+      return a
+    }
+    const fmtTok = (v) => (v >= 1000 ? `${(v / 1000).toFixed(v >= 10000 ? 0 : 1)}k` : String(Math.round(v)))
+    const TUNE_REASON = { up: '满载，加并发', flat: '加了吞吐不涨，退回', server: '服务器排队或 KV 将满，试降一档', back: '降了吞吐下降，回升', errors: '出现超时或连接错误，降低' }
+    const TUNE_CHIP = { up: '↑ 满载，加并发', flat: '↺ 吞吐不涨，退回', server: '↓ 服务器满，试降', back: '↑ 吞吐下降，回升', errors: '↓ 出错，降低' }
+    const hhmmss = (iso) => { const d = new Date(iso); return [d.getHours(), d.getMinutes(), d.getSeconds()].map((x) => String(x).padStart(2, '0')).join(':') }
+
+    /**
+     * 一个模型服务的并发曲线（同匿名化插件）：实线＋面积＝在途；虚线阶梯＝并发上限（自动调并发会移动它）；
+     * 紫线＝吞吐（30 秒窗口内每秒完成的输入＋输出 token，右侧自己的刻度）；轴下方＝插件这边的排队，橙色虚线＝推理服务器自己的排队。
+     */
+    function ConcPanel({ run, hs, title }) {
+      const running = run.status === 'running'
+      const slot = hs.slot
+      const pts = (run.series ?? []).filter((p) => p.length >= 10)
+      const fixed = hs.max
+      const limOf = (p) => (p.length >= 22 && p[20 + slot] > 0 ? p[20 + slot] : fixed)
+      const empty = pts.length < 2
+      const state = run.autoTune?.[slot] ?? null
+      const steps = state?.history ?? []
+      const last = steps.at(-1)
+      const nowLimit = empty ? (state?.limit ?? fixed) : limOf(pts.at(-1))
+      const top = Math.max(1, ...pts.map((p) => Math.max(p[2 + slot] ?? 0, limOf(p))))
+      const srvQ = (p) => (p.length >= 28 && p[23 + slot * 3] >= 0 ? p[23 + slot * 3] : null)
+      const srvSeen = pts.some((p) => srvQ(p) != null)
+      const qMax = Math.max(1, ...pts.map((p) => p[4 + slot] ?? 0), ...pts.map((p) => srvQ(p) ?? 0))
+      // 吞吐：30 秒窗口
+      const thr = pts.map((p, i) => { let j = i; while (j > 0 && p[0] - pts[j - 1][0] <= 30000) j--; const dt = (p[0] - pts[j][0]) / 1000; return dt > 0 ? Math.max(0, (p[8 + slot] - pts[j][8 + slot]) / dt) : 0 })
+      const thrMax = Math.max(1, ...thr); const thrNow = thr.at(-1) ?? 0; const thrPeak = Math.max(0, ...thr)
+      const W = 300; const H = 72; const AX = 54
+      const t1 = pts.at(-1)?.[0] || 1; const t0 = pts[0]?.[0] ?? 0
+      const x = (p) => ((p[0] - t0) / Math.max(1, t1 - t0)) * W
+      const up = (v) => AX - (Math.min(v, top) / top) * (AX - 3)
+      const upT = (v) => AX - (v / thrMax) * (AX - 3)
+      const down = (v) => AX + (v / qMax) * (H - AX - 2)
+      const line = (pick) => pts.map((p, i) => `${i ? 'L' : 'M'}${x(p).toFixed(1)} ${pick(p, i).toFixed(1)}`).join(' ')
+      const stepLine = pts.map((p, i) => (i ? `H${x(p).toFixed(1)} V${up(limOf(p)).toFixed(1)}` : `M0 ${up(limOf(p)).toFixed(1)}`)).join(' ')
+      const peakA = Math.max(0, ...pts.map((p) => p[2 + slot] ?? 0)); const peakQ = Math.max(0, ...pts.map((p) => p[4 + slot] ?? 0))
+      const lastP = running ? pts.at(-1) : null
+      const sv = run.server?.[slot] ?? null
+      const auto = run.autoConcurrency && state
+      const tone = !state ? 'idle' : last?.reason === 'up' || last?.reason === 'back' ? 'up' : last ? 'full' : 'idle'
+      const chip = auto ? (last ? TUNE_CHIP[last.reason] ?? last.reason : `保持 ${state.limit}`) : null
+      const history = steps.length ? steps.map((st) => `${hhmmss(st.at)}  ${st.from}→${st.to}  ${TUNE_REASON[st.reason] ?? st.reason}（吞吐 ${fmtTok(st.thr)} token/秒）`).join('\n') : ''
+      const path = state ? [state.start, ...steps.map((st) => st.to)].slice(-7).join('→') : String(fixed)
+      return h('div', { className: 'mx-conc2', title: `${auto ? '自动调并发：每 30 秒看一次吞吐，只在名额跑满的窗口下结论；加并发吞吐涨 5% 才保留，服务器满时试降一档、吞吐不变才保留，出错降低。' : '并发固定（设置里关了自动调并发）。'}${history ? `\n\n${history}` : ''}` },
+        h('div', { className: 'mx-conc2-h' },
+          h('b', {}, title),
+          h('span', {}, '并发 ', h('em', {}, String(nowLimit))),
+          thr.some(Boolean) ? h('span', { className: 'thr' }, '吞吐 ', h('em', {}, fmtTok(running ? thrNow : thrPeak)), running ? '' : ' 峰值') : null,
+          chip ? h('span', { className: `mx-conc2-chip ${tone}` }, chip) : null),
+        h('div', { className: 'mx-conc2-plot' },
+          h('div', { className: 'gut', 'aria-hidden': 'true' }, h('span', {}, String(top)), h('span', { className: 'z' }, '0'), h('span', {}, '排队')),
+          h('svg', { viewBox: `0 0 ${W} ${H}`, preserveAspectRatio: 'none', role: 'img', 'aria-label': `${title} 并发` },
+            empty ? null : h('path', { className: 'fa', d: `${line((p) => up(p[2 + slot] ?? 0))} L${W} ${AX} L0 ${AX} Z` }),
+            empty ? null : h('path', { className: 'q', d: line((p) => down(p[4 + slot] ?? 0)) }),
+            srvSeen ? h('path', { className: 'sq', d: line((p) => down(srvQ(p) ?? 0)) }) : null,
+            h('line', { className: 'ax', x1: 0, x2: W, y1: AX, y2: AX }),
+            empty ? h('line', { className: 'lim', x1: 0, x2: W, y1: up(nowLimit), y2: up(nowLimit) }) : h('path', { className: 'lim', d: stepLine }),
+            thr.length > 1 ? h('path', { className: 'tl', d: line((p, i) => upT(thr[i])) }) : null,
+            empty ? null : h('path', { className: 'al', d: line((p) => up(p[2 + slot] ?? 0)) })),
+          h('div', { className: 'rg', 'aria-hidden': 'true' }, thr.some(Boolean) ? h('span', {}, fmtTok(thrMax)) : null),
+          empty ? h('span', { className: 'wait' }, running ? '采样中…' : '这个批次没有并发记录（旧版本跑的或太短）') : null),
+        sv?.available === true
+          ? h('div', { className: 'mx-conc2-srv', title: '推理服务器自己的指标（vLLM /metrics，含其他客户端的请求）：在跑＝服务器正在计算的请求数，排队＝服务器内部等待的请求数，KV＝KV 缓存占用。结束后显示峰值。' },
+            h('span', { className: 'k' }, '服务器'),
+            running ? `在跑 ${sv.running ?? 0} · 排队 ${sv.waiting ?? 0} · KV ${Math.round((sv.kv ?? 0) * 100)}%${sv.genRate != null ? ` · 生成 ${fmtTok(sv.genRate)}/秒` : ''}（整台）` : `峰值 在跑 ${sv.peakRunning ?? 0} · 排队 ${sv.peakWaiting ?? 0} · KV ${Math.round((sv.peakKv ?? 0) * 100)}%（整台）`)
+          : sv?.available === false ? h('div', { className: 'mx-conc2-srv', title: '读不到服务器的 /metrics（不是 vLLM、没开放或要认证），只能看插件这边的数字。' }, h('span', { className: 'k' }, '服务器'), '读不到指标') : null,
+        h('div', { className: 'mx-conc2-f' },
+          h('span', { className: 'mono' }, auto ? path : `固定 ${fixed}`),
+          lastP ? h('span', {}, `现在 在途 ${lastP[2 + slot]} · 排队 ${lastP[4 + slot]}`) : empty ? null : h('span', {}, `峰值 在途 ${peakA} · 排队 ${peakQ}`)))
     }
 
     function Overview({ run, goto, onSel, stations }) {
       const t = run.totals
       const legacy = run.flow !== 'read'
-      const calls = useAsync(() => (run.models ? null : call('calls', { runId: run.id }).catch(() => null)), [run.id, run.models ? 1 : t.calls])
-      const fromDb = (role) => { const m = calls.value?.byModel?.find((x) => x.role === role); return m ? { model: m.model, calls: m.calls, cached: m.cached, failed: m.failed, ms: m.ms, pt: m.prompt_tokens, ct: m.completion_tokens } : null }
-      const M = { extract: run.models?.extract ?? fromDb('extract'), verify: run.models?.verify ?? fromDb('verify') }
-      const roles = ['extract', 'verify'].filter((r) => M[r] || (r === 'extract' ? run.model?.model : run.model?.verifyModel))
-      const nm = (r) => M[r]?.model ?? (r === 'extract' ? run.model?.model : run.model?.verifyModel) ?? '—'
-      const sum = (k) => roles.reduce((a, r) => a + (M[r]?.[k] ?? 0), 0)
+      const houses = modelHousesOf(run).filter((x) => x.model)
+      const aggs = houses.map(houseAgg)
+      const sum = (k) => aggs.reduce((a, x) => a + (x[k] ?? 0), 0)
       const sent = sum('sentChars'); const reused = sum('reusedChars'); const free = t.freeChars ?? 0
       const all = sent + reused + free
       const block = (title, cap, body, aside) => h('div', { className: 'mx-ob' }, h('div', { className: 'mx-ob-h' }, h('b', {}, title), h('span', { className: 'mx-cap' }, cap), h('span', { className: 'mx-sp' }), aside ?? null), h('div', { className: 'mx-ob-b' }, body))
       const pctOf = (n) => (all ? `${Math.round((n / all) * 100)}%` : '—')
-      const series = run.series ?? []
-      const peak = (r) => Math.max(0, ...series.filter((p) => p.length >= 10).map((p) => p[2 + (r === 'extract' ? 0 : 1)]))
-      const peakT = (r) => { const i = r === 'extract' ? 0 : 1; const ps = series.filter((p) => p.length >= 10); let m = 0; for (let j = 1; j < ps.length; j++) { const dt = (ps[j][0] - ps[j - 1][0]) / 1000; if (dt > 0) m = Math.max(m, (ps[j][8 + i] - ps[j - 1][8 + i]) / dt) } return m }
+      const roleOf = (hs) => (hs.roles.includes('extract') && hs.roles.includes('verify') ? '提取·核验' : hs.roles.includes('extract') ? '提取' : '核验')
       const vEntries = Object.values(run.verify ?? {}); const vn = vEntries.reduce((a, x) => a + x.n, 0); const va = vEntries.reduce((a, x) => a + x.agree, 0)
       const rd = legacy ? 0 : t.ruleDisputes ?? 0
+      const cols = houses.length
+      const cell = (hi, v, cls) => h('b', { key: hi, className: cls }, v)
+      const rows = [
+        ['调用', (a) => fmt(a.calls), '实际发给模型的调用（不含缓存复用），格式识别、提取、核验、复判合计'],
+        ['失败率', (a) => (a.calls ? h('span', { className: a.failed ? 'mx-bad' : '' }, `${((a.failed / a.calls) * 100).toFixed(a.failed && a.failed / a.calls < 0.1 ? 1 : 0)}%`, a.retries ? h('small', { className: 'mx-warn' }, ` ↻${fmt(a.retries)}`) : null) : '—'), '重试后仍失败的调用占比；↻＝断线、超时、429／5xx 自动重试的次数'],
+        ['耗时分布', (a) => { const mx = Math.max(1, ...a.hist); return a.calls ? h('div', { className: 'mx-lat', title: a.hist.map((n, i) => `${LAT_LABELS[i]}s：${n}`).join('\n') }, h('div', { className: 'bars' }, a.hist.map((n, i) => h('i', { key: i, className: i >= 5 && n ? 'slow' : '', style: { height: `${Math.max(n ? 6 : 2, (n / mx) * 100)}%` } }))), h('div', { className: 'lbl' }, LAT_LABELS.map((x) => h('span', { key: x }, x)))) : '—' }, '每次调用的耗时（秒），8 秒以上标红'],
+        ['上下文 均/最大', (a) => (a.calls ? `${kfmt(a.pt / a.calls)} / ${a.ptMax ? kfmt(a.ptMax) : '—'}` : '—'), '每次调用的输入 token'],
+        ['每次 输出/耗时', (a) => (a.calls ? `${fmt(Math.round(a.ct / a.calls))} / ${(a.ms / a.calls / 1000).toFixed(1)}s` : '—'), '每次调用平均输出 token 与平均耗时'],
+      ]
       return h('div', { className: 'mx-frame mx-side mx-ov' },
         h('div', { className: 'mx-side-h' }, h('b', {}, '批次概览'), h('span', { className: 'mx-cap' }, 'BATCH OVERVIEW')),
-        h('p', { className: 'mx-snote', style: { margin: '2px 0 4px' } }, '点产线上的楼看每道工序的详情'),
-        block('送审用量', 'WORKLOAD', all ? h(React.Fragment, {},
+        h('p', { className: 'mx-snote', style: { margin: '2px 0 4px' } }, '点产线上的楼或模型房子看详情'),
+        block('模型用量', 'WORKLOAD', all ? h(React.Fragment, {},
           h('div', { className: 'mx-stack', style: { height: 8 } }, [[sent, 'var(--teal)'], [reused, 'var(--ok)'], [free, 'var(--line2)']].map(([n, c], i) => (n ? h('span', { key: i, style: { width: `${(n / all) * 100}%`, background: c } }) : null))),
-          h('div', { className: 'mx-legend' }, [['发送', sent, 'var(--teal)'], ['复用', reused, 'var(--ok)'], ['免送', free, 'var(--line2)']].map(([k, n, c]) => h('span', { key: k, title: k === '免送' ? '没交给模型的文书字数：空壳文书、截至时刻以后的、没派到字段的、成本开关跳过的' : k === '复用' ? '内容相同的任务直接用缓存的回复' : '实际发给模型的文书字数（一份文书分几组字段就算几次）' }, h('i', { style: { background: c } }), `${k} ${kfmt(n)} · ${pctOf(n)}`))),
+          h('div', { className: 'mx-legend' }, [['发送', sent, 'var(--teal)', '实际发给模型的文书字数（一份文书分几组字段、复判几轮就算几次）'], ['复用', reused, 'var(--ok)', '内容相同的调用直接用缓存的回复，不再发'], ['免送', free, 'var(--line2)', '不用交给模型的文书字数：空壳文书、截至时刻以后的、没派到字段的、成本开关跳过的']].map(([k, n, c, tip]) => h('span', { key: k, title: tip }, h('i', { style: { background: c } }), `${k} ${kfmt(n)} · ${pctOf(n)}`))),
           h('div', { className: 'mx-ob-kv' },
             h('div', {}, h('span', {}, '调用'), h('b', {}, fmt(sum('calls')))),
             h('div', {}, h('span', {}, '复用'), h('b', {}, fmt(sum('cached')))),
             h('div', {}, h('span', {}, 'Token'), h('b', {}, kfmt(sum('pt') + sum('ct'))))),
           t.structured ? h('p', { className: 'mx-snote' }, `另有结构化记录 ${big(t.structured)} 条不提取，不计在内`) : null)
-          : h('p', { className: 'mx-snote' }, legacy ? '这个批次没有记录送审字数（旧版本跑的）' : '还没有送审')),
-        block('模型', 'MODELS', h(React.Fragment, {},
-          modelHousesOf(run).map((hs, hi) => h('button', { key: hi, type: 'button', className: 'mx-ob-house', onClick: () => onSel(8 + hi), disabled: !hs.model },
-            h('i', { className: hs.model ? (hs.total && hs.failed / hs.total > 0.02 ? 'bad' : 'on') : '' }),
-            h('div', {}, h('b', {}, hs.model ?? hs.label), h('small', {}, hs.model ? `${hs.roleText} · 上限 ${hs.max}` : hs.why)),
-            hs.model ? h('span', { className: 'mx-num' }, `${big(hs.total)} 次${hs.total ? ` · 失败 ${((hs.failed / hs.total) * 100).toFixed(hs.failed && hs.failed / hs.total < 0.1 ? 1 : 0)}%` : ''}`) : null,
-            hs.model ? h('span', { className: 'mx-ob-go' }, '→') : null)),
-          h('p', { className: 'mx-snote' }, '点模型看负载、并发曲线、耗时分布和按工序拆的调用'))),
+          : h('p', { className: 'mx-snote' }, legacy ? '这个批次没有记录字数（旧版本跑的）' : '还没有调用模型')),
+        block('模型表现', 'MODELS', cols ? h('div', { className: 'mx-ob-models', style: { gridTemplateColumns: `86px repeat(${cols}, minmax(0,1fr))` } },
+          h('span', {}), ...houses.map((hs, hi) => h('button', { key: hi, type: 'button', className: 'mx-ob-mh', title: `${hs.model}（${hs.roleText}）：点开看这个模型`, onClick: () => onSel(8 + modelHousesOf(run).findIndex((x) => x.slot === hs.slot)) }, h('b', {}, roleOf(hs)), h('small', {}, h('i', { className: aggs[hi].calls && aggs[hi].failed / aggs[hi].calls > 0.05 ? 'bad' : '' }), hs.model))),
+          ...rows.flatMap(([label, val, tip], ri) => [h('span', { key: `l${ri}`, title: tip, className: ri % 2 ? 'z' : '' }, label), ...aggs.map((a, hi) => cell(`${ri}-${hi}`, val(a), ri % 2 ? 'z' : ''))]))
+          : h('p', { className: 'mx-snote' }, '还没有模型调用'), h('button', { className: 'mx-link', onClick: () => goto('calls') }, '明细 →')),
+        block('并发调度', 'CONCURRENCY', h(React.Fragment, {},
+          h('div', { className: 'mx-legend mx-conc2-lg' }, h('span', {}, h('i', { className: 'ln in' }), '在途'), h('span', {}, h('i', { className: 'ln lim' }), '上限'), h('span', {}, h('i', { className: 'ln tp' }), '吞吐'), h('span', {}, h('i', { className: 'ln q' }), '排队'), h('span', { title: '推理服务器自己的排队（vLLM /metrics，整台服务器），画在轴下方与插件排队对照；读不到服务器指标时不画' }, h('i', { className: 'ln sq' }), '服务器排队')),
+          houses.map((hs) => h(ConcPanel, { key: hs.slot, run, hs, title: roleOf(hs) })),
+          !cols ? h('p', { className: 'mx-snote' }, '还没有模型') : null)),
         block('核验与复核', 'CROSS-CHECK', h(React.Fragment, {},
-          h('p', { className: 'mx-snote' }, run.model?.verifyModel ? `抽样核验 ${fmt(vn)} 次（字段 × 文书）· 一致 ${vn ? pct(va / vn) : '—'} · 核验分歧 ${fmt(Math.max(0, t.review - rd))}` : '未配置核验模型，不做抽样核验'),
+          h('p', { className: 'mx-snote' }, run.model?.verifyModel ? `抽样核验 ${fmt(vn)} 次（字段 × 文书）· 复判前一致 ${vn ? pct(va / vn) : '—'} · 核验分歧 ${fmt(vEntries.reduce((a, x) => a + (x.adj ?? (x.n - x.agree)), 0))}` : '未配置核验模型，不做抽样核验'),
           !legacy && run.mode !== 'model' ? h('p', { className: 'mx-snote' }, `规则票 ${fmt(t.votes ?? 0)} · 与模型一致 ${fmt(t.agree ?? 0)} · 不一致 ${fmt(rd)}`) : null,
-          t.adjResolved || t.ruleResolved ? h('p', { className: 'mx-snote' }, `复判自动解决 ${fmt((t.adjResolved ?? 0))}（至多 ${run.maxRounds ?? 3} 轮）`) : null,
+          t.adjResolved || t.ruleResolved ? h('p', { className: 'mx-snote' }, `复判自动解决 ${fmt(t.adjResolved ?? 0)}（至多 ${run.maxRounds ?? 3} 轮）`) : null,
           run.needsDefinition?.length ? h('p', { className: 'mx-snote mx-warn' }, `${run.needsDefinition.length} 个字段需要改定义（复判前一致率不达标）`) : null,
-          h('p', { className: 'mx-snote' }, `待复核合计 ${fmt(t.review)} 项`)),
+          h('p', { className: 'mx-snote' }, `待人工复核 ${fmt(t.review)} 项`)),
           h('button', { className: 'mx-link', onClick: () => goto('review') }, '明细 →')))
     }
 
@@ -1229,6 +1307,8 @@ window.__ModuleLoader__.load({
       const series = run.series ?? []
       const last = running ? series.filter((p) => p.length >= 18).at(-1) : null
       const inflight = last ? last[2 + hs.slot] : 0; const waiting = last ? last[4 + hs.slot] : 0
+      const lim = Math.max(1, last?.length >= 22 && last[20 + hs.slot] > 0 ? last[20 + hs.slot] : run.autoTune?.[hs.slot]?.limit ?? hs.max)
+      const tune = run.autoTune?.[hs.slot]
       const P0 = { calls: 0, cached: 0, failed: 0, retries: 0, ms: 0, pt: 0, ct: 0, ptMax: 0, hist: [0, 0, 0, 0, 0, 0, 0] }
       const agg = hs.perf.reduce((a, [, , p]) => { for (const k of ['calls', 'cached', 'failed', 'retries', 'ms', 'pt', 'ct']) a[k] += p[k] ?? 0; a.ptMax = Math.max(a.ptMax, p.ptMax ?? 0); a.hist = a.hist.map((x, i) => x + (p.hist?.[i] ?? 0)); return a }, { ...P0, hist: [...P0.hist] })
       const byStation = {}
@@ -1242,16 +1322,14 @@ window.__ModuleLoader__.load({
       const mx = Math.max(1, ...agg.hist)
       return h('div', { className: 'mx-frame mx-side' },
         h('div', { className: 'mx-side-h' }, h('b', { style: { fontFamily: 'var(--mono)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }, title: hs.model }, hs.model), h('span', { className: `mx-chip ${inflight ? 'w' : 'ok'}` }, running ? (inflight ? '处理中' : '空闲') : '已结束'), h('button', { className: 'mx-link mx-back', onClick: onBack }, '← 概览')),
-        h('p', { className: 'mx-sdesc' }, `${hs.roles.includes('extract') && hs.roles.includes('verify') ? '提取模型兼核验模型' : hs.roles.includes('extract') ? '提取模型' : '核验模型'}：用于 ${hs.roleText}`, h('br'), h('span', {}, `端点 ${hs.host || '—'} · 并发上限 ${hs.max}（${hs.roles.includes('extract') ? '设置里的「提取模型并发」' : '设置里的「核验模型并发」'}）`)),
+        h('p', { className: 'mx-sdesc' }, `${hs.roles.includes('extract') && hs.roles.includes('verify') ? '提取模型兼核验模型' : hs.roles.includes('extract') ? '提取模型' : '核验模型'}：用于 ${hs.roleText}`, h('br'), h('span', {}, `端点 ${hs.host || '—'} · 并发 ${run.autoConcurrency ? `自动（起始 ${tune?.start ?? hs.max}，现在 ${lim}${tune?.ceiling ? `，上限 ${tune.ceiling}` : ''}）` : `固定 ${hs.max}`}`)),
         h('div', { className: 'mx-shead' },
-          h(Ring, { v: running ? inflight / Math.max(1, hs.max) : peak / Math.max(1, hs.max), label: running ? `${inflight}／${hs.max}` : `${peak}／${hs.max}`, sub: running ? `在途${waiting ? ` · 排队 ${waiting}` : ''}` : '在途峰值', hot: running && waiting > 0 }),
+          h(Ring, { v: running ? inflight / lim : peak / lim, label: running ? `${inflight}／${lim}` : `${peak}／${lim}`, sub: running ? `在途${waiting ? ` · 排队 ${waiting}` : ''}` : '在途峰值', hot: running && waiting > 0 }),
           kv([['调用', fmt(agg.calls)], ['缓存复用', fmt(agg.cached)], ['失败率', agg.calls ? `${(fr * 100).toFixed(fr && fr < 0.1 ? 1 : 0)}%` : '—', fr > 0.02 ? 'bad' : ''], ['自动重试', fmt(agg.retries)], ['Token', kfmt(agg.pt + agg.ct)], ['吞吐峰值', `${kfmt(peakT)} token/秒`]])),
         sec('按工序', h('div', { className: 'mx-ob-models', style: { gridTemplateColumns: '64px repeat(3, minmax(0,1fr))' } },
           h('span', {}), h('b', {}, '调用'), h('b', {}, '缓存'), h('b', {}, '失败'),
           ...hs.stations.flatMap((st) => { const x = byStation[st] ?? { calls: 0, cached: 0, failed: 0 }; return [h('span', { key: `${st}n` }, STATION_LABEL[st]), h('b', { key: `${st}c` }, fmt(x.calls)), h('b', { key: `${st}k` }, fmt(x.cached)), h('b', { key: `${st}f`, className: x.failed ? 'mx-bad' : '' }, fmt(x.failed))] }))),
-        sec('并发', h(React.Fragment, {},
-          h('div', { className: 'mx-legend' }, h('span', {}, h('i', { className: 'ln in' }), '在途'), h('span', {}, h('i', { className: 'ln lim' }), '上限'), h('span', {}, h('i', { className: 'ln tp' }), '吞吐'), h('span', {}, h('i', { className: 'ln q' }), '排队')),
-          h(ConcChart, { series, slot: hs.slot, limit: hs.max })), `峰值 ${peak}／${hs.max}`),
+        sec('并发', h(ConcPanel, { run, hs, title: '' })),
         sec('每次调用', h(React.Fragment, {},
           kv([['耗时 均', agg.calls ? `${(agg.ms / agg.calls / 1000).toFixed(1)}s` : '—'], ['输出 均', agg.calls ? `${fmt(Math.round(agg.ct / agg.calls))} token` : '—'], ['上下文 均', agg.calls ? kfmt(agg.pt / agg.calls) : '—'], ['上下文 最大', agg.ptMax ? kfmt(agg.ptMax) : '—']]),
           h('div', { className: 'mx-lat', style: { marginTop: 6 }, title: agg.hist.map((n, i) => `${LAT_LABELS[i]}s：${n}`).join('\n') }, h('div', { className: 'bars', style: { height: 44 } }, agg.hist.map((n, i) => h('i', { key: i, className: i >= 5 && n ? 'slow' : '', style: { height: `${Math.max(n ? 6 : 2, (n / mx) * 100)}%` } }))), h('div', { className: 'lbl' }, LAT_LABELS.map((x) => h('span', { key: x }, `${x}s`))))), '耗时分布'),
@@ -1898,7 +1976,7 @@ window.__ModuleLoader__.load({
           outputRoot: form.outputRoot ?? '', template: form.template || 'mdd', extractMode: MODE_LABEL[form.extractMode] ? form.extractMode : 'hybrid', priorities: String(form.priorities ?? '').split(/[,，\s]+/).filter(Boolean), mapping,
           baseURL: form.baseURL ?? '', model: form.model ?? '', verifyBaseURL: form.verifyBaseURL ?? '', verifyModel: form.verifyModel ?? '', disableThinking: form.disableThinking !== false,
           timeoutMs: num('timeoutMs', 120000), modelConcurrency: num('modelConcurrency', 8), verifyConcurrency: num('verifyConcurrency', 8), maxRounds: Math.max(1, Math.min(6, num('maxRounds', 3))), workers: num('workers', 0), shardUnits: num('shardUnits', 20),
-          verifySampleRate: num('verifySampleRate', 0.02), verifyMinPerField: num('verifyMinPerField', 2), verifyThreshold: num('verifyThreshold', 0.9), showSidebarEntry: form.showSidebarEntry !== false,
+          verifySampleRate: num('verifySampleRate', 0.02), verifyMinPerField: num('verifyMinPerField', 2), verifyThreshold: num('verifyThreshold', 0.9), autoConcurrency: form.autoConcurrency !== false, showSidebarEntry: form.showSidebarEntry !== false,
           formatRecognition: form.formatRecognition !== false, borrowFormats: form.borrowFormats !== false, elementDict: form.elementDict ?? '', heldTables: form.heldTables || 'generic',
         }
         if (form.apiKey) patch.apiKey = form.apiKey
@@ -1916,9 +1994,10 @@ window.__ModuleLoader__.load({
         h('div', { className: 'mx-grid2' }, field('baseURL', '提取模型端点（OpenAI 兼容）', { placeholder: 'http://127.0.0.1:11434/v1' }), field('model', '提取模型'),
           field('verifyBaseURL', '核验模型端点（空＝同上）'), field('verifyModel', '核验模型（空＝不做抽样核验）'),
           field('apiKey', 'API Key（留空不修改）', { type: 'password' }), field('timeoutMs', '单次调用超时（毫秒）'),
-          field('modelConcurrency', '提取模型并发（同时进行的请求数）'), field('verifyConcurrency', '核验模型并发（和提取模型同端点同模型时共用上一项）'), field('maxRounds', '复判轮次上限（1–6）'), field('verifySampleRate', '核验抽样比例（0–1）'),
+          field('modelConcurrency', '提取模型并发（同时进行的请求数；自动调并发时是起始值）'), field('verifyConcurrency', '核验模型并发（和提取模型同端点同模型时共用上一项）'), field('maxRounds', '复判轮次上限（1–6）'), field('verifySampleRate', '核验抽样比例（0–1）'),
           field('verifyMinPerField', '每字段每分片至少核验几份'), field('verifyThreshold', '验收门④一致率阈值')),
         check('disableThinking', '关闭思考模式（推理模型更快）'),
+        check('autoConcurrency', '自动调并发：上面两个并发只是起始值，每 30 秒按各模型的吞吐自动加减（最多 64）；服务器排队、KV 将满或出错时降'),
         h('h3', { style: { margin: '6px 0 0' } }, '格式识别（通用文件）'),
         h('p', { style: { margin: 0, fontSize: 12, color: 'var(--dsw-alias-label-tertiary)' } }, '按表识别类别、写成时间、病人、就诊与栏目：规则草稿＋提取模型起草＋核验模型背靠背，一致才自动采用，其余在「格式」页确认。只发字段名、统计和截短样例，不发正文。'),
         check('formatRecognition', '启用格式识别'),

@@ -24,6 +24,8 @@
         modelConcurrency: 8
         # 核验模型并发；和提取模型同端点、同模型时共用 modelConcurrency
         verifyConcurrency: 8
+        # 自动调并发：上面两个并发只是起始值，每 30 秒按各模型的吞吐自动加减（最多 64）；服务器排队、KV 将满或出错时降
+        autoConcurrency: true
         # 复判轮次上限（1–6）：核验分歧两个模型轮流复判，至多这么多轮，仍不一致交人工
         maxRounds: 3
         # 分派：每个提取任务最多多少字（更长的文书按栏目分段）、多少个字段

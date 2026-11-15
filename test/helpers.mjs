@@ -80,6 +80,7 @@ export async function ruleModelEndpoint() {
     return JSON.stringify({ values: values.filter((v) => v.value != null).map((v) => ({ field: v.field, value: v.value, assertion: v.assertion, quote: quoteOf(v), variant: v.variant ?? null })) })
   }
   const server = http.createServer((req, res) => {
+    if (!req.url.endsWith('/chat/completions')) { res.statusCode = 404; res.end(); return } // 如 /metrics：不是 vLLM
     let body = ''
     req.on('data', (c) => { body += c })
     req.on('end', () => {
