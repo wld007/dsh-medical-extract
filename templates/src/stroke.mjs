@@ -20,7 +20,7 @@ export default {
     { title: 'TOAST classification of subtypes of acute ischemic stroke (Adams 1993)' },
     { title: 'ECASS II/III symptomatic intracranial hemorrhage definitions' },
   ],
-  documents: { excludeRecordTypes: ['门诊收费', '基本信息'] },
+  documents: { excludeRecordTypes: ['门诊收费', '收费', '基本信息'] },
   groups: [
     { id: 'A', name: '诊断与分型' }, { id: 'B', name: '时间节点' }, { id: 'C', name: '严重程度与影像' }, { id: 'D', name: '再灌注治疗' },
     { id: 'E', name: '并发症' }, { id: 'F', name: '二级预防与出院用药' }, { id: 'G', name: '危险因素与既往史' }, { id: 'H', name: '结局' }, { id: 'K', name: '检验与生命体征' },

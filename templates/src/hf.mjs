@@ -20,7 +20,7 @@ export default {
     { title: '2021 ESC Guidelines for the diagnosis and treatment of acute and chronic heart failure; 2023 Focused Update' },
     { title: '2022 AHA/ACC/HFSA Guideline for the Management of Heart Failure' },
   ],
-  documents: { excludeRecordTypes: ['门诊收费', '基本信息'] },
+  documents: { excludeRecordTypes: ['门诊收费', '收费', '基本信息'] },
   groups: [
     { id: 'A', name: '诊断与分型' }, { id: 'B', name: '心功能与症状体征' }, { id: 'C', name: '病因与诱因' }, { id: 'D', name: '超声与利钠肽' },
     { id: 'E', name: '药物治疗' }, { id: 'F', name: '器械与手术' }, { id: 'G', name: '合并症' }, { id: 'H', name: '结局' }, { id: 'K', name: '检验与生命体征' },

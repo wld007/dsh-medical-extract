@@ -20,7 +20,7 @@ export default {
     { title: '中国血液透析充分性临床实践指南' },
     { title: 'KDIGO 2017 Clinical Practice Guideline Update for CKD-MBD' },
   ],
-  documents: { excludeRecordTypes: ['门诊收费', '基本信息'] },
+  documents: { excludeRecordTypes: ['门诊收费', '收费', '基本信息'] },
   groups: [
     { id: 'A', name: '诊断与分期' }, { id: 'B', name: '透析与通路' }, { id: 'C', name: '透析处方与充分性' }, { id: 'D', name: '容量与血压' },
     { id: 'E', name: '贫血' }, { id: 'F', name: '矿物质与骨代谢' }, { id: 'G', name: '营养与炎症' }, { id: 'H', name: '用药' }, { id: 'I', name: '并发症与结局' }, { id: 'J', name: '合并症' },
@@ -85,7 +85,7 @@ export default {
     measure('G1', '血白蛋白', 'G', 'P0', '(?:血清)?白蛋白|ALB(?![a-zA-Z])', { unit: 'g/L', range: { min: 10, max: 60 } }),
     measure('G2', '血钾', 'G', 'P0', '血钾|血清钾|' + lone('钾'), { unit: 'mmol/L', range: { min: 1.5, max: 9 }, value: '\\d\\.\\d{1,2}' }),
     measure('G3', 'C 反应蛋白', 'G', 'P2', 'CRP|C\\s*反应蛋白|hs-?CRP', { unit: 'mg/L', range: { min: 0, max: 500 } }),
-    measure('G4', '透析前血肌酐', 'G', 'P2', '(?:透前|透析前)?(?:血)?肌酐|Scr|SCr', { unit: 'μmol/L', range: { min: 50, max: 3000 } }),
+    measure('G4', '透析前血肌酐', 'G', 'P2', '(?:透前|透析前)?(?:血)?肌酐|Scr|SCr', { unit: 'μmol/L', range: { min: 10, max: 3000 } }),
     measure('G5', 'β2 微球蛋白', 'G', 'P2', 'β\\s*2\\s*-?微球蛋白|β2-?MG|B2M', { unit: 'mg/L', range: { min: 0, max: 200 } }),
     scale('G6', 'SGA', 'G', 'P2', 'SGA|主观综合营养评估', { min: 1, max: 7 }),
 

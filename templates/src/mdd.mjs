@@ -43,7 +43,7 @@ export default {
     { title: 'DSM-5-TR；ICD-10 F32/F33；ICD-11 6A70/6A71' },
   ],
   description: '抑郁障碍研究队列的常用字段：诊断分型、病程、症状、自杀与安全、量表、药物与非药物治疗、疗效与转归、共病、人口学与危险因素、关键检验。',
-  documents: { excludeRecordTypes: ['门诊收费', '基本信息'] },
+  documents: { excludeRecordTypes: ['门诊收费', '收费', '基本信息'] },
   groups: [
     { id: 'A', name: '诊断与分型' }, { id: 'B', name: '病程' }, { id: 'C', name: '症状' }, { id: 'D', name: '自杀与安全' }, { id: 'E', name: '量表' },
     { id: 'F', name: '药物治疗' }, { id: 'G', name: '非药物治疗' }, { id: 'H', name: '疗效与转归' }, { id: 'I', name: '共病' }, { id: 'J', name: '人口学与危险因素' }, { id: 'K', name: '检验' },

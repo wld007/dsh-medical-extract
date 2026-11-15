@@ -19,7 +19,7 @@ export default {
     { title: 'ADA Standards of Care in Diabetes—2025, Diabetes Care 2025;48(Suppl 1)', url: 'https://diabetesjournals.org/care/issue/48/Supplement_1' },
     { title: 'KDIGO 2022 Clinical Practice Guideline for Diabetes Management in CKD' },
   ],
-  documents: { excludeRecordTypes: ['门诊收费', '基本信息'] },
+  documents: { excludeRecordTypes: ['门诊收费', '收费', '基本信息'] },
   groups: [
     { id: 'A', name: '诊断与病程' }, { id: 'B', name: '血糖与代谢' }, { id: 'C', name: '微血管并发症' }, { id: 'D', name: '大血管与足' },
     { id: 'E', name: '急性并发症与低血糖' }, { id: 'F', name: '降糖治疗' }, { id: 'G', name: '心肾保护与合并用药' }, { id: 'H', name: '合并症与危险因素' }, { id: 'K', name: '其他检验与体征' },

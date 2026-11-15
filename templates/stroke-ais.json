@@ -23,6 +23,7 @@
   "documents": {
     "excludeRecordTypes": [
       "门诊收费",
+      "收费",
       "基本信息"
     ]
   },

@@ -28,7 +28,7 @@ export default {
     { title: 'NCCN Clinical Practice Guidelines in Oncology: Non-Small Cell Lung Cancer' },
     { title: 'RECIST 1.1；CTCAE v5.0' },
   ],
-  documents: { excludeRecordTypes: ['门诊收费', '基本信息'] },
+  documents: { excludeRecordTypes: ['门诊收费', '收费', '基本信息'] },
   groups: [
     { id: 'A', name: '诊断与病理' }, { id: 'B', name: '分期与转移' }, { id: 'C', name: '分子与免疫标志物' }, { id: 'D', name: '体能状态' },
     { id: 'E', name: '手术与放疗' }, { id: 'F', name: '系统治疗' }, { id: 'G', name: '疗效与进展' }, { id: 'H', name: '不良反应' }, { id: 'I', name: '危险因素与基线' }, { id: 'K', name: '肿瘤标志物' },
