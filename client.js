@@ -685,7 +685,7 @@ window.__ModuleLoader__.load({
       const RED = { top: shade(P.bad, 0.3), left: P.bad, right: shade(P.bad, -0.35) }
       const CL = { top: C.top, left: C.left, right: C.right, edge: C.edge }
       const CL2 = { top: C.top2, left: C.left2, right: C.right2, edge: C.edge }
-      const TW = { i: 96, j: -236, a: 56, b: 56, hh: 128 }
+      const TW = { i: 96, j: -190, a: 56, b: 56, hh: 128 }
       const gi0 = -140; const gi1 = yard + 220; const gj0 = -280; const gj1 = D + 170
       const grid = []
       for (let i = gi0; i <= gi1; i += 40) { const a = iso(i, gj0); const b = iso(i, gj1); grid.push(h('line', { key: `gi${i}`, x1: a[0], y1: a[1], x2: b[0], y2: b[1] })) }
@@ -847,6 +847,7 @@ window.__ModuleLoader__.load({
         els.push(h('g', { key: 'yardcap', transform: `matrix(${IX[0]} ${IX[1]} ${JX[0]} ${JX[1]} ${x.toFixed(1)} ${y.toFixed(1)})`, pointerEvents: 'none' },
           h('text', { x: 0, y: 0, fill: P.ink3, fontSize: 9.5 }, '每个值带原文引语 · 只读核对 · 移交')))
       }
+      const underQueue = els.length // 模型小楼的连线画在排队箱子和数字下面，不压字
       // 门前排队：箱子＝等待处理的分片
       {
         const waiting = Math.max(0, run.shards.total - run.shards.done - (run.shards.running ?? 0))
@@ -889,21 +890,21 @@ window.__ModuleLoader__.load({
       // 模型小楼：提取模型挂在提取楼旁，核验模型挂在核验楼旁（楼号：bay0(2)=提取 E3，bay0(5)=核验 E6）
       const kiosk = ({ key, bay, k, name, model, stats, label, side }) => {
         const on = !!model; const V = P.vio
-        // 核验模型往右下放，让开「裁定回流」的弧线和说明
-        const mi = bay0(bay) + (side === 'left' ? 30 : 46); const mj = D + (side === 'left' ? 118 : 156); const ma = 70; const mb = 42; const mh = 28
+        // 两座模型小楼同一排、说明都在小楼左边：右下方的说明会把场景底边往下撑，整幅画就被缩小
+        const mi = bay0(bay) + (side === 'left' ? 30 : 56); const mj = D + 118; const ma = 70; const mb = 42; const mh = 28
         const g = []
         g.push(...isoBox('mp', mi - 6, mj - 6, -3, ma + 12, mb + 12, 3, { top: C.pad, left: C.padL, right: C.padR }))
         const a = iso(bay0(bay) + 40, D, 22); const b = iso(mi + ma / 2, mj, mh - 4)
-        g.push(h('line', { key: 'p', x1: a[0], y1: a[1], x2: b[0], y2: b[1], stroke: on ? V : C.left2, strokeWidth: on ? 1.8 : 1.4, strokeDasharray: '3 6', className: on && running ? 'mx-flow' : undefined, filter: on ? 'url(#mx-glow)' : undefined, opacity: on ? 1 : 0.5 }))
+        els.splice(underQueue, 0, h('line', { key: `${key}p`, x1: a[0], y1: a[1], x2: b[0], y2: b[1], stroke: on ? V : C.left2, strokeWidth: on ? 1.8 : 1.4, strokeDasharray: '3 6', className: on && running ? 'mx-flow' : undefined, filter: on ? 'url(#mx-glow)' : undefined, opacity: on ? 1 : 0.5 }))
         g.push(...isoBox('mb', mi, mj, 0, ma, mb, mh, CL))
         for (let w = 0; w < 3; w++) g.push(leftPatch(`mw${w}`, mi + 8 + w * 20, mi + 20 + w * 20, mj + mb, 9, 19, { fill: on ? V : C.win, opacity: on ? 0.9 : 0.55, filter: on ? 'url(#mx-glow)' : undefined }))
         g.push(...isoBox('mbk', mi + 48, mj + 14, mh, 10, 10, 7, on ? { top: shade(V, 0.3), left: V, right: shade(V, -0.3) } : CL2))
-        const lt = side === 'left' ? iso(mi - 10, mj + mb + 10) : iso(mi + ma + 14, mj + mb + 4)
-        const anchorT = side === 'left' ? 'end' : 'start'
+        const lt = iso(mi - 10, mj + mb + 10)
+        const anchorT = 'end'
         g.push(h('text', { key: 't1', x: lt[0], y: lt[1] + 6, textAnchor: anchorT, fill: on ? V : P.ink3, fontSize: 11, fontWeight: 600, ...halo }, name),
           h('text', { key: 't2', x: lt[0], y: lt[1] + 20, textAnchor: anchorT, fill: P.ink2, fontSize: 9.5, ...halo }, on ? stats : label))
         els.push(h('g', { key, ...click(k) }, h('title', {}, on ? `${name}：${model}` : `${name}：${label}`), g))
-        bb.push(iso(mi - 6, mj + mb + 6), side === 'left' ? iso(mi - 160, mj + mb + 40) : iso(mi + ma + 170, mj + mb + 34), iso(mi + ma, mj + mb + 6))
+        bb.push(iso(mi - 6, mj + mb + 6), iso(mi - 160, mj + mb + 40), iso(mi + ma, mj + mb + 6))
       }
       const mE = run.models?.extract; const mV = run.models?.verify
       kiosk({ key: 'model', bay: 2, k: 2, side: 'left', name: '提取模型', model: run.model?.model, stats: `调用 ${big(mE?.calls ?? t.calls)} · 缓存 ${big(mE?.cached ?? t.cached)} · 引语回原文核对`, label: '未配置 · 不能开始批次' })
@@ -954,7 +955,7 @@ window.__ModuleLoader__.load({
         e.preventDefault()
         onSel(sel < 0 ? ORDER[d > 0 ? 0 : ORDER.length - 1] : ORDER[(ORDER.indexOf(sel) + d + ORDER.length) % ORDER.length])
       }
-      return h('svg', { className: 'mx-scene', tabIndex: 0, role: 'group', 'aria-label': `处理流程，当前 ${sel >= 0 ? stations[sel].nm : '批次概览'}（←／→ 切换工序）`, onKeyDown, viewBox: `${x0} ${y0} ${x1 - x0} ${y1 - y0}`, preserveAspectRatio: 'xMidYMin meet', style: { maxHeight: 620, overflow: 'hidden' } }, h('defs', {}, defs), els)
+      return h('svg', { className: 'mx-scene', tabIndex: 0, role: 'group', 'aria-label': `处理流程，当前 ${sel >= 0 ? stations[sel].nm : '批次概览'}（←／→ 切换工序）`, onKeyDown, viewBox: `${x0} ${y0} ${x1 - x0} ${y1 - y0}`, preserveAspectRatio: 'xMidYMid meet', style: { overflow: 'hidden' } }, h('defs', {}, defs), els)
     }
 
     /* 每道工序：做什么 → 产出什么（引擎的通用工序说明，不含病种内容） */
