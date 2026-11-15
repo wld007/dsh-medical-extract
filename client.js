@@ -138,6 +138,7 @@ window.__ModuleLoader__.load({
 .mx-stack{display:flex;height:8px;border-radius:4px;overflow:hidden;margin:6px 0 4px;background:var(--line2)}.mx-stack span{display:block;height:100%}
 .mx-scene{display:block;width:100%;height:auto;overflow:visible;margin:0 auto}
 .mx-scene text{pointer-events:none}
+.mx-scene:focus{outline:none}.mx-scene:focus-visible{outline:1px dashed color-mix(in srgb,var(--teal) 60%,transparent);outline-offset:-2px;border-radius:3px}
 .mx-hero{position:relative;padding:10px 12px 8px;min-height:560px;background:radial-gradient(120% 90% at 45% 55%,var(--panel2),var(--bg) 75%);display:flex;flex-direction:column;min-height:420px}
 .mx-hero .mx-scene{flex:1}
 .mx-hud{position:absolute;z-index:1;font-size:11px;color:var(--ink2);pointer-events:none}
@@ -174,11 +175,6 @@ window.__ModuleLoader__.load({
 .mx-live i{width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 6px currentColor;animation:mx-pulse 1.6s ease-in-out infinite}
 .mx-live.ok{color:var(--ok)}.mx-live.bad{color:var(--bad)}
 .mx-hero-err{margin:8px 0 0;align-self:flex-start;max-width:720px;font-size:12px}
-.mx-hero-legend{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
-.mx-bay{font-size:11px;color:var(--ink2);background:transparent;border:1px solid var(--line2);border-radius:3px;padding:2px 8px;cursor:pointer;display:flex;gap:6px;align-items:center}
-.mx-bay b{font-family:var(--mono);font-weight:500;font-size:10px;color:var(--ink3)}
-.mx-bay.hold,.mx-bay.run{border-color:color-mix(in srgb,var(--teal) 45%,transparent)}.mx-bay.hold b,.mx-bay.run b{color:var(--teal)}
-.mx-bay.on{background:var(--tealdim);border-color:var(--teal);color:var(--ink)}
 .mx-side{width:300px;flex:none;padding:12px 14px;display:flex;flex-direction:column;gap:2px}
 .mx-side-h{display:flex;align-items:center;gap:8px}.mx-side-h b{font-size:14px;letter-spacing:1px}.mx-side-h span:nth-child(2){font-weight:600;flex:1}
 .mx-side-sub{font-family:var(--mono);font-size:10.5px;color:var(--teal);margin-top:4px;line-height:1.5}
@@ -393,7 +389,7 @@ window.__ModuleLoader__.load({
               h('b', {}, lineStatus === 'idle' ? '空闲' : STATUS_LABEL[lineStatus] ?? lineStatus),
               h('span', { className: 'mx-num' }, run?.id ?? '—'),
               run?.status === 'running' && run.current ? h('span', { className: 'mx-tl' }, `${run.current.stage} ${run.current.step}${run.rate ? ` · ${fmt(run.rate)} 份/秒` : ''}`)
-                : run ? h('span', {}, [MODE_LABEL[run.mode], run.asOf ? `截至 ${run.asOf}` : null, run.inputName].filter(Boolean).join(' · ')) : null)),
+                : run ? h('span', { title: run.input }, [MODE_LABEL[run.mode], run.asOf ? `截至 ${run.asOf}` : null, run.inputName].filter(Boolean).join(' · ')) : null)),
           run ? h('div', { className: 'mx-tpl', title: run.template.id }, h('span', { style: { fontSize: 15, color: 'var(--teal)' } }, '▤'), h('div', {}, h('b', {}, `模板 ${run.template.name}`), h('span', {}, `v${run.template.version} · ${run.template.fields} 字段${run.priorities?.length ? ` · ${run.priorities.join('/')}` : ''}`))) : null,
           h('span', { className: 'mx-sp' }),
           h('div', { className: 'mx-clock sep' }, h('span', {}, '用时'), h('b', {}, clock(elapsed))),
@@ -514,8 +510,7 @@ window.__ModuleLoader__.load({
         h('div', { style: { display: 'flex', gap: 8, flex: 'none' } },
           h('div', { className: 'mx-frame mx-hero', style: { flex: 1, minWidth: 0 } },
             h('div', { className: 'mx-hero-cap' },
-              h('span', { className: 'mx-cap', style: { color: 'var(--ink2)' } }, '处理流程 · PLANT'),
-              h('span', { className: 'mx-faint mx-num', style: { fontSize: 10.5 } }, `${run.input} · 模板 ${run.template.id}@${run.template.version}`),
+              h('span', { className: 'mx-cap', style: { color: 'var(--ink2)' } }, '处理流程'),
               h('span', { className: 'mx-sp' }),
               run.status === 'failed' ? h('span', { className: 'mx-live bad' }, h('i'), '批次失败') : run.status === 'cancelled' ? h('span', { className: 'mx-live bad' }, h('i'), '已取消') : hot.length ? h('span', { className: 'mx-live' }, h('i'), hot.map((s) => `${s.no} ${STATE_LABEL[s.state]}`).join(' · ')) : h('span', { className: 'mx-live ok' }, h('i'), '全部完成')),
             run.status === 'failed' && run.error ? h('div', { className: 'mx-err mx-hero-err' }, h('b', {}, '批次失败：'), String(run.error).split('\n')[0].replace(/^Error:\s*/, '')) : null,
@@ -523,8 +518,7 @@ window.__ModuleLoader__.load({
             h('div', { className: 'mx-hud br' },
               h('div', {}, h('i', { className: 'sw hot' }), '运行中／待复核'), h('div', {}, h('i', { className: 'sw clay' }), '已完成'),
               h('div', {}, h('i', { className: 'sw box' }), '箱子＝一个分片'), h('div', {}, h('i', { className: 'sw red' }), '红色＝验收门未过'),
-              h('div', {}, h('i', { className: 'sw vio' }), '青灯＝模型补抽（旁路）'), h('div', {}, h('i', { className: 'sw flow' }), '紫色流线＝字段规格下发')),
-            h('div', { className: 'mx-hero-legend' }, [7, 0, 1, 2, 3, 4, 5, 6].map((i) => { const s = stations[i]; return h('button', { key: s.no, className: `mx-bay${i === k ? ' on' : ''} ${s.state}`, onClick: () => setSelK(i) }, h('b', {}, s.no), s.nm) }))),
+              h('div', {}, h('i', { className: 'sw vio' }), '青灯＝模型补抽（旁路）'), h('div', {}, h('i', { className: 'sw flow' }), '紫色流线＝字段规格下发'))),
           h(StationPanel, { run, s: stations[k] })),
         h('div', { className: 'mx-grid4' }, h(GatesPanel, { run }), h(FieldsPanel, { run }), h(VerifyPanel, { run }), h(AlertsPanel, { run, goto })))
     }
@@ -833,7 +827,15 @@ window.__ModuleLoader__.load({
       const xs = bb.map((p) => p[0]); const ys = bb.map((p) => p[1])
       const x0 = Math.min(...xs) - 24; const y0 = Math.min(...ys) - 16; const x1 = Math.max(...xs) + 24; const y1 = Math.max(...ys) + 16
       defs.push(h('mask', { key: 'mk', id: 'mx-gridmask', maskUnits: 'userSpaceOnUse', x: x0, y: y0, width: x1 - x0, height: y1 - y0 }, h('rect', { x: x0, y: y0, width: x1 - x0, height: y1 - y0, fill: 'url(#mx-fade)' })))
-      return h('svg', { className: 'mx-scene', viewBox: `${x0} ${y0} ${x1 - x0} ${y1 - y0}`, preserveAspectRatio: 'xMidYMin meet', style: { maxHeight: 620, overflow: 'hidden' } }, h('defs', {}, defs), els)
+      // 键盘：场景本身是一个 Tab 停靠点，←／→ 按工序顺序（模板塔在前）切换
+      const ORDER = [7, 0, 1, 2, 3, 4, 5, 6]
+      const onKeyDown = (e) => {
+        const d = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0
+        if (!d) return
+        e.preventDefault()
+        onSel(ORDER[(ORDER.indexOf(sel) + d + ORDER.length) % ORDER.length])
+      }
+      return h('svg', { className: 'mx-scene', tabIndex: 0, role: 'group', 'aria-label': `处理流程，当前 ${stations[sel].no} ${stations[sel].nm}（←／→ 切换工序）`, onKeyDown, viewBox: `${x0} ${y0} ${x1 - x0} ${y1 - y0}`, preserveAspectRatio: 'xMidYMin meet', style: { maxHeight: 620, overflow: 'hidden' } }, h('defs', {}, defs), els)
     }
 
     function StationPanel({ run, s }) {
