@@ -735,7 +735,8 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         // 格式识别只在通用文件、本批真的识别了表时才算（区域平台导出不做；格式库里已有结果、命中缓存的也不算这个模型干了活）
         const fmtNow = run.status === 'running' && String(run.current?.step ?? '').startsWith('格式识别')
         hs.didFormat = Boolean(hs.calls.format || fmtNow)
-        const FMT = hs.roles.includes('extract') ? '格式识别（起草）' : '格式识别（核对）'
+        // 两个模型拿同一份提示各自起草（背靠背，互相看不到），一致才采用；「核对」专指插件逐字对照，这里不用
+        const FMT = hs.roles.includes('extract') && hs.roles.includes('verify') ? '格式识别' : hs.roles.includes('extract') ? '格式识别' : '格式识别（背靠背）'
         hs.roleText = hs.model ? hs.stations.filter((st) => st !== 'format' || hs.didFormat).map((st) => (st === 'format' ? FMT : STATION_LABEL[st])).join(' · ') : (hs.roles.includes('verify') ? '核验 · 复判' : '提取')
       }
       return houses
