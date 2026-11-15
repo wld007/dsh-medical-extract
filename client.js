@@ -80,6 +80,7 @@ window.__ModuleLoader__.load({
 .mx-tabs{display:flex;gap:2px;padding:0 8px;flex:none;overflow-x:auto}
 .mx-tab-sep{flex:none;align-self:center;width:1px;height:20px;margin:0 10px;background:var(--ink3);opacity:.55}
 .mx-tab.mx-tab-gap{margin-left:14px}
+.mx-tab i.hot{color:var(--warn);font-weight:600}
 .mx-tab{display:flex;align-items:center;padding:8px 12px;color:var(--ink2);font-size:13px;border:0;border-bottom:2px solid transparent;background:none;cursor:pointer;white-space:nowrap}
 .mx-tab.on{color:var(--ink);border-bottom-color:var(--teal);font-weight:600}
 .mx-tab i{font-style:normal;font-family:var(--mono);font-size:11px;margin-left:5px;color:var(--warn)}
@@ -670,7 +671,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       const dark = useHostDark()
       const heldFormats = run?.format?.held ?? 0
       // 按流程顺序（同匿名化插件的分组）：流水线｜模板 E0  格式 E1　复核 E6  结果表 E7  原文标注（从结果表看出处）　模型调用 报告（全程记录）
-      const tabs = [['line', '◈ 流水线'], ['template', '模板', run?.template?.fields, 'sep'], ...(run?.format ? [['formats', '格式', heldFormats]] : []), ['files', '文件', run?.totals?.unitErrors, 'gap'], ['source', '复核', run?.humanReview ? run.humanReview.todo : run?.totals?.review], ['calls', '模型调用', null, 'gap'], ['report', '报告']]
+      const tabs = [['line', '◈ 流水线'], ['template', '模板', run?.template?.fields, 'sep'], ...(run?.format ? [['formats', '格式', heldFormats]] : []), ['files', '文件', run?.totals?.unitErrors, 'gap'], ['source', '复核', run?.humanReview?.todo ?? run?.totals?.review, null, true], ['calls', '模型调用', null, 'gap'], ['report', '报告']]
       return h(ThemeCtx.Provider, { value: dark ? PAL.dark : PAL.light }, h('div', { className: `mx ${dark ? 'mx-dark' : 'mx-light'}` },
         h('style', {}, CSS),
         h('header', { className: 'mx-frame mx-top' },
@@ -725,9 +726,9 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
                   h('div', { className: 'mx-run-top' }, h('span', { className: 'mx-run-name', title: r.outputRoot }, `${r.input} · ${r.template}`), statusChip(r.status)),
                   h('div', { className: 'mx-run-meta' }, h('span', {}, fmtTime(r.startedAt)), h('span', { className: 'mx-num' }, `文书 ${big(r.documents)} · 值 ${big(r.values)}${r.review ? ` · 待复核 ${r.review}` : ''}`)))))) : null),
           h('button', { className: 'mx-icon', title: '设置', 'aria-label': '设置', onClick: () => setModal('settings') }, '⚙')),
-        h('nav', { className: 'mx-frame mx-tabs', role: 'tablist' }, tabs.map(([k, label, n, group]) => h(React.Fragment, { key: k },
+        h('nav', { className: 'mx-frame mx-tabs', role: 'tablist' }, tabs.map(([k, label, n, group, hot]) => h(React.Fragment, { key: k },
           group === 'sep' ? h('span', { className: 'mx-tab-sep', 'aria-hidden': 'true' }) : null,
-          h('button', { role: 'tab', 'aria-selected': tab === k ? 'true' : 'false', className: `mx-tab${tab === k ? ' on' : ''}${group === 'gap' ? ' mx-tab-gap' : ''}`, onClick: () => setTab(k) }, label, n ? h('i', {}, big(n)) : null)))),
+          h('button', { role: 'tab', 'aria-selected': tab === k ? 'true' : 'false', className: `mx-tab${tab === k ? ' on' : ''}${group === 'gap' ? ' mx-tab-gap' : ''}`, onClick: () => setTab(k) }, label, n ? h('i', { className: hot ? 'hot' : '', title: hot ? `待判断 ${fmt(n)} 项` : undefined }, big(n)) : null)))),
         error ? h('div', { className: 'mx-err', onClick: () => setError('') }, error) : null,
         h('div', { className: 'mx-body' },
           tab === 'template' ? h(Templates, { run, onError: setError })
