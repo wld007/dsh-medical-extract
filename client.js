@@ -422,6 +422,48 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
 .mx-mk.a{background:color-mix(in srgb,var(--teal) 16%,transparent);border-bottom:2px solid var(--teal)}
 .mx-mk.b{background:color-mix(in srgb,var(--warn) 22%,transparent);border-bottom:2px dashed var(--warn)}
 .mx-mk.ab{background:color-mix(in srgb,var(--warn) 22%,transparent);border-bottom:2px solid var(--teal)}
+.mx-dc{display:grid;grid-template-columns:260px minmax(0,1fr) 380px;gap:8px;flex:1;min-height:0}
+.mx-dc-side{padding:10px;gap:8px;min-height:0}
+.mx-dc-search{display:flex;flex-direction:column;gap:6px}.mx-dc-tg{display:flex;gap:4px}
+.mx-dc-list{flex:1;border-top:1px solid var(--line);padding-top:6px}
+.mx-dc-p{display:grid;grid-template-columns:1fr auto;gap:1px 6px;padding:6px 8px;border-radius:5px;cursor:pointer}
+.mx-dc-p:hover{background:var(--panel2)}.mx-dc-p.on{background:var(--panel3);box-shadow:inset 3px 0 0 var(--teal)}
+.mx-dc-p b{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mx-dc-p span{grid-column:1/3;font-size:10.5px;color:var(--ink3)}
+.mx-dc-p i,.mx-dc-d i{font-style:normal;font-family:var(--mono);font-size:10.5px;color:var(--ink3)}.mx-dc-p i.hot,.mx-dc-d i.hot{color:var(--warn);font-weight:700}
+.mx-dc-d{display:grid;grid-template-columns:1fr auto;gap:1px 6px;padding:4px 8px 4px 20px;border-radius:4px;cursor:pointer;font-size:11.5px}
+.mx-dc-d:hover{background:var(--panel2)}.mx-dc-d.on{background:var(--tealdim);box-shadow:inset 3px 0 0 var(--teal)}
+.mx-dc-d span{grid-column:1/3;font-size:10.5px;color:var(--ink3)}.mx-dc-d.empty span{color:var(--warn)}
+.mx-dc-page{display:flex;gap:6px;align-items:center;justify-content:center;padding:6px 0}
+.mx-dc-legacy{font-size:11px;padding:8px;line-height:1.6}
+.mx-dc-mid,.mx-dc-right{min-width:0;min-height:0;gap:0}
+.mx-dc-bar{display:flex;gap:8px;align-items:center;border-bottom:1px solid var(--line)}
+.mx-dc-legend{display:flex;gap:8px;align-items:center;padding:6px 14px;border-bottom:1px solid var(--line);font-size:11px;flex-wrap:wrap}
+.mx-dc-text{flex:1;position:relative;font-size:13.5px;line-height:2.1}
+.mx-dk{border-radius:2px;cursor:pointer}
+.mx-dk.val{background:color-mix(in srgb,var(--teal) 14%,transparent);border-bottom:2px solid var(--teal)}
+.mx-dk.add{background:color-mix(in srgb,var(--decide) 18%,transparent);border-bottom:2px solid var(--decide)}
+.mx-dk.other{background:color-mix(in srgb,var(--warn) 18%,transparent);border-bottom:2px dashed var(--warn)}
+.mx-dk.rej{text-decoration:line-through;text-decoration-color:var(--bad);border-bottom:1px dotted var(--ink3)}
+.mx-dk.hit{border-bottom:2px dotted var(--warn)}
+.mx-dk.on{background:color-mix(in srgb,var(--teal) 32%,transparent);border-bottom-width:3px;border-bottom-style:solid;border-bottom-color:var(--teal2)}
+.mx-dc-add{position:absolute;z-index:5;width:290px;background:var(--panel);border:1px solid var(--teal);border-radius:7px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:10px;display:flex;flex-direction:column;gap:6px;font-size:12px;line-height:1.5}
+.mx-dc-add label{display:grid;grid-template-columns:56px 1fr;align-items:center;gap:6px;color:var(--ink2)}
+.mx-dc-addq{color:var(--ink2);font-size:11.5px}
+.mx-dc-fields{flex:1;padding:8px 10px}
+.mx-dc-f{border:1px solid var(--line);border-radius:6px;padding:6px 8px;margin-bottom:6px;background:var(--panel2)}
+.mx-dc-f.none{background:transparent}.mx-dc-f.on{border-color:var(--teal)}.mx-dc-f.hot{border-color:var(--warn);box-shadow:inset 3px 0 0 var(--warn)}
+.mx-dc-fh{display:flex;gap:6px;align-items:center;cursor:pointer}.mx-dc-fh b{font-size:12px}
+.mx-dc-hint{display:block;margin-top:4px;border:0;background:none;padding:0;font:inherit;font-size:11px;color:var(--warn);cursor:pointer;text-align:left}
+.mx-dc-v{margin-top:4px}
+.mx-dc-vb{display:flex;gap:4px;align-items:center;flex-wrap:wrap;width:100%;border:1px solid var(--line2);border-radius:4px;background:var(--panel);padding:3px 6px;font:inherit;font-size:12px;color:var(--ink);cursor:pointer;text-align:left}
+.mx-dc-v.on .mx-dc-vb{border-color:var(--teal)}.mx-dc-v.rej .mx-dc-vb b{text-decoration:line-through;color:var(--ink3)}
+.mx-dc-va{padding:4px 2px 2px}.mx-dc-q{font-size:11px;margin-bottom:4px}
+.mx-dc-btns{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.mx-dc-edit{display:flex;gap:4px}.mx-dc-edit .mx-input{flex:1}
+.mx-dc-rv{border:1px dashed var(--warn);border-radius:5px;padding:6px;margin-top:5px;background:color-mix(in srgb,var(--warn) 5%,transparent)}
+.mx-dc-rvh{display:flex;gap:4px}.mx-dc-rvc{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px;font-size:11.5px}.mx-dc-rvc small{display:block;font-size:10px;color:var(--ink3)}
+.mx-dc-other{margin:6px 2px;font-size:11.5px}
+.mx-dc-foot{display:flex;flex-direction:column;gap:4px;padding:8px 10px;border-top:1px solid var(--line);font-size:11px}
 .mx-rvx{display:grid;grid-template-columns:300px minmax(0,1fr);gap:8px;flex:1;min-height:0}
 .mx-rvx-side{padding:10px;gap:8px}
 .mx-rvx-st{display:flex;flex-direction:column;gap:4px}
@@ -518,7 +560,8 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       const [activeId, setActiveId] = useState(null)
       const [runId, setRunId] = useState(null)
       const [run, setRun] = useState(null)
-      const [patient, setPatient] = useState(null)
+      // 逐份核对打开的病人、文书、字段
+      const [focus, setFocus] = useState(null)
       const [error, setError] = useState('')
       const [showNew, setShowNew] = useState(false)
       const [runsOpen, setRunsOpen] = useState(false)
@@ -562,15 +605,16 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         window.addEventListener('keydown', onKey)
         return () => window.removeEventListener('keydown', onKey)
       }, [modal, runsOpen])
-      const openPatient = (p) => { setPatient(p); setTab('source') }
-      const selectRun = (id) => { setRunId(id); setRun(null); setPatient(null); setRunsOpen(false); setTab('line') }
+      const openPatient = (p) => { setFocus({ patient: p }); setTab('source') }
+      const openDoc = (it) => { setFocus({ patient: it.patient, doc: it.doc, field: it.field ?? null }); setTab('source') }
+      const selectRun = (id) => { setRunId(id); setRun(null); setFocus(null); setRunsOpen(false); setTab('line') }
       const elapsed = run?.startedAt ? Math.max(0, (run.status === 'running' ? now : Date.parse(run.finishedAt ?? run.startedAt)) - Date.parse(run.startedAt)) : null
       const percent = run?.shards?.total ? Math.round(run.shards.done / run.shards.total * 100) : null
       const lineStatus = run?.status ?? 'idle'
       const dark = useHostDark()
       const heldFormats = run?.format?.held ?? 0
-      // 按流程顺序（同匿名化插件的分组）：产线｜模板 E0  格式 E1　复核 E6  宽表 E7  原文标注（从宽表看出处）　模型调用 报告（全程记录）
-      const tabs = [['line', '◈ 产线'], ['template', '模板', run?.template?.fields, 'sep'], ...(run?.format ? [['formats', '格式', heldFormats]] : []), ['review', '复核', run?.humanReview ? run.humanReview.todo : run?.totals?.review, 'gap'], ['wide', '宽表', run?.totals?.patients], ['source', '原文标注'], ['calls', '模型调用', null, 'gap'], ['report', '报告']]
+      // 按流程顺序（同匿名化插件的分组）：产线｜模板 E0  格式 E1　复核 E6  结果表 E7  原文标注（从结果表看出处）　模型调用 报告（全程记录）
+      const tabs = [['line', '◈ 产线'], ['template', '模板', run?.template?.fields, 'sep'], ...(run?.format ? [['formats', '格式', heldFormats]] : []), ['review', '复核', run?.humanReview ? run.humanReview.todo : run?.totals?.review, 'gap'], ['wide', '结果表', run?.totals?.patients], ['source', '逐份核对'], ['calls', '模型调用', null, 'gap'], ['report', '报告']]
       return h(ThemeCtx.Provider, { value: dark ? PAL.dark : PAL.light }, h('div', { className: `mx ${dark ? 'mx-dark' : 'mx-light'}` },
         h('style', {}, CSS),
         h('header', { className: 'mx-frame mx-top' },
@@ -625,8 +669,8 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
               : tab === 'line' ? h(Pipeline, { run, goto: setTab, openPatient })
                 : tab === 'formats' ? h(Formats, { run, busy: !!activeId, onRerun: (id) => { setRunId(id); setRun(null); refreshList(); setTab('line') }, onError: setError })
                 : tab === 'wide' ? h(Wide, { run, openPatient })
-                  : tab === 'source' ? h(Source, { run, patient, setPatient })
-                    : tab === 'review' ? h(Review, { key: run.id, run, onError: setError, onRunChanged: () => { setRunTick((n) => n + 1); refreshList() }, goto: setTab })
+                  : tab === 'source' ? h(Source, { key: run.id, run, focus, setFocus, onError: setError, onRunChanged: () => { setRunTick((n) => n + 1); refreshList() } })
+                    : tab === 'review' ? h(Review, { key: run.id, run, onError: setError, onRunChanged: () => { setRunTick((n) => n + 1); refreshList() }, goto: setTab, openDoc })
                       : tab === 'calls' ? h(Calls, { run })
                         : h(Report, { run })),
         modal === 'settings' ? h('div', { className: 'mx-modal-back', onMouseDown: (e) => { if (e.target === e.currentTarget) setModal(null) } },
@@ -722,8 +766,8 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         st('E3', '提取', legacy ? '旧批次：规则定值，定不了的片段送模型' : '提取模型通读每个任务，模型给的原文引用逐字回原文核对；有规则的字段再用规则对照', big(t.values), '值', [gateRow('①', '质检①', `${fmt(t.quoteFail)} 丢弃`), ['模型调用', `${big(t.calls)}（缓存 ${big(t.cached)}）`, ''], ...(legacy ? [] : [['规则与模型不符', fmt(t.ruleDisputes ?? 0), t.ruleDisputes ? 'warn' : '']])], stShard('E3'), shardF('E3')),
         st('E4', '归一', '单位、日期、选项写法统一；类型、选项、值域校验', fmt(t.invalid + t.outOfRange), '不合规', [gateRow('②', '质检②')], stShard('E4'), shardF('E4')),
         st('E6', '核验·复查', hasVerify ? `核验模型 ${run.model.verifyModel}；有分歧时复查，至多 ${run.maxRounds ?? 3} 轮` : '未配置核验模型：不做抽样核验', fmt(t.review), '待复核', [gateRow('④', '质检④'), ...(t.adjResolved ? [['复查后一致', fmt(t.adjResolved), 'ok']] : [])], t.review && !running ? 'hold' : stShard('E6'), hasVerify ? shardF('E6') : 0),
-        st('E5', '汇总·计算', '所有数据块做完后：按汇总层级与取值规则填进宽表；计算字段；冲突登记', fmt(t.conflicts), '冲突', [['病人', big(t.patients), ''], gateRow('③', '质检③')], stLate('rollup'), phase === 'rollup' ? 0.5 : past('rollup') || !running ? (broken ? 0 : 1) : 0),
-        st('E7', '交付', '宽表 → 证据长表 → 冲突表 → 只读核对', run.output ? '已写出' : '—', '', [['输出', run.output ? '已写出' : '未交付', run.output ? 'ok' : '']], run.output ? 'done' : stLate('deliver'), run.output ? 1 : 0),
+        st('E5', '汇总·计算', '所有数据块做完后：按汇总层级与取值规则填进结果表；计算字段；冲突登记', fmt(t.conflicts), '冲突', [['病人', big(t.patients), ''], gateRow('③', '质检③')], stLate('rollup'), phase === 'rollup' ? 0.5 : past('rollup') || !running ? (broken ? 0 : 1) : 0),
+        st('E7', '交付', '结果表 → 证据长表 → 冲突表 → 只读核对', run.output ? '已写出' : '—', '', [['输出', run.output ? '已写出' : '未交付', run.output ? 'ok' : '']], run.output ? 'done' : stLate('deliver'), run.output ? 1 : 0),
         st('E0', '模板', `${run.template.name} v${run.template.version}`, String(run.template.fields), '字段', [['模式', modeLabel(run.mode), '']], 'done', 1),
       ]
     }
@@ -985,7 +1029,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
           h('polygon', { points: pts([iso(i0, 0, H), iso(i0 + bw, 0, H), iso(i0 + bw, D, H), iso(i0 + bw, D, 0), iso(i0, D, 0), iso(i0, D, H)]), fill: 'transparent' }), g))
       }
       els.push(corridor('co6', hallEnd, yard, 6))
-      // E7 交付堆场：三台出货单元＝宽表、证据长表、冲突表；箱子＝已完成的数据块
+      // E7 交付堆场：三台出货单元＝结果表、证据长表、冲突表；箱子＝已完成的数据块
       {
         const s = stations[6]; const g = []
         g.push(...isoBox('pad', yard, 6, 0, 150, 130, 4, { top: C.pad, left: C.padL, right: C.padR }))
@@ -996,7 +1040,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
           const tp = iso(ui + 15, uj + 15, 40)
           g.push(h('text', { key: `${key}t`, x: tp[0], y: tp[1], textAnchor: 'middle', fill: P.ink2, fontSize: 9, ...halo }, label))
         }
-        unit('du0', yard + 10, 14, '宽表'); unit('du1', yard + 60, 14, '证据长表'); unit('du2', yard + 110, 14, '冲突表')
+        unit('du0', yard + 10, 14, '结果表'); unit('du1', yard + 60, 14, '证据长表'); unit('du2', yard + 110, 14, '冲突表')
         const crates = Math.min(run.shards.done, 12)
         const cells = []
         for (let r = 0; r < 3; r++) for (let c2 = 0; c2 < 4; c2++) cells.push([yard + 12 + c2 * 34, 58 + r * 24])
@@ -1176,7 +1220,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       E2: '按文书类型和栏目派字段，切成提取任务',
       E3: '模型通读任务取值，原文引用回原文核对',
       E4: '统一单位、日期、选项，按类型和值域校验',
-      E5: '按汇总层级填宽表，算计算字段，登记冲突',
+      E5: '按汇总层级填结果表，算计算字段，登记冲突',
       E6: '核验模型抽样重抽比对，分歧复查后转人工',
       E7: '写出交付文件，核对源文件没有被改动',
     }
@@ -1188,9 +1232,9 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       E2old: ['当时的做法：每个字段用关键词（词表、正则）在文书里找命中，只看限定的文书类型和栏目；没提到的记「未提及」', '命中的「字段 × 文书」'],
       E3old: ['当时的做法：规则对命中处定值，规则定不了的命中句送模型（仅规则模式下不送，记「待定」）', '值：每个都带原文引用、起止位置和出处'],
       E4: ['统一单位、日期和选项写法；按类型、选项、值域校验，不合的丢弃或标出', '规范值'],
-      E5: ['按字段汇总层级（文书／就诊／病人／时间点）和汇总规则填进宽表单元格，算出计算字段；同一格互斥的值登记为冲突，不自动选边', '宽表、时间点长表、冲突表'],
+      E5: ['按字段汇总层级（文书／就诊／病人／时间点）和汇总规则填进结果表单元格，算出计算字段；同一格互斥的值登记为冲突，不自动选边', '结果表、时间点长表、冲突表'],
       E6: ['核验模型抽样，对同样的任务各自独立通读重抽，按字段算一致率；核验分歧和规则与模型不符的进人工复核；判断按稳定编号保存，重跑沿用', '一致率与复核单'],
-      E7: ['写出宽表、证据长表、冲突表和报告，再只读核对源文件没有被改动', '交付目录'],
+      E7: ['写出结果表、证据长表、冲突表和报告，再只读核对源文件没有被改动', '交付目录'],
     }
 
     /** 小进度环 */
@@ -1621,7 +1665,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         const cf = Object.entries(run.rollup?.filled ?? {}).filter(([, x]) => x.conflicts).sort((a, b) => b[1].conflicts - a[1].conflicts).slice(0, 5)
         if (cf.length) parts.push(sec('冲突的字段', fieldList(cf.map(([f, x]) => [f, `${fmt(x.conflicts)} 格`, null, `${nameOf(f)}（${f}）：${fmt(x.conflicts)} 个单元格里有互斥的值，没有自动选边，见冲突表`]), true)))
         parts.push(gateLine('③', '可回溯原文'))
-        action = ['宽表', 'wide']
+        action = ['结果表', 'wide']
       } else if (id === 'E6') {
         ring = h(Ring, { v: vn ? va / vn : 0, label: vn ? pct(va / vn) : '—', sub: '核验一致率', hot: vn > 0 && va / vn < 0.9 })
         const rd = legacy ? 0 : t.ruleDisputes ?? 0
@@ -1650,7 +1694,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         if (run.output) parts.push(sec('输出位置', h('div', { className: 'mx-spath' }, h('span', { title: run.output }, run.output),
           h('button', { className: 'mx-btn sm', onClick: () => { navigator.clipboard?.writeText(run.output).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500) }).catch(() => {}) } }, copied ? '已复制' : '复制'))))
         if (run.output) {
-          const files = [['wide_patient.csv', '宽表·病人', t.patients], ['wide_encounter.csv', '宽表·就诊', t.encounters], ['timepoints.csv', '时间点长表', run.rollup?.timepoints], ['evidence/', '证据长表', t.values], ['conflicts.csv', '冲突表', t.conflicts], ...(run.xlsx ? [['result.xlsx', '以上合成一个 Excel', null]] : [])]
+          const files = [['wide_patient.csv', '结果表·病人', t.patients], ['wide_encounter.csv', '结果表·就诊', t.encounters], ['timepoints.csv', '时间点长表', run.rollup?.timepoints], ['evidence/', '证据长表', t.values], ['conflicts.csv', '冲突表', t.conflicts], ...(run.xlsx ? [['result.xlsx', '以上合成一个 Excel', null]] : [])]
           parts.push(sec('交付文件', h('table', { className: 'mx-dtab' }, h('thead', {}, h('tr', {}, h('th', {}, '文件'), h('th', { style: { textAlign: 'left' } }, '内容'), h('th', {}, '行'))),
             h('tbody', {}, files.map(([f, d, n]) => h('tr', { key: f }, h('td', { className: 'mx-num', style: { fontSize: 11 } }, f), h('td', { style: { textAlign: 'left', color: 'var(--ink2)' } }, d), h('td', { className: 'mx-num' }, n == null ? '—' : fmt(n))))))))
         }
@@ -2013,7 +2057,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
           v ? h('span', { className: 'mx-faint mx-num' }, `${fmt(v.offset + 1)}–${fmt(Math.min(v.total, v.offset + 100))} / ${fmt(v.total)}`) : null,
           h('button', { className: 'mx-btn sm', disabled: !v || offset === 0, onClick: () => setOffset(Math.max(0, offset - 100)) }, '‹'),
           h('button', { className: 'mx-btn sm', disabled: !v || offset + 100 >= v.total, onClick: () => setOffset(offset + 100) }, '›')),
-        !run.output ? h('div', { className: 'mx-empty' }, '批次交付后显示宽表。')
+        !run.output ? h('div', { className: 'mx-empty' }, '批次交付后显示结果表。')
           : !v ? h('div', { className: 'mx-empty' }, d.error ?? '加载中…')
             : h('div', { className: 'mx-scroll', style: { flex: 1 } }, h('table', { className: 'mx-grid-tbl' },
               h('thead', {}, h('tr', {}, cols.map(([hd]) => h('th', { key: hd, title: fieldName[hd] ?? hd }, fieldName[hd] ? h(React.Fragment, {}, h('span', { className: 'mx-num' }, hd), ' ', fieldName[hd]) : hd)))),
@@ -2022,50 +2066,250 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
     }
 
     /* --------------------------------------------------------------- source */
-    function Source({ run, patient, setPatient }) {
-      const [input, setInput] = useState(patient ?? '')
-      const [doc, setDoc] = useState(null)
-      const [sel, setSel] = useState(null)
-      useEffect(() => { setInput(patient ?? '') }, [patient])
-      const ev = useAsync(() => (patient ? call('evidence', { runId: run.id, patient, limit: 3000 }) : null), [run.id, patient])
-      const tpl = useAsync(() => call('template', { id: run.template.id }).catch(() => null), [run.template.id])
-      const fieldName = useMemo(() => Object.fromEntries((tpl.value?.template?.fields ?? []).map((f) => [f.id, f.name])), [tpl.value])
-      const values = ev.value?.values ?? []
-      const docs = useMemo(() => {
-        const m = new Map()
-        for (const v of values) { if (!m.has(v.doc)) m.set(v.doc, { id: v.doc, recordType: v.recordType, written: v.written, encounter: v.encounter, n: 0 }); m.get(v.doc).n++ }
-        return [...m.values()].sort((a, b) => ((a.written ?? '') < (b.written ?? '') ? -1 : 1))
-      }, [values])
-      const curDoc = doc ?? docs[0]?.id
-      const text = useAsync(() => (curDoc ? call('document', { runId: run.id, patient, doc: curDoc }) : null), [run.id, curDoc])
-      const dv = values.filter((v) => v.doc === curDoc && v.e > v.s).sort((a, b) => a.s - b.s)
-      const body = text.value?.document?.text ?? ''
-      const parts = []
-      let at = 0
-      for (const v of dv) {
-        if (v.s < at) continue
-        parts.push(body.slice(at, v.s))
-        parts.push(h('span', { key: v.id, className: `${qCls(v)}${sel === v.id ? ' sel' : ''}`, title: `${v.field} ${fieldName[v.field] ?? ''} = ${v.value ?? '待定'}（${v.assertion}，${methodLabel(v.method)}）`, onClick: () => setSel(v.id) }, body.slice(v.s, v.e)))
-        at = v.e
+    /**
+     * 逐份核对：左＝病人与文书（含一个值都没提到的文书），中＝原文（提取到的值高亮，可选中文字补漏提），
+     * 右＝这份文书分到的全部模板字段（有值的显示值，没值的显示「未提及」并提示原文里出现的关键词）。
+     * 值可以确认、去掉、改值；在原文上补的值出处记「人工」。判断后点「更新结果表」生效。
+     */
+    const ASSERTION_LIST = ['阳性', '否认', '可疑', '既往', '家族', '计划']
+    const valueText = (v) => `${v.value ?? '待定'}${v.unit ? ` ${v.unit}` : ''}`
+    function Source({ run, focus, setFocus, onError, onRunChanged }) {
+      const [q, setQ] = useState('')
+      const [only, setOnly] = useState('all')
+      const [offset, setOffset] = useState(0)
+      const [selField, setSelField] = useState(focus?.field ?? null)
+      const [selValue, setSelValue] = useState(null)
+      const [adder, setAdder] = useState(null) // { s, e, text, x, y, field, value, assertion }
+      const [pending, setPending] = useState(null) // 点了「补」的字段：等在原文里选文字
+      const [edit, setEdit] = useState(null) // { id, value }
+      const [busy, setBusy] = useState(false)
+      const [note, setNote] = useState(null)
+      const [showOther, setShowOther] = useState(false)
+      const patient = focus?.patient ?? null
+      const pl = useAsync(() => call('patients', { runId: run.id, offset, limit: 100, q: q.trim(), only: only === 'todo' ? 'todo' : null }), [run.id, offset, q, only])
+      const dl = useAsync(() => (patient ? call('patientDocs', { runId: run.id, patient }) : null), [run.id, patient])
+      const docs = dl.value?.docs ?? []
+      const docId = focus?.doc ?? (docs.find((d) => d.todo) ?? docs[0])?.doc ?? null
+      const dv = useAsync(() => (patient && docId ? call('docView', { runId: run.id, patient, doc: docId }) : null), [run.id, patient, docId])
+      useEffect(() => { setSelValue(null); setAdder(null); setEdit(null); setPending(null); setSelField(focus?.field ?? null) }, [docId])
+      // 首次进来没选病人：自动打开第一位（待判断多的在前）
+      useEffect(() => { if (!patient && pl.value?.items?.length) setFocus({ patient: pl.value.items[0].patient }) }, [pl.value, patient])
+      const v = dv.value
+      const textRef = React.useRef(null)
+      const reloadAll = () => { dv.reload(); dl.reload(); pl.reload() }
+      const act = async (fn, okText) => {
+        setBusy(true); setNote(null)
+        try { await fn(); if (okText) setNote({ ok: true, text: okText }); reloadAll() } catch (e) { setNote({ ok: false, text: msg(e) }) } finally { setBusy(false) }
       }
-      parts.push(body.slice(at))
-      const selV = values.find((v) => v.id === sel)
-      return h('div', { className: 'mx-split' },
-        h('div', { className: 'mx-frame mx-col mx-pad', style: { minHeight: 0 } },
-          h('div', { style: { display: 'flex', gap: 6 } }, h('input', { className: 'mx-input', style: { flex: 1 }, placeholder: '病人编号', value: input, onChange: (e) => setInput(e.target.value), onKeyDown: (e) => { if (e.key === 'Enter') { setPatient(input.trim()); setDoc(null) } } }), h('button', { className: 'mx-btn', onClick: () => { setPatient(input.trim()); setDoc(null) } }, '查看')),
-          !patient ? h('div', { className: 'mx-faint', style: { marginTop: 10 } }, '在「宽表」里点一行，或输入病人编号。') : ev.loading ? h('div', { className: 'mx-faint' }, '加载中…') : h('div', { className: 'mx-scroll', style: { marginTop: 8, flex: 1 } },
-            h('div', { className: 'mx-faint', style: { fontSize: 11, marginBottom: 4 } }, `${docs.length} 份文书有提取值 · 共 ${values.length} 个值`),
-            docs.map((d) => h('div', { key: d.id, className: `mx-pi${d.id === curDoc ? ' on' : ''}`, onClick: () => { setDoc(d.id); setSel(null) } }, h('b', {}, d.recordType), h('span', {}, `${d.n} 值`), h('span', { style: { gridColumn: '1 / 3' } }, `${d.written ?? '时间不详'}${d.encounter ? ` · ${d.encounter}` : ''}`))))),
-        h('div', { className: 'mx-frame mx-col', style: { minWidth: 0 } },
-          h('div', { className: 'mx-pad', style: { borderBottom: '1px solid var(--line)', display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' } },
-            h('b', {}, '原文标注'), h('span', { className: 'mx-q' }, '阳性'), h('span', { className: 'mx-q neg' }, '否认'), h('span', { className: 'mx-q hx' }, '既往'), h('span', { className: 'mx-q fam' }, '家族'), h('span', { className: 'mx-q mdl' }, '模型提取的值（青边）'),
-            h('span', { className: 'mx-sp' }), h('span', { className: 'mx-faint' }, '原文只在本机读取显示，不写入任何记录')),
-          h('div', { style: { display: 'grid', gridTemplateColumns: '1fr 300px', flex: 1, minHeight: 0 } },
-            h('div', { className: 'mx-scroll mx-pad mx-doc', style: { lineHeight: 2 } }, text.loading ? '加载中…' : text.error ? h('div', { className: 'mx-err' }, text.error) : parts),
-            h('div', { className: 'mx-scroll mx-pad', style: { borderLeft: '1px solid var(--line)' } },
-              selV ? h('div', { className: 'mx-mo' }, h('b', {}, `${selV.field} ${fieldName[selV.field] ?? ''}`), h('div', {}, `值：${selV.value ?? '待定'}${selV.unit ? ` ${selV.unit}` : ''}${selV.variant ? `（${selV.variant}）` : ''}`), h('div', {}, `提及方式：${selV.assertion} · 栏目：${selV.section ?? '—'}`), h('div', {}, `来源：${methodLabel(selV.method)}${selV.flags?.length ? ` · ${selV.flags.map(flagLabel).join('、')}` : ''}`), h('div', { className: 'mx-faint mx-num' }, selV.id)) : null,
-              dv.map((v) => h('div', { key: v.id, className: 'mx-mrow', style: { cursor: 'pointer', background: sel === v.id ? 'var(--panel3)' : undefined }, onClick: () => setSel(v.id) },
-                h('span', { className: 'mx-num mx-faint' }, v.field), ' ', fieldName[v.field] ?? '', ' = ', h('b', {}, String(v.value ?? '待定')), ' ', h('span', { className: `mx-chip ${v.assertion === '否认' ? '' : v.assertion === '阳性' ? 'ok' : 'v'}` }, v.assertion)))))))
+      const decideValue = (val, decision, value = null) => act(() => call('decide', { runId: run.id, kind: 'value', target: val.id, decision, value }))
+      const decideReview = (it, decision) => act(() => call('decide', { runId: run.id, kind: 'review', target: it.id, decision }))
+      const removeAdded = (val) => act(() => call('decide', { runId: run.id, kind: 'add', target: val.id, decision: 'clear' }), '已撤销人工补充的值')
+      const apply = () => act(async () => { const r = await call('applyDecisions', { runId: run.id }); onRunChanged?.(); return r }, '已按你的判断重新生成结果表')
+      const scrollTo = (s) => {
+        const box = textRef.current; if (!box) return
+        const segs = [...box.querySelectorAll('[data-s]')]
+        const el = segs.reverse().find((x) => Number(x.dataset.s) <= s)
+        if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' })
+      }
+      useEffect(() => {
+        if (!v || !focus?.field) return
+        const val = v.values.find((x) => x.field === focus.field) ?? v.review.find((x) => x.field === focus.field)?.verifyValues?.[0]
+        if (val?.s != null) setTimeout(() => scrollTo(val.s), 60)
+      }, [v])
+
+      // 原文：按所有值（含人工补充）和选中字段的关键词位置切段，每段带起点，选中文字时能换算回原文位置
+      const body = v?.doc?.text ?? ''
+      const spans = []
+      if (v) {
+        for (const x of v.values) if (x.e > x.s) spans.push({ s: x.s, e: x.e, id: x.id, kind: x.decision?.decision === 'reject' ? 'rej' : 'val', field: x.field, v: x })
+        for (const x of v.added) spans.push({ s: x.s, e: x.e, id: x.id, kind: 'add', field: x.field, v: x })
+        for (const it of v.review) for (const x of it.verifyValues ?? []) if (x.e > x.s) spans.push({ s: x.s, e: x.e, id: `${it.id}:${x.s}`, kind: 'other', field: it.field })
+        const sf = v.fields.find((f) => f.id === selField)
+        for (const hh of sf?.hits ?? []) spans.push({ s: hh.s, e: hh.e, id: `hit:${hh.s}`, kind: 'hit', field: sf.id })
+      }
+      const cuts = [...new Set([0, body.length, ...spans.flatMap((x) => [x.s, x.e])])].filter((n) => n >= 0 && n <= body.length).sort((a, b) => a - b)
+      const RANK = { val: 4, add: 5, other: 3, rej: 1, hit: 2 }
+      const segs = []
+      for (let i = 0; i < cuts.length - 1; i++) {
+        const a = cuts[i]; const b = cuts[i + 1]
+        const cover = spans.filter((x) => x.s <= a && x.e >= b)
+        const top = cover.sort((x, y) => (y.field === selField) - (x.field === selField) || RANK[y.kind] - RANK[x.kind])[0]
+        const on = cover.some((x) => x.id === selValue) || (selField && cover.some((x) => x.field === selField && x.kind !== 'hit'))
+        segs.push(h('span', {
+          key: a, 'data-s': a,
+          className: top ? `mx-dk ${top.kind}${on ? ' on' : ''}` : undefined,
+          title: top ? cover.filter((x) => x.kind !== 'hit').map((x) => `${x.field} ${v.fields.find((f) => f.id === x.field)?.name ?? ''}${x.v ? ` = ${valueText(x.v)}（${x.v.assertion}）` : '（另一方的引用）'}`).join('\n') || '关键词' : undefined,
+          onClick: top ? () => { setSelField(top.field); setSelValue(top.v ? top.id : null) } : undefined,
+        }, body.slice(a, b)))
+      }
+      const posOf = (node, off) => {
+        const el = node?.nodeType === 3 ? node.parentElement : node
+        const seg = el?.closest?.('[data-s]')
+        if (!seg || !textRef.current?.contains(seg)) return null
+        return Number(seg.dataset.s) + (node.nodeType === 3 ? off : 0)
+      }
+      const onMouseUp = (ev) => {
+        const sel = window.getSelection?.(); if (!sel || sel.isCollapsed) return
+        let a = posOf(sel.anchorNode, sel.anchorOffset); let b = posOf(sel.focusNode, sel.focusOffset)
+        if (a == null || b == null) return
+        if (a > b) [a, b] = [b, a]
+        while (a < b && /\s/.test(body[a])) a++
+        while (b > a && /\s/.test(body[b - 1])) b--
+        if (b - a < 1 || b - a > 400) return
+        const text = body.slice(a, b)
+        const fid = pending ?? (selField && v.fields.some((f) => f.id === selField) ? selField : (v.fields.find((f) => f.assigned)?.id ?? v.fields[0]?.id))
+        const f = v.fields.find((x) => x.id === fid)
+        const box = ev.currentTarget.getBoundingClientRect()
+        setAdder({ s: a, e: b, text, x: Math.min(ev.clientX - box.left, box.width - 300), y: ev.clientY - box.top + ev.currentTarget.scrollTop + 14, field: fid, value: defaultValue(f, text), assertion: '阳性' })
+      }
+      const defaultValue = (f, text) => (!f ? text : f.type === 'presence' ? '有' : f.type === 'enum' ? (f.options.find((o) => text.includes(o)) ?? f.options[0] ?? '') : f.type === 'number' || f.type === 'score' ? (text.match(/-?\d+(?:\.\d+)?/)?.[0] ?? '') : f.type === 'date' ? (text.match(/\d{4}(?:-\d{2}(?:-\d{2})?)?/)?.[0] ?? '') : text)
+      const saveAdd = () => act(async () => {
+        await call('addValue', { runId: run.id, patient, doc: docId, field: adder.field, value: adder.value, s: adder.s, e: adder.e, assertion: adder.assertion })
+        setAdder(null); setPending(null); setSelField(adder.field); window.getSelection?.().removeAllRanges()
+      }, '已补上这个值；点「更新结果表」生效')
+
+      // 右栏：字段卡
+      const byField = (id) => v.values.filter((x) => x.field === id)
+      const addedOf = (id) => v.added.filter((x) => x.field === id)
+      const reviewOf = (id) => v.review.filter((x) => x.field === id)
+      const DEC = { confirm: ['已确认', 'ok'], reject: ['已去掉', 'b'], correct: ['已改值', 'w'] }
+      const valueChip = (x, added = false) => {
+        const d = x.decision?.decision
+        const on = selValue === x.id
+        return h('div', { key: x.id, className: `mx-dc-v${on ? ' on' : ''}${d === 'reject' ? ' rej' : ''}` },
+          h('button', { className: 'mx-dc-vb', title: `「${x.quote}」\n${x.section ?? ''} · ${methodLabel(x.method)}`, onClick: () => { setSelValue(x.id); setSelField(x.field); scrollTo(x.s) } },
+            h('b', {}, d === 'correct' ? h(React.Fragment, {}, h('s', {}, valueText(x)), ' → ', String(x.decision.value)) : valueText(x)),
+            h('span', { className: 'mx-faint' }, ` ${x.assertion}`),
+            added ? h('span', { className: 'mx-chip d' }, '人工') : d ? h('span', { className: `mx-chip ${DEC[d]?.[1] ?? ''}` }, DEC[d]?.[0] ?? d) : null),
+          on ? h('div', { className: 'mx-dc-va' },
+            h('div', { className: 'mx-faint mx-dc-q' }, `「${x.quote}」`),
+            edit?.id === x.id
+              ? h('div', { className: 'mx-dc-edit' },
+                h('input', { className: 'mx-input', autoFocus: true, value: edit.value, onChange: (e) => setEdit({ ...edit, value: e.target.value }), onKeyDown: (e) => { if (e.key === 'Enter') { decideValue(x, 'correct', edit.value); setEdit(null) } if (e.key === 'Escape') setEdit(null) } }),
+                h('button', { className: 'mx-btn sm pri', disabled: busy || !String(edit.value).trim(), onClick: () => { decideValue(x, 'correct', edit.value); setEdit(null) } }, '保存'),
+                h('button', { className: 'mx-btn sm', onClick: () => setEdit(null) }, '取消'))
+              : added ? h('div', { className: 'mx-dc-btns' }, h('button', { className: 'mx-btn sm', disabled: busy, onClick: () => removeAdded(x) }, '撤销这个补充'))
+                : h('div', { className: 'mx-dc-btns' },
+                  d ? h('button', { className: 'mx-btn sm', disabled: busy, onClick: () => decideValue(x, 'clear') }, '撤销判断')
+                    : h(React.Fragment, {},
+                      h('button', { className: 'mx-btn sm', disabled: busy, title: '值对，出处也对', onClick: () => decideValue(x, 'confirm') }, '✓ 确认'),
+                      h('button', { className: 'mx-btn sm', disabled: busy, title: '这个值不该提（结果表里不再用它）', onClick: () => decideValue(x, 'reject') }, '✗ 去掉'),
+                      h('button', { className: 'mx-btn sm', disabled: busy, title: '位置对，值写错了', onClick: () => setEdit({ id: x.id, value: String(x.value ?? '') }) }, '✎ 改值')))) : null)
+      }
+      const reviewBox = (it) => h('div', { key: it.id, className: 'mx-dc-rv' },
+        h('div', { className: 'mx-dc-rvh' }, h('span', { className: `mx-chip ${it.kind === 'rule' ? 'f' : 'v'}` }, it.kind === 'rule' ? '规则与模型不符' : '核验分歧'), it.decision ? h('span', { className: 'mx-chip ok' }, DECISION_LABEL(it.kind)[it.decision.decision] ?? it.decision.decision) : null),
+        h('div', { className: 'mx-dc-rvc' },
+          h('div', {}, h('small', {}, '当前结果'), h('b', {}, it.final)),
+          h('div', {}, h('small', {}, it.kind === 'rule' ? '规则匹配' : '核验模型'), h('b', { className: 'mx-warn' }, it.verify))),
+        it.rounds?.at(-1)?.extractReason ? h('div', { className: 'mx-why' }, `提取模型：${it.rounds.at(-1).extractReason}`) : null,
+        h('div', { className: 'mx-dc-btns' }, it.decision
+          ? h('button', { className: 'mx-btn sm', disabled: busy, onClick: () => decideReview(it, 'clear') }, '撤销判断')
+          : h(React.Fragment, {},
+            h('button', { className: 'mx-btn sm', disabled: busy, onClick: () => decideReview(it, 'confirm') }, '维持当前结果'),
+            h('button', { className: 'mx-btn sm pri', disabled: busy, onClick: () => decideReview(it, 'useVerify') }, it.kind === 'rule' ? '改用规则匹配结果' : '改用核验模型的结果'),
+            h('button', { className: 'mx-btn sm', disabled: busy || !it.finalValues.length, onClick: () => decideReview(it, 'reject') }, '两边都不对'))))
+      const fieldCard = (f) => {
+        const vals = byField(f.id); const adds = addedOf(f.id); const rvs = reviewOf(f.id)
+        const none = !vals.length && !adds.length
+        const open = rvs.some((x) => !x.decision)
+        return h('div', { key: f.id, className: `mx-dc-f${selField === f.id ? ' on' : ''}${open ? ' hot' : ''}${none ? ' none' : ''}`, onClick: (e) => { if (e.target === e.currentTarget) setSelField(selField === f.id ? null : f.id) } },
+          h('div', { className: 'mx-dc-fh', onClick: () => setSelField(selField === f.id ? null : f.id) },
+            h('span', { className: 'mx-num mx-faint' }, f.id), h('b', {}, f.name),
+            h('span', { className: 'mx-sp' }),
+            none ? h('span', { className: 'mx-faint' }, '未提及') : null,
+            h('button', { className: `mx-btn sm${pending === f.id ? ' pri' : ''}`, title: '在原文里选中文字，补一个漏提的值', onClick: (e) => { e.stopPropagation(); setPending(pending === f.id ? null : f.id); setSelField(f.id) } }, pending === f.id ? '选中原文…' : '＋ 补')),
+          none && f.hits.length && !rvs.length ? h('button', { className: 'mx-dc-hint', title: '模板里这个字段的关键词在原文出现了，字段却是未提及：看看是不是漏提', onClick: () => { setSelField(f.id); scrollTo(f.hits[0].s) } }, `原文里有关键词「${body.slice(f.hits[0].s, f.hits[0].e).slice(0, 12)}」${f.hits.length > 1 ? ` 等 ${f.hits.length} 处` : ''}，看看是否漏提 →`) : null,
+          rvs.map(reviewBox),
+          vals.map((x) => valueChip(x)), adds.map((x) => valueChip(x, true)))
+      }
+
+      const fieldsAssigned = v ? v.fields.filter((f) => f.assigned) : []
+      const fieldsOther = v ? v.fields.filter((f) => !f.assigned) : []
+      // 有分歧的字段排最前，再按模板顺序
+      const ordered = [...fieldsAssigned].sort((a, b) => (reviewOf(b.id).some((x) => !x.decision) ? 1 : 0) - (reviewOf(a.id).some((x) => !x.decision) ? 1 : 0))
+      const docIdx = docs.findIndex((d) => d.doc === docId)
+      useEffect(() => {
+        const onKey = (e) => {
+          if (e.metaKey || e.ctrlKey || e.altKey) return
+          const tag = e.target?.tagName
+          if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return
+          const k = e.key.toLowerCase()
+          if ((k === 'j' || k === 'k') && docs.length) { e.preventDefault(); const n = docs[Math.max(0, Math.min(docs.length - 1, docIdx + (k === 'j' ? 1 : -1)))]; if (n) setFocus({ patient, doc: n.doc }) }
+          if (e.key === 'Escape') { setAdder(null); setPending(null) }
+        }
+        window.addEventListener('keydown', onKey)
+        return () => window.removeEventListener('keydown', onKey)
+      })
+      const P = pl.value
+
+      return h('div', { className: 'mx-dc' },
+        // 左：病人与文书
+        h('aside', { className: 'mx-frame mx-col mx-dc-side' },
+          h('div', { className: 'mx-dc-search' },
+            h('input', { className: 'mx-input', placeholder: '病人编号', value: q, onChange: (e) => { setQ(e.target.value); setOffset(0) } }),
+            h('div', { className: 'mx-dc-tg' }, [['all', '全部'], ['todo', `有待判断${P?.todo ? ` ${fmt(P.todo)}` : ''}`]].map(([k, l]) => h('button', { key: k, className: `mx-btn sm${only === k ? ' on' : ''}`, onClick: () => { setOnly(k); setOffset(0) } }, l)))),
+          h('div', { className: 'mx-scroll mx-dc-list' },
+            !P ? h('div', { className: 'mx-faint', style: { padding: 8 } }, pl.error ?? '加载中…')
+              : !P.items.length ? h('div', { className: 'mx-faint', style: { padding: 8 } }, '没有符合的病人。')
+                : P.items.map((p) => h(React.Fragment, { key: p.patient },
+                  h('div', { className: `mx-dc-p${p.patient === patient ? ' on' : ''}`, onClick: () => setFocus({ patient: p.patient }) },
+                    h('b', { className: 'mx-num' }, p.patient), p.todo ? h('i', { className: 'hot' }, fmt(p.todo)) : null,
+                    h('span', {}, `${fmt(p.docs)} 份文书 · ${fmt(p.values)} 个值`)),
+                  p.patient === patient ? (dl.loading && !docs.length ? h('div', { className: 'mx-faint mx-dc-d' }, '加载中…')
+                    : docs.map((d) => h('div', { key: d.doc, className: `mx-dc-d${d.doc === docId ? ' on' : ''}${d.values ? '' : ' empty'}`, title: d.doc, onClick: () => setFocus({ patient, doc: d.doc }) },
+                      h('b', {}, d.recordType || '文书'), d.todo ? h('i', { className: 'hot' }, fmt(d.todo)) : null,
+                      h('span', {}, `${d.written ?? '时间不详'} · ${d.skipped ? '没送模型（无关键词）' : d.values ? `${d.values} 个值` : '一个值都没提到'}`)))) : null)),
+            P && P.total > P.items.length ? h('div', { className: 'mx-dc-page' },
+              h('button', { className: 'mx-btn sm', disabled: offset === 0, onClick: () => setOffset(Math.max(0, offset - 100)) }, '‹'),
+              h('span', { className: 'mx-faint mx-num' }, `${fmt(offset + 1)}–${fmt(offset + P.items.length)} / ${fmt(P.total)}`),
+              h('button', { className: 'mx-btn sm', disabled: offset + 100 >= P.total, onClick: () => setOffset(offset + 100) }, '›')) : null,
+            P?.legacy || dl.value?.legacy ? h('div', { className: 'mx-faint mx-dc-legacy' }, '这个批次是旧版本跑的：只列得出有提取值的文书。重跑后会列出全部文书。') : null)),
+        // 中：原文
+        h('section', { className: 'mx-frame mx-col mx-dc-mid' },
+          h('div', { className: 'mx-pad mx-dc-bar' },
+            v ? h(React.Fragment, {}, h('b', {}, v.doc.recordType || '文书'), h('span', { className: 'mx-faint' }, `${v.doc.written ?? '时间不详'}${v.doc.encounter ? ` · ${v.doc.encounter}` : ''}`), h('span', { className: 'mx-faint mx-num', title: v.doc.id }, v.doc.id.length > 18 ? `${v.doc.id.slice(0, 16)}…` : v.doc.id)) : h('b', {}, '原文'),
+            h('span', { className: 'mx-sp' }),
+            docs.length ? h('span', { className: 'mx-faint mx-num' }, `${docIdx + 1} / ${docs.length}`) : null,
+            h('button', { className: 'mx-btn sm', disabled: docIdx <= 0, title: '上一份（K）', onClick: () => setFocus({ patient, doc: docs[docIdx - 1].doc }) }, '‹'),
+            h('button', { className: 'mx-btn sm', disabled: docIdx < 0 || docIdx >= docs.length - 1, title: '下一份（J）', onClick: () => setFocus({ patient, doc: docs[docIdx + 1].doc }) }, '›')),
+          h('div', { className: 'mx-dc-legend' },
+            h('span', { className: 'mx-dk val' }, '提取到的值'), h('span', { className: 'mx-dk add' }, '人工补充'), h('span', { className: 'mx-dk other' }, '另一方的引用'), h('span', { className: 'mx-dk rej' }, '已去掉'), h('span', { className: 'mx-dk hit' }, '关键词'),
+            h('span', { className: 'mx-sp' }),
+            h('span', { className: pending ? 'mx-warn' : 'mx-faint' }, pending ? `在原文里选中文字，补到「${v?.fields.find((f) => f.id === pending)?.name ?? pending}」（Esc 取消）` : '选中原文里的文字可以补漏提的值')),
+          h('div', { ref: textRef, className: 'mx-scroll mx-pad mx-doc mx-dc-text', onMouseUp: v ? onMouseUp : undefined },
+            !patient ? h('div', { className: 'mx-faint' }, '在左边选一位病人。')
+              : dv.loading && !v ? h('div', { className: 'mx-faint' }, '加载中…')
+                : dv.error ? h('div', { className: 'mx-err' }, dv.error)
+                  : v ? segs : null,
+            adder ? h('div', { className: 'mx-dc-add', style: { left: Math.max(4, adder.x), top: adder.y }, onMouseUp: (e) => e.stopPropagation() },
+              h('div', { className: 'mx-dc-addq' }, `「${adder.text.length > 40 ? `${adder.text.slice(0, 40)}…` : adder.text}」`),
+              h('label', {}, '字段', h('select', { className: 'mx-input', value: adder.field, onChange: (e) => { const f = v.fields.find((x) => x.id === e.target.value); setAdder({ ...adder, field: e.target.value, value: defaultValue(f, adder.text) }) } },
+                h('optgroup', { label: '这份文书分到的字段' }, fieldsAssigned.map((f) => h('option', { key: f.id, value: f.id }, `${f.id} ${f.name}`))),
+                fieldsOther.length ? h('optgroup', { label: '其他字段' }, fieldsOther.map((f) => h('option', { key: f.id, value: f.id }, `${f.id} ${f.name}`))) : null)),
+              (() => {
+                const f = v.fields.find((x) => x.id === adder.field)
+                const opts = f?.type === 'presence' ? ['有', '无', '可疑'] : f?.type === 'enum' ? f.options : null
+                return h('label', {}, '值', opts
+                  ? h('select', { className: 'mx-input', value: adder.value, onChange: (e) => setAdder({ ...adder, value: e.target.value, assertion: e.target.value === '无' ? '否认' : adder.assertion }) }, opts.map((o) => h('option', { key: o, value: o }, o)))
+                  : h('input', { className: 'mx-input', value: adder.value, placeholder: f?.type === 'date' ? 'YYYY-MM-DD' : '', onChange: (e) => setAdder({ ...adder, value: e.target.value }) }))
+              })(),
+              h('label', {}, '提及方式', h('select', { className: 'mx-input', value: adder.assertion, onChange: (e) => setAdder({ ...adder, assertion: e.target.value }) }, ASSERTION_LIST.map((x) => h('option', { key: x, value: x }, x)))),
+              h('div', { className: 'mx-dc-btns' },
+                h('button', { className: 'mx-btn sm pri', disabled: busy || !String(adder.value ?? '').trim(), onClick: saveAdd }, busy ? '保存中…' : '补上'),
+                h('button', { className: 'mx-btn sm', onClick: () => setAdder(null) }, '取消'))) : null)),
+        // 右：模板字段
+        h('aside', { className: 'mx-frame mx-col mx-dc-right' },
+          h('div', { className: 'mx-pad mx-dc-bar' },
+            h('b', {}, '模板字段'),
+            v ? h('span', { className: 'mx-faint' }, `分到 ${fieldsAssigned.length} 个 · 有值 ${fieldsAssigned.filter((f) => byField(f.id).length || addedOf(f.id).length).length} 个`) : null),
+          note ? h('div', { className: `mx-rvx-note${note.ok ? '' : ' bad'}`, onClick: () => setNote(null) }, note.text) : null,
+          h('div', { className: 'mx-scroll mx-dc-fields' },
+            !v ? null : !fieldsAssigned.length ? h('div', { className: 'mx-faint', style: { padding: 10 } }, '这类文书模板里没有分配字段。') : ordered.map(fieldCard),
+            v && fieldsOther.length ? h('button', { className: 'mx-link mx-dc-other', onClick: () => setShowOther(!showOther) }, `${showOther ? '▾' : '▸'} 其他 ${fieldsOther.length} 个字段（这类文书不提取）`) : null,
+            v && showOther ? fieldsOther.map(fieldCard) : null),
+          h('div', { className: 'mx-dc-foot' },
+            h('button', { className: `mx-btn${v?.dirty ? ' mx-new' : ''}`, disabled: busy || !v?.hasOutput || run.status === 'running', onClick: apply }, '更新结果表'),
+            h('span', { className: 'mx-faint' }, v?.dirty ? '有新的判断还没更新到结果表' : '判断后点这里生效，重跑也沿用'))))
     }
 
     /* --------------------------------------------------------------- review */
@@ -2074,11 +2318,11 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
      *   左栏：状态（待判断／已判断／复查后一致）＋按「字段 × 类别」分组，选中字段再按两边说法细分，计数一目了然；
      *   右栏：当前范围的复核卡，键盘 J/K 移动、1/2/3 判断、U 撤销，判断后自动跳到下一项；
      *   整组判断（「本组 n 项都这样处理」，两步确认）；原文两边分色标出，可就地展开全文；
-     *   「更新宽表」不调模型、立即重新汇总交付数据，转人工的都判断了批次转为完成。
+     *   「更新结果表」不调模型、立即重新汇总交付数据，转人工的都判断了批次转为完成。
      */
     const RV_LIMIT = 20
-    const DECISION_LABEL = (kind) => ({ confirm: '已维持最终结果', useVerify: kind === 'rule' ? '已改用规则匹配结果' : '已改用核验模型的结果', reject: '已不采用最终结果' })
-    /** 片段里两边的值分色：a＝最终结果（提取模型一方），b＝规则匹配／核验模型一方，ab＝两边重叠 */
+    const DECISION_LABEL = (kind) => ({ confirm: '已维持当前结果', useVerify: kind === 'rule' ? '已改用规则匹配结果' : '已改用核验模型的结果', reject: '已不采用当前结果' })
+    /** 片段里两边的值分色：a＝当前结果（提取模型一方），b＝规则匹配／核验模型一方，ab＝两边重叠 */
     function marked(text, base, sides, keyBase) {
       const n = text.length
       if (!n) return text
@@ -2115,7 +2359,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       return h('div', { ref, className: 'mx-rv-full' }, d.loading ? '加载中…' : d.error ? h('span', { className: 'mx-bad' }, d.error) : marked(text, 0, sidesOf(it), 'f'))
     }
 
-    function ReviewCard({ run, it, on, local, busy, onFocus, onDecide }) {
+    function ReviewCard({ run, it, on, local, busy, onFocus, onDecide, onOpenDoc }) {
       const [full, setFull] = useState(false)
       const decision = local !== undefined ? local : it.decision
       const otherName = it.kind === 'rule' ? '规则匹配' : '核验模型'
@@ -2132,7 +2376,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
           it.resolved ? h('span', { className: 'mx-chip ok' }, `复查第 ${it.resolved.round} 轮一致（${it.resolved.by === 'extract' ? '提取模型改口' : '核验模型改口'}）`) : null,
           decision ? h('span', { className: 'mx-chip ok' }, DECISION_LABEL(it.kind)[decision.decision] ?? decision.decision) : null),
         h('div', { className: 'mx-rv-cols' },
-          h('div', { className: 'mx-rv-a' }, h('div', { className: 'mx-faint' }, it.resolved ? '采用的结果' : '最终结果'), h('b', {}, it.final), it.finalValues.slice(0, 4).map((x, i) => h('div', { key: i, className: 'mx-faint' }, `「${x.quote}」 ${x.assertion} · ${methodLabel(x.method)}`))),
+          h('div', { className: 'mx-rv-a' }, h('div', { className: 'mx-faint' }, it.resolved ? '采用的结果' : '当前结果'), h('b', {}, it.final), it.finalValues.slice(0, 4).map((x, i) => h('div', { key: i, className: 'mx-faint' }, `「${x.quote}」 ${x.assertion} · ${methodLabel(x.method)}`))),
           h('div', { className: 'mx-rv-b' }, h('div', { className: 'mx-faint' }, otherName), h('b', {}, it.verify), it.verifyValues.slice(0, 4).map((x, i) => h('div', { key: i, className: 'mx-faint' }, `「${x.quote}」 ${x.assertion}`)))),
         it.rounds?.length ? h('div', { className: 'mx-rounds' }, it.rounds.map((rd) => h('div', { key: rd.round, className: 'mx-round' },
           h('em', {}, `第 ${rd.round} 轮`),
@@ -2143,14 +2387,15 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
           decision
             ? h(React.Fragment, {}, h('span', { className: 'mx-ok' }, `✓ ${DECISION_LABEL(it.kind)[decision.decision] ?? decision.decision}`), btn('U', 'clear', '撤销'))
             : h(React.Fragment, {},
-              btn('1', 'confirm', '维持最终结果'),
-              btn('2', 'useVerify', it.kind === 'rule' ? '改用规则匹配结果' : '改用核验模型的结果', { pri: true, title: `宽表这一格改用${otherName}的结论：${it.verify}` }),
-              btn('3', 'reject', '两边都不对', { disabled: noFinal, title: noFinal ? '最终结果本来就是「未提及」，「两边都不对」与维持相同' : '最终结果的值不采用（宽表这一格不再用它们）' })),
+              btn('1', 'confirm', '维持当前结果'),
+              btn('2', 'useVerify', it.kind === 'rule' ? '改用规则匹配结果' : '改用核验模型的结果', { pri: true, title: `结果表这一格改用${otherName}的结论：${it.verify}` }),
+              btn('3', 'reject', '两边都不对', { disabled: noFinal, title: noFinal ? '当前结果本来就是「未提及」，「两边都不对」与维持相同' : '当前结果的值不采用（结果表这一格不再用它们）' })),
           h('span', { className: 'mx-sp' }),
-          h('button', { className: 'mx-link', onClick: (e) => { e.stopPropagation(); setFull(!full) } }, full ? '收起全文' : '展开全文')))
+          h('button', { className: 'mx-link', onClick: (e) => { e.stopPropagation(); setFull(!full) } }, full ? '收起全文' : '展开全文'),
+          onOpenDoc ? h('button', { className: 'mx-link mx-tl', title: '看这份文书的全部字段，能确认、去掉、改值和补漏提', onClick: (e) => { e.stopPropagation(); onOpenDoc(it) } }, '逐份核对 ↗') : null))
     }
 
-    function Review({ run, onError, onRunChanged, goto }) {
+    function Review({ run, onError, onRunChanged, goto, openDoc }) {
       const [status, setStatus] = useState('todo')
       const [sel, setSel] = useState(null) // { kind, field, pattern? }
       const [offset, setOffset] = useState(0)
@@ -2202,7 +2447,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         try {
           const r = await call('decideGroup', { runId: run.id, field: sel.field, kind: sel.kind, pattern: sel.pattern ?? null, decision })
           setBulk(null)
-          setNote({ ok: true, text: `已判断 ${fmt(r.decided)} 项。点左下「更新宽表」生效。` })
+          setNote({ ok: true, text: `已判断 ${fmt(r.decided)} 项。点左下「更新结果表」生效。` })
           refreshGroups(); q.reload()
         } catch (e) { onError(msg(e)) } finally { setBusy(false) }
       }
@@ -2238,7 +2483,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       const selGroup = sel && g ? g.groups.find((x) => x.field === sel.field && x.kind === sel.kind) : null
       const selPattern = sel?.pattern != null && selGroup ? selGroup.patterns.find((p) => p.pattern === sel.pattern) : null
       const scopeTodo = selPattern ? selPattern.todo : selGroup ? selGroup.todo : 0
-      // 当前范围里最终结果全是「未提及」：「两边都不对」没有可去掉的值
+      // 当前范围里当前结果全是「未提及」：「两边都不对」没有可去掉的值
       const allNone = selPattern ? selPattern.final === '未提及' : Boolean(selGroup && selGroup.more === 0 && selGroup.patterns.every((p) => p.final === '未提及'))
       const otherName = (kind) => (kind === 'rule' ? '规则匹配' : '核验')
       const STATUS = [['todo', '待判断', counts.todo], ['decided', '已判断', counts.decided], ['resolved', '复查后一致（抽查）', counts.resolved]]
@@ -2264,8 +2509,8 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
                   on && x.more ? h('div', { className: 'mx-faint mx-rvx-p' }, `其余 ${fmt(x.more)} 项（说法组合太多，未逐一列出）`) : null)
               })),
           h('div', { className: 'mx-rvx-apply' },
-            h('button', { className: `mx-btn${g?.dirty ? ' mx-new' : ''}`, disabled: busy || !canApply, title: canApply ? '不调模型，按全部判断重新汇总：替换交付目录里的宽表、时间点、冲突表与 result.xlsx' : '批次在运行或没有交付目录', onClick: apply }, busy ? '处理中…' : '更新宽表'),
-            h('div', { className: 'mx-faint' }, g?.dirty ? '有新的判断还没更新到宽表' : g?.humanReview?.appliedAt ? `已于 ${fmtTime(g.humanReview.appliedAt)} 更新宽表${g.humanReview.carried ? '（沿用以前的判断）' : ''}` : '判断结果会保存，更新宽表后生效，重跑也沿用'))),
+            h('button', { className: `mx-btn${g?.dirty ? ' mx-new' : ''}`, disabled: busy || !canApply, title: canApply ? '不调模型，按全部判断重新汇总：替换交付目录里的结果表、时间点、冲突表与 result.xlsx' : '批次在运行或没有交付目录', onClick: apply }, busy ? '处理中…' : '更新结果表'),
+            h('div', { className: 'mx-faint' }, g?.dirty ? '有新的判断还没更新到结果表' : g?.humanReview?.appliedAt ? `已于 ${fmtTime(g.humanReview.appliedAt)} 更新结果表${g.humanReview.carried ? '（沿用以前的判断）' : ''}` : '判断结果会保存，更新结果表后生效，重跑也沿用'))),
         h('section', { className: 'mx-frame mx-col mx-rvx-main' },
           h('div', { className: 'mx-pad mx-rvx-bar' },
             h('b', {}, '复核'), h('span', { className: 'mx-cap' }, 'REVIEW'),
@@ -2279,26 +2524,26 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
           status === 'todo' && sel && scopeTodo > 1 ? h('div', { className: 'mx-rvx-bulk' },
             bulk
               ? h(React.Fragment, {},
-                h('span', {}, `确定把这 ${fmt(scopeTodo)} 项都「${{ confirm: '维持最终结果', useVerify: sel.kind === 'rule' ? '改用规则匹配结果' : '改用核验模型的结果', reject: '不采用最终结果' }[bulk]}」？已判断的不受影响，可逐条撤销。`),
+                h('span', {}, `确定把这 ${fmt(scopeTodo)} 项都「${{ confirm: '维持当前结果', useVerify: sel.kind === 'rule' ? '改用规则匹配结果' : '改用核验模型的结果', reject: '不采用当前结果' }[bulk]}」？已判断的不受影响，可逐条撤销。`),
                 h('button', { className: 'mx-btn sm pri', disabled: busy, onClick: () => decideGroup(bulk) }, busy ? '处理中…' : '确定'),
                 h('button', { className: 'mx-btn sm', disabled: busy, onClick: () => setBulk(null) }, '取消'))
               : h(React.Fragment, {},
                 h('span', {}, `本${selPattern ? '组' : '字段'} ${fmt(scopeTodo)} 项待判断，都这样处理：`),
-                h('button', { className: 'mx-btn sm', onClick: () => setBulk('confirm') }, '维持最终结果'),
+                h('button', { className: 'mx-btn sm', onClick: () => setBulk('confirm') }, '维持当前结果'),
                 h('button', { className: 'mx-btn sm', onClick: () => setBulk('useVerify') }, sel.kind === 'rule' ? '改用规则匹配结果' : '改用核验模型的结果'),
-                allNone ? null : h('button', { className: 'mx-btn sm', onClick: () => setBulk('reject') }, '不采用最终结果'),
+                allNone ? null : h('button', { className: 'mx-btn sm', onClick: () => setBulk('reject') }, '不采用当前结果'),
                 sel.kind === 'rule' && allNone ? h('span', { className: 'mx-faint mx-rvx-hint' }, '这些都是规则报了、模型说原文没写：多半是这个字段的规则写宽了。维持后到', h('button', { className: 'mx-link mx-tl', onClick: () => goto?.('template') }, '「模板」'), '收紧规则，重跑就不再报') : null)) : null,
           note ? h('div', { className: `mx-rvx-note${note.ok ? '' : ' bad'}`, onClick: () => setNote(null) }, note.text) : null,
           h('div', { className: 'mx-rvx-legend' },
-            h('span', {}, h('mark', { className: 'mx-mk a' }, '最终结果'), ' ', h('mark', { className: 'mx-mk b' }, '规则匹配／核验模型'), ' ', h('mark', { className: 'mx-mk ab' }, '两边都引了')),
+            h('span', {}, h('mark', { className: 'mx-mk a' }, '当前结果'), ' ', h('mark', { className: 'mx-mk b' }, '规则匹配／核验模型'), ' ', h('mark', { className: 'mx-mk ab' }, '两边都引了')),
             h('span', { className: 'mx-sp' }),
             h('span', { className: 'mx-faint' }, h('kbd', {}, 'J'), h('kbd', {}, 'K'), ' 上下 · ', h('kbd', {}, '1'), h('kbd', {}, '2'), h('kbd', {}, '3'), ' 判断 · ', h('kbd', {}, 'U'), ' 撤销 · ', h('kbd', {}, 'N'), ' 下一个待判断')),
           h('div', { className: 'mx-scroll mx-pad', style: { flex: 1 } },
             !v ? h('div', { className: 'mx-faint' }, q.error ?? '加载中…')
               : !items.length ? h('div', { className: 'mx-empty' }, status === 'todo'
-                ? (counts.open ? '这里的项都判断了。点左下「更新宽表」生效。' : run.model?.verifyModel || run.mode !== 'model' ? '没有待复核的项。' : '未配置核验模型，没有抽样核验。')
+                ? (counts.open ? '这里的项都判断了。点左下「更新结果表」生效。' : run.model?.verifyModel || run.mode !== 'model' ? '没有待复核的项。' : '未配置核验模型，没有抽样核验。')
                 : status === 'decided' ? '还没有判断。' : '没有复查后自动一致的项。')
-                : items.map((it, i) => h(ReviewCard, { key: it.id, run, it, on: i === focus, local: local[it.id], busy, onFocus: () => setFocus(i), onDecide: decide })))))
+                : items.map((it, i) => h(ReviewCard, { key: it.id, run, it, on: i === focus, local: local[it.id], busy, onFocus: () => setFocus(i), onDecide: decide, onOpenDoc: openDoc })))))
     }
 
     /* ---------------------------------------------------------------- calls */
@@ -2473,7 +2718,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
           card('界面', null, check('showSidebarEntry', '在左侧栏显示「病历文书提取」入口'))),
       }
       return h('div', { className: 'mx-settings' }, h('style', {}, CSS),
-        inModal ? null : h('p', { className: 'mx-shint', style: { margin: 0 } }, '这里只放配置。运行批次、看宽表与复核，请到左侧栏的「病历文书提取」，或在聊天框使用 /extract。'),
+        inModal ? null : h('p', { className: 'mx-shint', style: { margin: 0 } }, '这里只放配置。运行批次、看结果表与复核，请到左侧栏的「病历文书提取」，或在聊天框使用 /extract。'),
         h('div', { className: 'mx-stabs', role: 'tablist' }, SET_TABS.map(([id, label, keys]) => h('button', { key: id, type: 'button', role: 'tab', 'aria-selected': tab === id ? 'true' : 'false', className: 'mx-stab', onClick: () => setTab(id) }, label, keys.some((k) => dirty.has(k)) ? h('span', { className: 'mx-sdot', title: '有未保存的修改' }) : null))),
         h('div', { role: 'tabpanel', className: 'mx-spanel' }, panels[tab]()),
         h('div', { className: 'mx-savebar' },
