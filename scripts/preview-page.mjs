@@ -74,6 +74,7 @@ const handlers = {
   table: (p) => service.table(p.runId, p),
   evidence: (p) => service.evidence(p.runId, p),
   document: (p) => service.document(p.runId, p),
+  files: (p) => service.files(p.runId, p),
   patients: (p) => service.patients(p.runId, p),
   patientDocs: (p) => service.patientDocs(p.runId, p),
   docView: (p) => service.docView(p.runId, p),

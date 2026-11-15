@@ -432,6 +432,19 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
 .mx-q.mdl{border-color:var(--vio)}
 .mx-q.sel{outline:1.5px solid var(--sel);outline-offset:1px}
 .mx-split{display:grid;grid-template-columns:320px 1fr;gap:8px;flex:1;min-height:0}
+.mx-fl{gap:0}
+.mx-fl-bar{display:flex;gap:8px;align-items:center;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.mx-fl-tg{display:flex;gap:4px}.mx-fl-tg .mx-dc-tgb{flex:none}
+.mx-fl-note{padding:6px 14px;font-size:11.5px;color:var(--warn);border-bottom:1px solid var(--line)}
+.mx-fl-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.mx-fl-tbl th{position:sticky;top:0;background:var(--panel);text-align:left;font-weight:500;color:var(--ink3);font-size:11px;padding:7px 10px;border-bottom:1px solid var(--line);z-index:1}
+.mx-fl-tbl td{padding:6px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.mx-fl-tbl .n{text-align:right;white-space:nowrap}.mx-fl-tbl td.z{color:var(--ink3)}
+.mx-fl-tbl tr.click{cursor:pointer}.mx-fl-tbl tr.click:hover td{background:var(--panel2)}
+.mx-fl-name{max-width:520px}.mx-fl-name span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mx-fl-name small{color:var(--ink3);font-size:10.5px;margin-right:8px}
+.mx-fl-st{display:inline-flex;gap:5px;align-items:center;white-space:nowrap}.mx-fl-st i{width:7px;height:7px;border-radius:50%;background:var(--ink3)}
+.mx-fl-st.ok i{background:var(--ok)}.mx-fl-st.run i{background:var(--warn);animation:mx-pulse 1.2s infinite}.mx-fl-st.bad{color:var(--badink)}.mx-fl-st.bad i{background:var(--bad)}.mx-fl-st.wait{color:var(--ink3)}.mx-fl-st.wait i{background:none;border:1.5px solid var(--ink3);box-sizing:border-box}
+.mx-fl-err{font-size:10.5px;color:var(--badink);margin-top:2px;max-width:280px}
 .mx-dc{display:grid;grid-template-columns:260px minmax(0,1fr) 380px;gap:8px;flex:1;min-height:0}
 .mx-dc-side{padding:10px;gap:8px;min-height:0}
 .mx-dc-list{flex:1;border-top:1px solid var(--line);padding-top:6px}
@@ -650,7 +663,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       const dark = useHostDark()
       const heldFormats = run?.format?.held ?? 0
       // 按流程顺序（同匿名化插件的分组）：产线｜模板 E0  格式 E1　复核 E6  结果表 E7  原文标注（从结果表看出处）　模型调用 报告（全程记录）
-      const tabs = [['line', '◈ 产线'], ['template', '模板', run?.template?.fields, 'sep'], ...(run?.format ? [['formats', '格式', heldFormats]] : []), ['source', '复核', run?.humanReview ? run.humanReview.todo : run?.totals?.review, 'gap'], ['calls', '模型调用', null, 'gap'], ['report', '报告']]
+      const tabs = [['line', '◈ 产线'], ['template', '模板', run?.template?.fields, 'sep'], ...(run?.format ? [['formats', '格式', heldFormats]] : []), ['files', '文件', run?.totals?.unitErrors, 'gap'], ['source', '复核', run?.humanReview ? run.humanReview.todo : run?.totals?.review], ['calls', '模型调用', null, 'gap'], ['report', '报告']]
       return h(ThemeCtx.Provider, { value: dark ? PAL.dark : PAL.light }, h('div', { className: `mx ${dark ? 'mx-dark' : 'mx-light'}` },
         h('style', {}, CSS),
         h('header', { className: 'mx-frame mx-top' },
@@ -714,6 +727,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
             : !run ? h('div', { className: 'mx-frame mx-empty', style: { flex: 1 } }, runs.length ? '加载中…' : '还没有批次。点右上角「＋ 新批次」选择病历目录或文件，选一个提取模板开始。')
               : tab === 'line' ? h(Pipeline, { run, goto: setTab, openPatient })
                 : tab === 'formats' ? h(Formats, { run, busy: !!activeId, onRerun: (id) => { setRunId(id); setRun(null); refreshList(); setTab('line') }, onError: setError })
+                  : tab === 'files' ? h(Files, { run, openPatient })
                   : tab === 'source' ? h(Source, { key: run.id, run, focus, setFocus, onError: setError, onRunChanged: () => { setRunTick((n) => n + 1); refreshList() } })
                       : tab === 'calls' ? h(Calls, { run })
                         : h(Report, { run })),
@@ -2079,6 +2093,48 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
     }
 
     /* ------------------------------------------------------------ wide table */
+    /* ---------------------------------------------------------------- files */
+    /** 文件：输入单元逐个列出处理状态与小计；运行中随批次刷新。点有文书的病人文件夹打开复核 */
+    const FILE_STATUS = { done: ['完成', 'ok'], running: ['处理中', 'run'], failed: ['读不了', 'bad'], waiting: ['等待', 'wait'], stopped: ['未处理', 'wait'], skipped: ['未处理', 'wait'] }
+    const fmtMs = (ms) => (ms == null ? '—' : ms < 1000 ? `${ms} ms` : ms < 60000 ? `${(ms / 1000).toFixed(1)} 秒` : `${Math.floor(ms / 60000)} 分 ${Math.round((ms % 60000) / 1000)} 秒`)
+    const fmtSize = (n) => (n == null ? '' : n >= 1048576 ? `${(n / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`)
+    function Files({ run, openPatient }) {
+      const [status, setStatus] = useState('all')
+      const [q, setQ] = useState('')
+      const [offset, setOffset] = useState(0)
+      const d = useAsync(() => call('files', { runId: run.id, status, q: q.trim(), offset, limit: 100 }), [run.id, status, q, offset, run.status, run.shards?.done, (run.shards?.active ?? []).join(','), run.humanReview?.appliedAt])
+      const v = d.value
+      const c = v?.counts ?? {}
+      const pdoc = v?.kind === 'patient'
+      const FILTERS = [['all', '全部'], ['running', '处理中'], ['failed', '读不了'], ['empty', '没出文书'], ['todo', '有待判断'], ['waiting', run.status === 'running' ? '等待' : '未处理']]
+      return h('div', { className: 'mx-frame mx-col mx-fl', style: { flex: 1, minWidth: 0 } },
+        h('div', { className: 'mx-pad mx-fl-bar' },
+          h('b', {}, '文件'), h('span', { className: 'mx-faint' }, pdoc ? '一位病人一个文件夹' : '一个文件一行；大文件切成几段，一段一行'),
+          h('span', { className: 'mx-sp' }),
+          h('div', { className: 'mx-fl-tg' }, FILTERS.map(([k, l]) => (k !== 'all' && !c[k] && status !== k ? null
+            : h('button', { key: k, className: `mx-dc-tgb${status === k ? ' on' : ''}${(k === 'failed' || k === 'todo') && c[k] ? ' hot' : ''}`, onClick: () => { setStatus(k); setOffset(0) } }, `${l} ${fmt(c[k] ?? 0)}`)))),
+          h('input', { className: 'mx-input', placeholder: pdoc ? '搜索病人' : '搜索文件名', value: q, onChange: (e) => { setQ(e.target.value); setOffset(0) }, style: { width: 180 } }),
+          v ? h('span', { className: 'mx-faint mx-num' }, v.total ? `${fmt(offset + 1)}–${fmt(offset + v.items.length)} / ${fmt(v.total)}` : '0') : null,
+          h('button', { className: 'mx-btn sm', disabled: offset === 0, onClick: () => setOffset(Math.max(0, offset - 100)) }, '‹'),
+          h('button', { className: 'mx-btn sm', disabled: !v || offset + 100 >= v.total, onClick: () => setOffset(offset + 100) }, '›')),
+        v?.legacy ? h('div', { className: 'mx-fl-note' }, '这个批次是旧版本跑的：只记了数据块的状态，每个文件的文书数、值数等要重跑后才有。') : null,
+        h('div', { className: 'mx-scroll', style: { flex: 1 } },
+          !v ? h('div', { className: 'mx-empty' }, d.error ?? '加载中…')
+            : !v.items.length ? h('div', { className: 'mx-empty' }, run.status === 'running' && !c.all ? '正在规划输入…' : '没有符合的文件。')
+              : h('table', { className: 'mx-fl-tbl' },
+                h('thead', {}, h('tr', {}, [pdoc ? '病人文件夹' : '文件', '状态', '文书', '空白', '结构化记录', '值', '待判断', '用时'].map((x, i) => h('th', { key: x, className: i > 1 ? 'n' : '' }, x)))),
+                h('tbody', {}, v.items.map((r) => {
+                  const [label, tone] = FILE_STATUS[r.status] ?? [r.status, 'wait']
+                  const canOpen = r.patient && r.patients === 1 && r.docs
+                  const n = (x, warn = false) => h('td', { className: `n mx-num${warn ? ' mx-warn' : ''}${x === 0 ? ' z' : ''}` }, x == null ? '—' : fmt(x))
+                  return h('tr', { key: `${r.shard}:${r.u}`, className: `${canOpen ? 'click' : ''} st-${tone}`, title: canOpen ? '点击打开复核' : r.error ?? '', onClick: canOpen ? () => openPatient(r.patient) : undefined },
+                    h('td', { className: 'mx-fl-name' }, h('span', { className: 'mx-num', title: r.name }, r.name), r.size ? h('small', {}, fmtSize(r.size)) : null, !pdoc && r.patients ? h('small', {}, `${fmt(r.patients)} 位病人`) : null),
+                    h('td', {}, h('span', { className: `mx-fl-st ${tone}` }, h('i'), label), r.error ? h('div', { className: 'mx-fl-err' }, r.error) : null),
+                    n(r.docs, r.status === 'done' && r.docs === 0), n(r.hollow), n(r.structured), n(r.values), n(r.review, r.review > 0),
+                    h('td', { className: 'n mx-num mx-faint' }, fmtMs(r.ms)))
+                })))))
+    }
+
     /* --------------------------------------------------------------- source */
     /**
      * 复核页（逐份核对）：左＝病人与文书（含一个值都没提到的文书），中＝原文（提取到的值高亮，可选中文字补漏提），

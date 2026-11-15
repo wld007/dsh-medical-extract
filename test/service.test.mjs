@@ -341,3 +341,34 @@ test('逐份核对：列出病人与全部文书；一份文书的原文、值�
   assert.ok(!(await readEvidence(join(root, 'out', 'output', 'in', 'evidence'))).some((x) => x.method === '人工'))
   await svc.dispose()
 })
+
+test('文件：每个输入单元的状态与小计（文书、结构化、值、用时）；读不了的单元记原因、跳过，不拖垮整个数据块', async () => {
+  const root = await tmp()
+  const input = await writeMddPatients(join(root, 'in'))
+  const svc = await service()
+  const run = await runToEnd(svc, { inputDir: input, outputRoot: join(root, 'out') })
+  assert.equal(run.status, 'completed', run.error)
+  const f = await svc.files(run.id)
+  assert.equal(f.kind, 'patient'); assert.equal(f.legacy, false)
+  const by = Object.fromEntries(f.items.map((x) => [x.name, x]))
+  assert.deepEqual(Object.keys(by).sort(), ['MDD-A', 'MDD-B', 'MDD-C'])
+  assert.equal(by['MDD-A'].status, 'done'); assert.equal(by['MDD-A'].docs, 3); assert.ok(by['MDD-A'].values > 0); assert.ok(by['MDD-A'].structured > 0)
+  assert.equal(f.items.reduce((n, x) => n + x.docs, 0), run.totals.documents)
+  assert.equal(f.items.reduce((n, x) => n + x.values, 0), run.totals.values)
+  assert.equal(f.counts.all, 3); assert.equal(f.counts.failed, 0)
+  assert.equal((await svc.files(run.id, { q: 'MDD-B' })).total, 1)
+  await svc.dispose()
+  // 读不了的单元：记原因，接着处理同一数据块里的其他单元
+  const { processShard } = await import('../lib/engine/shard.js')
+  const template = JSON.parse(await readFile(new URL('../templates/mdd.json', import.meta.url), 'utf8'))
+  const mute = { model: 'm', async chat() { return { content: '{"values":[]}', ms: 1 } } }
+  const store = { cacheGet: () => null, cachePut() {}, logCall() {}, flushStats() {} }
+  const r = await processShard({
+    runId: 'x', shard: 0, template, settings: { maxRounds: 1 }, workDir: join(root, 'w'), mode: 'model',
+    units: [{ kind: 'file', file: join(root, 'gone', 'notes.ndjson') }, { kind: 'patient', dir: join(input, 'MDD-A') }],
+    plan: { kind: 'pdoc', inputDir: input, mappings: { notes: { text: 'content', patient: 'pid' } } },
+  }, { store, chatImpl: { extract: mute }, isCancelled: () => false })
+  assert.equal(r.stats.unitErrors, 1)
+  assert.match(r.stats.units[0].error, /ENOENT/)
+  assert.equal(r.stats.units[1].docs, 3)
+})
