@@ -389,8 +389,8 @@ window.__ModuleLoader__.load({
       const lineStatus = run?.status ?? 'idle'
       const dark = useHostDark()
       const heldFormats = run?.format?.held ?? 0
-      // 分组（同匿名化插件）：产线｜格式 模板（输入与规则）  宽表 原文标注 复核（结果）  模型调用 报告（过程与记录）
-      const tabs = [['line', '◈ 产线'], ...(run?.format ? [['formats', '格式', heldFormats, 'sep']] : []), ['template', '模板', run?.template?.fields, run?.format ? null : 'sep'], ['wide', '宽表', run?.totals?.patients, 'gap'], ['source', '原文标注'], ['review', '复核', run?.totals?.review], ['calls', '模型调用', null, 'gap'], ['report', '报告']]
+      // 按流程顺序（同匿名化插件的分组）：产线｜模板 E0  格式 E1　复核 E6  宽表 E7  原文标注（从宽表看出处）　模型调用 报告（全程记录）
+      const tabs = [['line', '◈ 产线'], ['template', '模板', run?.template?.fields, 'sep'], ...(run?.format ? [['formats', '格式', heldFormats]] : []), ['review', '复核', run?.totals?.review, 'gap'], ['wide', '宽表', run?.totals?.patients], ['source', '原文标注'], ['calls', '模型调用', null, 'gap'], ['report', '报告']]
       return h(ThemeCtx.Provider, { value: dark ? PAL.dark : PAL.light }, h('div', { className: `mx ${dark ? 'mx-dark' : 'mx-light'}` },
         h('style', {}, CSS),
         h('header', { className: 'mx-frame mx-top' },
@@ -1117,7 +1117,8 @@ window.__ModuleLoader__.load({
     function Formats({ run, busy, onRerun, onError }) {
       const data = useAsync(() => call('formats', { runId: run.id }), [run.id])
       const [sel, setSel] = useState(null)
-      const [filter, setFilter] = useState('held')
+      // 有待确认的表才默认看待确认，否则看全部（不停在空列表上）
+      const [filter, setFilter] = useState(() => ((run.format?.held ?? 0) > 0 ? 'held' : 'all'))
       const [rerunning, setRerunning] = useState(false)
       const rows = data.value?.tables ?? []
       const held = (r) => !['agreed', 'confirmed', 'rejected'].includes(r.status)
@@ -1140,7 +1141,7 @@ window.__ModuleLoader__.load({
               h('span', { className: 'mx-sp' }),
               h('button', { className: `mx-btn ${changed ? 'mx-new' : ''}`, disabled: busy || rerunning, title: busy ? '有批次在运行' : '用格式库里的最新结果重新跑这个输入', onClick: rerun }, rerunning ? '启动中…' : '↻ 按确认结果重新运行')),
             h('div', { className: 'mx-muted', style: { lineHeight: 1.7 } },
-              `${rows.length} 张表：采用 ${run.format?.adopted ?? 0}，待确认 ${run.format?.held ?? 0}（${policy}），跳过 ${run.format?.ignored ?? 0}${run.format?.dict ? `；数据元对照表 ${fmt(run.format.dict)} 条` : ''}。`),
+              `${rows.length} 张表：采用 ${run.format?.adopted ?? 0}，待确认 ${run.format?.held ?? 0}${run.format?.held ? `（${policy}）` : ''}，跳过 ${run.format?.ignored ?? 0}${run.format?.dict ? `；数据元对照表 ${fmt(run.format.dict)} 条` : ''}。`),
             h('div', { style: { display: 'flex', gap: 6, marginTop: 8 } },
               [['held', '待确认'], ['ok', '已采用／跳过'], ['all', '全部']].map(([k, l]) => h('button', { key: k, className: `mx-btn sm${filter === k ? ' on' : ''}`, onClick: () => setFilter(k) }, `${l} ${counts[k]}`)))),
           h('div', { className: 'mx-scroll', style: { flex: 1 } },
