@@ -52,7 +52,7 @@ test('p_doc 导出（本机假模型按规则作答）：宽表取值、证据�
   const man = JSON.parse(await readFile(join(out, 'manifest.json'), 'utf8'))
   assert.equal(man.format, 'extract-delivery/1'); assert.equal(man.template.id, 'mdd')
   const rep = await readFile(join(root, 'out', '_records', 'runs', run.id, 'report.md'), 'utf8')
-  assert.match(rep, /验收门/)
+  assert.match(rep, /质检/)
   assert.ok((await stat(join(out, 'result.xlsx'))).size > 1000)
 })
 
@@ -237,7 +237,7 @@ test('复判：核验分歧两个模型轮流复判，一致的自动解决（�
   assert.ok(run.totals.adjResolved > 0)
   assert.ok(run.totals.adjByRound[0] > 0)
   const g4 = run.gates.find((g) => g.id === '④')
-  assert.match(g4.label, /复判前/); assert.match(g4.detail, /复判自动解决/)
+  assert.match(g4.label, /复查前/); assert.match(g4.detail, /复查后自动一致/)
   assert.equal(g4.pass, false) // 复判前处处不一致
   assert.ok(Array.isArray(run.needsDefinition))
   const q = await svc.reviewQueue(run.id, { status: 'resolved' })

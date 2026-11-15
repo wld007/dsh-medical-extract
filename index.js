@@ -30,16 +30,16 @@ export function apply(ctx, config = {}) {
 
   ctx.tools.register(tool({
     name: 'extract_start',
-    description: `dsh-medical-extract 插件（病历文书提取）：按提取模板（字段清单；内置抑郁障碍、急性缺血性卒中、阿尔茨海默病、心力衰竭、2 型糖尿病、慢性肾脏病与血透、非小细胞肺癌，也可自建）从病历文书里提取内容，每个值带逐字原文引语与位置。输入可以是区域平台导出（p_doc_*.json，一位或多位病人）或通用文件（json／ndjson／jsonl／csv／tsv／txt／md，每行或每个文件一份文书），可到千万份文书：分片并行、可取消、可从取消或失败处继续。只读文书（结构化记录不提取），先清洗；按文书类型和栏目把字段派给文书，提取模型通读，引语回原文核对，写了明确规则的字段规则另出一票对照；可选核验模型做抽样核验。交付宽表（病人／就诊／文书）、时间点长表、证据长表、冲突表与报告；绝不修改源文件。${DATA_BOUNDARY}立即返回批次 id。`,
+    description: `dsh-medical-extract 插件（病历文书提取）：按提取模板（字段清单；内置抑郁障碍、急性缺血性卒中、阿尔茨海默病、心力衰竭、2 型糖尿病、慢性肾脏病与血透、非小细胞肺癌，也可自建）从病历文书里提取内容，每个值带逐字原文引用与位置。输入可以是区域平台导出（p_doc_*.json，一位或多位病人）或通用文件（json／ndjson／jsonl／csv／tsv／txt／md，每行或每个文件一份文书），可到千万份文书：数据块并行、可取消、可从取消或失败处继续。只读文书（结构化记录不提取），先清洗；按文书类型和栏目把字段派给文书，提取模型通读，原文引用回原文核对，写了明确规则的字段规则再匹配一次作对照；可选核验模型做抽样核验。交付宽表（病人／就诊／文书）、时间点长表、证据长表、冲突表与报告；绝不修改源文件。${DATA_BOUNDARY}立即返回批次 id。`,
     parameters: {
       inputDir: { type: 'string', description: '输入目录或单个文件的绝对路径（或相对工作区）。' },
       template: { type: 'string', description: '模板 id（用 extract_templates 查看）；省略时用设置里的默认模板。' },
       outputRoot: { type: 'string', description: '输出根目录，不能与输入相同、不能放在输入里；省略时用设置里的默认值，再缺省为输入旁的 _medical-extract。' },
-      mode: { type: 'string', description: 'hybrid（默认：模型通读每份文书，写了明确规则的字段规则另出一票对照）或 model（模型通读，不出规则票）。必须先在插件设置里配置提取模型，否则不能开始。' },
-      maxRounds: { type: 'number', description: '复判轮次上限（1–6）：核验分歧两个模型轮流复判，至多这么多轮，仍不一致交人工；省略时用设置里的默认值。' },
+      mode: { type: 'string', description: 'hybrid（默认：模型通读每份文书，写了明确规则的字段规则再匹配一次作对照）或 model（模型通读，不做规则对照）。必须先在插件设置里配置提取模型，否则不能开始。' },
+      maxRounds: { type: 'number', description: '复查轮次上限（1–6）：核验分歧两个模型轮流复查，至多这么多轮，仍不一致转人工；省略时用设置里的默认值。' },
       priorities: { type: 'array', description: '只提取这些优先级的字段，如 ["P0"]；省略为全部。' },
       asOf: { type: 'string', description: '截至时刻 "YYYY-MM-DD HH:mm"：只用此刻以前写成的文书；省略则不截断。' },
-      resumeFrom: { type: 'string', description: '继续一个已取消或失败的批次（填批次 id）；已完成的分片和模型调用直接复用。填写时可省略其他参数。' },
+      resumeFrom: { type: 'string', description: '继续一个已取消或失败的批次（填批次 id）；已完成的数据块和模型调用直接复用。填写时可省略其他参数。' },
     },
     execute: async (args, exec) => service.start({ ...args, source: { kind: 'agent', sessionId: sessionIdOf(exec?.agent) } }),
     render: (args, v) => [{ type: 'text', text: `已启动批次 ${v.runId}（模板 ${v.template}，${v.mode}，模型 ${v.model}），输出到 ${v.outputRoot}。用 extract_status 查看进度。` }],
@@ -47,7 +47,7 @@ export function apply(ctx, config = {}) {
 
   ctx.tools.register(tool({
     name: 'extract_status',
-    description: '查看病历文书提取批次的状态、进度（分片、文书、速率）、提取值统计、验收门与待复核数。省略 runId 时看最近一批。',
+    description: '查看病历文书提取批次的状态、进度（数据块、文书、速率）、提取值统计、质检与待复核数。省略 runId 时看最近一批。',
     parameters: { runId: { type: 'string', description: '批次 id；省略则取最近一批。' } },
     execute: async (args) => service.status(args.runId),
     render: (args, value) => {
@@ -56,10 +56,10 @@ export function apply(ctx, config = {}) {
       const t = run.totals
       const lines = [
         `批次 ${run.id}: ${run.status}${run.current ? `（${run.current.stage} ${run.current.step}）` : ''}；模板 ${run.template.name} v${run.template.version}；${run.mode}`,
-        `分片 ${run.shards.done}/${run.shards.total}；文书 ${t.documents}${run.rate ? `（${run.rate} 份/秒）` : ''}；值 ${t.values}；病人 ${t.patients}；冲突 ${t.conflicts}；待复核 ${t.review}`,
-        `模型调用 ${t.calls}（缓存 ${t.cached}，失败 ${t.failed}）；引语对不上丢弃 ${t.quoteFail}；不合类型丢弃 ${t.invalid}`,
+        `数据块 ${run.shards.done}/${run.shards.total}；文书 ${t.documents}${run.rate ? `（${run.rate} 份/秒）` : ''}；值 ${t.values}；病人 ${t.patients}；冲突 ${t.conflicts}；待复核 ${t.review}`,
+        `模型调用 ${t.calls}（缓存 ${t.cached}，失败 ${t.failed}）；原文引用对不上丢弃 ${t.quoteFail}；不合类型丢弃 ${t.invalid}`,
       ]
-      for (const g of run.gates ?? []) lines.push(`验收门${g.id} ${g.label}：${g.pass ? '通过' : '未过'}（${g.detail}）`)
+      for (const g of run.gates ?? []) lines.push(`质检${g.id} ${g.label}：${g.pass ? '通过' : '未过'}（${g.detail}）`)
       for (const w of run.warnings ?? []) lines.push(`提示：${w}`)
       if (run.output) lines.push(`交付：${run.output}`)
       if (run.error) lines.push(`错误：${run.error.split('\n')[0]}`)
@@ -69,7 +69,7 @@ export function apply(ctx, config = {}) {
 
   ctx.tools.register(tool({
     name: 'extract_report',
-    description: '读取病历文书提取批次的 Markdown 报告（汇总、验收门、各字段提取值与填充率、抽样一致率）。报告不含病历原文。',
+    description: '读取病历文书提取批次的 Markdown 报告（汇总、质检、各字段提取值与填充率、抽样一致率）。报告不含病历原文。',
     parameters: { runId: { type: 'string', description: '批次 id；省略则取最近一批。' } },
     execute: async (args) => service.report(args.runId),
     render: (args, v) => [{ type: 'text', text: v.markdown.length > 8000 ? `${v.markdown.slice(0, 8000)}\n…（完整内容见 ${v.path}）` : v.markdown }],
@@ -85,7 +85,7 @@ export function apply(ctx, config = {}) {
 
   ctx.tools.register(tool({
     name: 'extract_cancel',
-    description: '取消正在运行的病历文书提取批次。已完成的分片保留，可用 extract_start 的 resumeFrom 继续。',
+    description: '取消正在运行的病历文书提取批次。已完成的数据块保留，可用 extract_start 的 resumeFrom 继续。',
     parameters: { runId: { type: 'string', description: '批次 id；省略则取消当前批次。' } },
     execute: async (args) => service.cancel(args.runId),
     render: (args, v) => [{ type: 'text', text: v.cancelled ? `已请求取消批次 ${v.runId}。` : `没有取消：${v.reason}` }],
@@ -113,17 +113,17 @@ export function apply(ctx, config = {}) {
 
   ctx.tools.register(tool({
     name: 'extract_formats',
-    description: '查看病历文书提取批次的格式识别结果（通用文件：每张表识别出的记录类别、写成时间、病人、就诊与栏目，状态为自动采用／已确认／有分歧／校验未过／待确认／已跳过），或裁定一张表：confirm 采用当前规格（可附改过的 spec）、use 采用某份草稿（model／verify／rule）、reject 跳过、reset 下次重新识别。裁定存在本机格式库，重跑时生效。',
+    description: '查看病历文书提取批次的格式识别结果（通用文件：每张表识别出的记录类别、写成时间、病人、就诊与栏目，状态为自动采用／已确认／有分歧／校验未过／待确认／已跳过），或判断一张表：confirm 采用当前读法（可附改过的 spec）、use 采用某份方案（model／verify／rule）、reject 跳过、reset 下次重新识别。判断存在本机格式库，重跑时生效。',
     parameters: {
       runId: { type: 'string', description: '批次 id；省略则取最近一批。' },
-      signature: { type: 'string', description: '裁定时：表的签名（列表里给出）。' },
-      action: { type: 'string', description: '裁定时：confirm、reject 或 reset。' },
-      use: { type: 'string', description: 'confirm 时：采用哪份草稿（model、verify、rule）。' },
-      spec: { type: 'object', description: 'confirm 时：改过的规格（JSON，格式同列表里的 spec）。' },
+      signature: { type: 'string', description: '判断时：表的签名（列表里给出）。' },
+      action: { type: 'string', description: '判断时：confirm、reject 或 reset。' },
+      use: { type: 'string', description: 'confirm 时：采用哪份方案（model、verify、rule）。' },
+      spec: { type: 'object', description: 'confirm 时：改过的读法（JSON，格式同列表里的 spec）。' },
     },
     execute: async (args) => (args.signature ? service.formatDecide(args) : service.formats(args.runId ?? (await service.status()).run?.id)),
     render: (args, v) => {
-      if (v.ok !== undefined) return [{ type: 'text', text: v.ok ? '已保存裁定；重跑后生效。' : `没有保存：\n- ${(v.problems ?? []).join('\n- ')}` }]
+      if (v.ok !== undefined) return [{ type: 'text', text: v.ok ? '已保存判断；重跑后生效。' : `没有保存：\n- ${(v.problems ?? []).join('\n- ')}` }]
       const lines = (v.tables ?? []).map((t) => `${t.signature}  ${t.status}  ${t.spec?.recordType ?? t.recordType ?? '—'}  ${t.table}${t.borrowedFrom ? `（沿用${t.borrowedFrom}）` : ''}${t.diffs?.length ? `  分歧：${t.diffs.join('；')}` : ''}${t.problems?.length ? `  问题：${t.problems.slice(0, 2).join('；')}` : ''}`)
       return [{ type: 'text', text: lines.length ? lines.join('\n') : '这个批次没有格式识别（区域平台导出或未启用）。' }]
     },

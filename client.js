@@ -486,11 +486,14 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
     const clock = (ms) => { if (ms == null) return '00:00'; const t = Math.floor(ms / 1000); const hh = Math.floor(t / 3600); const mm = Math.floor(t / 60) % 60; const ss = t % 60; const p = (n) => String(n).padStart(2, '0'); return hh ? `${hh}:${p(mm)}:${p(ss)}` : `${p(mm)}:${p(ss)}` }
     const STATUS_LABEL = { completed: '完成', running: '运行中', review: '待复核', failed: '失败', cancelled: '已取消' }
     const statusChip = (s) => h('span', { className: `mx-chip ${s === 'completed' ? 'ok' : s === 'running' ? '' : s === 'review' ? 'w' : 'b'}` }, STATUS_LABEL[s] ?? s)
-    const MODE_LABEL = { hybrid: '模型通读＋规则票', model: '仅模型通读' }
+    const MODE_LABEL = { hybrid: '模型通读＋规则对照', model: '仅模型通读' }
     // 旧批次（仅规则模式已停用）仍能查看
     const modeLabel = (m) => MODE_LABEL[m] ?? (m === 'rules' ? '仅规则（已停用）' : m)
     const STATE_LABEL = { run: '运行中', part: '进行中', hold: '待复核', done: '完成', idle: '未开始' }
     const MONO = 'SF Mono,JetBrains Mono,Menlo,monospace'
+    // 值的来源与标记：数据里存的是代码或旧词，页面上换成好懂的说法
+    const methodLabel = (m) => { const x = String(m ?? ''); const human = x.endsWith('→人工'); const base = human ? x.slice(0, -3) : x; const t = base === 'model' ? '模型' : base === 'model+rule' ? '模型（与规则一致）' : base.startsWith('rule') ? '规则' : base; return human ? `${t}，人工改值` : t }
+    const flagLabel = (f) => String(f).replace('规则票', '规则匹配').replace('复判', '复查').replace('人工改判', '人工改值')
     const qCls = (v) => `mx-q${v.assertion === '否认' ? ' neg' : v.assertion === '既往' ? ' hx' : v.assertion === '家族' ? ' fam' : ''}${String(v.method).startsWith('model') ? ' mdl' : ''}`
 
     function Icon({ size = 16 }) {
@@ -574,7 +577,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
           run ? h('div', { className: 'mx-tpl', title: run.template.id }, h('span', { style: { fontSize: 15, color: 'var(--teal)' } }, '▤'), h('div', {}, h('b', {}, `模板 ${run.template.name}`), h('span', {}, `v${run.template.version} · ${run.template.fields} 字段${run.priorities?.length ? ` · ${run.priorities.join('/')}` : ''}`))) : null,
           h('span', { className: 'mx-sp' }),
           h('div', { className: 'mx-clock sep' }, h('span', {}, '用时'), h('b', {}, clock(elapsed))),
-          run ? h('div', { className: 'mx-clock sep pct', title: `${run.shards.done} / ${run.shards.total} 个分片` }, h('span', {}, '完成'), h('b', {}, percent == null ? '—' : String(percent), h('small', {}, '%'))) : null,
+          run ? h('div', { className: 'mx-clock sep pct', title: `${run.shards.done} / ${run.shards.total} 个数据块` }, h('span', {}, '完成'), h('b', {}, percent == null ? '—' : String(percent), h('small', {}, '%'))) : null,
           version ? (() => {
             // 0.1.0-dev.42 → 大字 v0.1.0 ＋ 小字 dev.42（不折行，和用时、完成同一基线）
             const [main, pre] = String(version).split(/-(.+)/)
@@ -666,13 +669,13 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         h('label', { className: 'mx-field' }, '截至时刻（可空）', h('input', { className: 'mx-input', value: asOf, onChange: (e) => setAsOf(e.target.value), placeholder: 'YYYY-MM-DD HH:mm · 只用此刻以前写成的文书' })),
         h('div', { className: 'mx-pop-act' },
           h('button', { className: 'mx-btn mx-new', style: { flex: 1 }, disabled: !inputDir || !template || busy || noModel, title: noModel ? '先在设置里配置提取模型' : !template ? '先选择提取模板' : undefined, onClick: () => go({ inputDir, outputRoot, template, mode: curMode, asOf, priorities: p0 ? ['P0'] : undefined }) }, busy ? '启动中…' : '▶ 开始'),
-          resumeOk ? h('button', { className: 'mx-btn', disabled: busy || noModel, title: `继续批次 ${resumable.id}：已完成的分片和模型调用直接复用`, onClick: () => go({ resumeFrom: resumable.id }) }, '↻ 继续') : null))
+          resumeOk ? h('button', { className: 'mx-btn', disabled: busy || noModel, title: `继续批次 ${resumable.id}：已完成的数据块和模型调用直接复用`, onClick: () => go({ resumeFrom: resumable.id }) }, '↻ 继续') : null))
     }
 
     /* --------------------------------------------------------------- pipeline */
     /**
-     * 工序（楼）按实际顺序排：读入·清洗 → 分派 → 提取 → 归一 → 核验·复判 是每份文书在分片里依次走完的，
-     * 所有分片做完以后才汇总 → 交付。分片阶段这五栋同时在跑（不同的分片、不同的文书）。
+     * 工序（楼）按实际顺序排：读入·清洗 → 分配 → 提取 → 归一 → 核验·复查 是每份文书在数据块里依次走完的，
+     * 所有数据块做完以后才汇总 → 交付。数据块阶段这五栋同时在跑（不同的数据块、不同的文书）。
      * 返回数组的下标就是场景里的位置：0 读入楼，1–5 五栋工序楼，6 交付堆场，7 模板塔。
      */
     function stationsOf(run) {
@@ -682,7 +685,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       const broken = !running && ['failed', 'cancelled'].includes(run.status)
       const shardFrac = run.shards.total ? run.shards.done / run.shards.total : 0
       const hasVerify = Boolean(run.model?.verifyModel)
-      // 运行到哪一段：format（格式识别）→ shards（分片）→ rollup（汇总、验收门）→ deliver（交付）
+      // 运行到哪一段：format（格式识别）→ shards（数据块）→ rollup（汇总、质检）→ deliver（交付）
       const phase = !running ? null : stage === 'E1' ? 'format' : stage === 'E3' ? 'shards' : stage === 'E7' ? 'deliver' : 'rollup'
       const PH = ['format', 'shards', 'rollup', 'deliver']
       const past = (p) => phase != null && PH.indexOf(phase) > PH.indexOf(p)
@@ -697,19 +700,19 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       const gate = (id) => run.gates?.find((g) => g.id === id)
       const gateRow = (id, label, v) => [label, v ?? (gate(id) ? (gate(id).skipped ? '跳过' : gate(id).pass ? '通过' : '未过') : '—'), gate(id) && !gate(id).skipped ? (gate(id).pass ? 'ok' : 'warn') : '']
       // ab＝场景里屋顶标签用的两字工序名；no（E0–E7）只留作内部编号，不在界面上显示
-      const AB = { E0: '模板', E1: '读入', E2: '分派', E3: '提取', E4: '归一', E5: '汇总', E6: '核验', E7: '交付' }
+      const AB = { E0: '模板', E1: '读入', E2: '分配', E3: '提取', E4: '归一', E5: '汇总', E6: '核验', E7: '交付' }
       const st = (no, nm, sub, bigv, unit, rows, state, frac) => ({ no, ab: AB[no], nm, sub, big: bigv, unit, rows, state, frac })
       const legacy = run.flow !== 'read'
       const shardF = (no) => (phase === 'format' && no !== 'E1' ? 0 : shardFrac)
       return [
-        st('E1', '读入·清洗', '只读文书；解码、去图片与乱码、剔除空壳', big(t.documents), '文书', [['分片', `${run.shards.done}/${run.shards.total}`, ''], ['结构化记录（不提取）', t.structured == null ? '—' : big(t.structured), ''], ['空壳文书', t.hollow == null ? '—' : big(t.hollow), ''], ['跳过（截至时刻）', fmt(t.skipped), '']], stShard('E1'), shardF('E1')),
+        st('E1', '读入·清洗', '只读文书；解码、去图片与乱码、剔除空白文书', big(t.documents), '文书', [['数据块', `${run.shards.done}/${run.shards.total}`, ''], ['结构化记录（不提取）', t.structured == null ? '—' : big(t.structured), ''], ['空白文书', t.hollow == null ? '—' : big(t.hollow), ''], ['跳过（截至时刻）', fmt(t.skipped), '']], stShard('E1'), shardF('E1')),
         legacy
           ? st('E2', '关键词定位（旧）', '旧批次：每个字段用关键词在文书里找命中', big(t.recalled), '命中', [], stShard('E2'), shardF('E2'))
-          : st('E2', '分派', '按文书类型、栏目把字段派给文书，切成提取任务', big(t.tasks), '任务', [['字段 × 文书', big(t.assigned), '']], stShard('E2'), shardF('E2')),
-        st('E3', '提取', legacy ? '旧批次：规则定值，定不了的片段送模型' : '提取模型通读每个任务，引语回原文定位；规则出规则票', big(t.values), '值', [gateRow('①', '验收①', `${fmt(t.quoteFail)} 丢弃`), ['模型调用', `${big(t.calls)}（缓存 ${big(t.cached)}）`, ''], ...(legacy ? [] : [['规则票不一致', fmt(t.ruleDisputes ?? 0), t.ruleDisputes ? 'warn' : '']])], stShard('E3'), shardF('E3')),
-        st('E4', '归一', '单位、日期、选项写法统一；类型、选项、值域校验', fmt(t.invalid + t.outOfRange), '不合规', [gateRow('②', '验收②')], stShard('E4'), shardF('E4')),
-        st('E6', '核验·复判', hasVerify ? `核验模型 ${run.model.verifyModel}；分歧复判至多 ${run.maxRounds ?? 3} 轮` : '未配置核验模型：不做抽样核验', fmt(t.review), '待复核', [gateRow('④', '验收④'), ...(t.adjResolved ? [['复判已解决', fmt(t.adjResolved), 'ok']] : [])], t.review && !running ? 'hold' : stShard('E6'), hasVerify ? shardF('E6') : 0),
-        st('E5', '汇总·派生', '所有分片做完后：按粒度与汇总规则成格；派生字段；冲突登记', fmt(t.conflicts), '冲突', [['病人', big(t.patients), ''], gateRow('③', '验收③')], stLate('rollup'), phase === 'rollup' ? 0.5 : past('rollup') || !running ? (broken ? 0 : 1) : 0),
+          : st('E2', '分配', '按文书类型、栏目把字段派给文书，切成提取任务', big(t.tasks), '任务', [['字段 × 文书', big(t.assigned), '']], stShard('E2'), shardF('E2')),
+        st('E3', '提取', legacy ? '旧批次：规则定值，定不了的片段送模型' : '提取模型通读每个任务，模型给的原文引用逐字回原文核对；有规则的字段再用规则对照', big(t.values), '值', [gateRow('①', '质检①', `${fmt(t.quoteFail)} 丢弃`), ['模型调用', `${big(t.calls)}（缓存 ${big(t.cached)}）`, ''], ...(legacy ? [] : [['规则与模型不符', fmt(t.ruleDisputes ?? 0), t.ruleDisputes ? 'warn' : '']])], stShard('E3'), shardF('E3')),
+        st('E4', '归一', '单位、日期、选项写法统一；类型、选项、值域校验', fmt(t.invalid + t.outOfRange), '不合规', [gateRow('②', '质检②')], stShard('E4'), shardF('E4')),
+        st('E6', '核验·复查', hasVerify ? `核验模型 ${run.model.verifyModel}；有分歧时复查，至多 ${run.maxRounds ?? 3} 轮` : '未配置核验模型：不做抽样核验', fmt(t.review), '待复核', [gateRow('④', '质检④'), ...(t.adjResolved ? [['复查后一致', fmt(t.adjResolved), 'ok']] : [])], t.review && !running ? 'hold' : stShard('E6'), hasVerify ? shardF('E6') : 0),
+        st('E5', '汇总·计算', '所有数据块做完后：按汇总层级与取值规则填进宽表；计算字段；冲突登记', fmt(t.conflicts), '冲突', [['病人', big(t.patients), ''], gateRow('③', '质检③')], stLate('rollup'), phase === 'rollup' ? 0.5 : past('rollup') || !running ? (broken ? 0 : 1) : 0),
         st('E7', '交付', '宽表 → 证据长表 → 冲突表 → 只读核对', run.output ? '已写出' : '—', '', [['输出', run.output ? '已写出' : '未交付', run.output ? 'ok' : '']], run.output ? 'done' : stLate('deliver'), run.output ? 1 : 0),
         st('E0', '模板', `${run.template.name} v${run.template.version}`, String(run.template.fields), '字段', [['模式', modeLabel(run.mode), '']], 'done', 1),
       ]
@@ -718,7 +721,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
     function Pipeline({ run, goto, openPatient }) {
       const stations = stationsOf(run)
       const hot = stations.filter((s) => s.state === 'run' || s.state === 'hold')
-      // 没选工序时右列是批次概览（同匿名化插件）；点楼、标签或底部验收门进工序详情
+      // 没选工序时右列是批次概览（同匿名化插件）；点楼、标签或底部质检进工序详情
       const [selK, setSelK] = useState(null)
       const k = selK ?? -1
       // 布局同匿名化插件：左列＝2.5D 产线（撑满）＋底部「进展｜结果｜监控」；右列＝所选工序的详情，拉到底
@@ -767,10 +770,10 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
     }
 
     /**
-     * 产线主视图：后方的模板塔（E0）经规格总线把字段规格下发到每道工序；
-     * E1 读入楼 → E2–E6 五栋工序楼 → E7 交付堆场；箱子＝一个分片；提取模型挂在提取楼旁，核验模型挂在核验楼旁。
+     * 产线主视图：后方的模板塔（E0）经说明总线把字段说明下发到每道工序；
+     * E1 读入楼 → E2–E6 五栋工序楼 → E7 交付堆场；箱子＝一个数据块；提取模型挂在提取楼旁，核验模型挂在核验楼旁。
      */
-    const STATION_LABEL = { format: '格式识别', extract: '提取', verify: '核验', adjudicate: '复判' }
+    const STATION_LABEL = { format: '格式识别', extract: '提取', verify: '核验', adjudicate: '复查' }
     const shortModel = (m) => { const x = String(m ?? ''); return x.length > 22 ? `${x.slice(0, 21)}…` : x }
     /** 模型房子：一栋＝一个模型服务。用的哪几道工序、各调用多少，按 run.models 的角色拆 */
     function modelHousesOf(run) {
@@ -794,9 +797,9 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         // 格式识别只在通用文件、本批真的识别了表时才算（区域平台导出不做；格式库里已有结果、命中缓存的也不算这个模型干了活）
         const fmtNow = run.status === 'running' && String(run.current?.step ?? '').startsWith('格式识别')
         hs.didFormat = Boolean(hs.calls.format || fmtNow)
-        // 两个模型拿同一份提示各自起草（背靠背，互相看不到），一致才采用；「核对」专指插件逐字对照，这里不用
-        const FMT = hs.roles.includes('extract') && hs.roles.includes('verify') ? '格式识别' : hs.roles.includes('extract') ? '格式识别' : '格式识别（背靠背）'
-        hs.roleText = hs.model ? hs.stations.filter((st) => st !== 'format' || hs.didFormat).map((st) => (st === 'format' ? FMT : STATION_LABEL[st])).join(' · ') : (hs.roles.includes('verify') ? '核验 · 复判' : '提取')
+        // 两个模型拿同一份提示各自起草（各自独立，互相看不到），一致才采用；「核对」专指插件逐字对照，这里不用
+        const FMT = hs.roles.includes('extract') && hs.roles.includes('verify') ? '格式识别' : hs.roles.includes('extract') ? '格式识别' : '格式识别（各自独立）'
+        hs.roleText = hs.model ? hs.stations.filter((st) => st !== 'format' || hs.didFormat).map((st) => (st === 'format' ? FMT : STATION_LABEL[st])).join(' · ') : (hs.roles.includes('verify') ? '核验 · 复查' : '提取')
       }
       return houses
     }
@@ -868,7 +871,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         els.push(h('g', { key: 'tower', ...click(7) }, h('title', {}, `${stations[7].nm}：${stations[7].sub}`), g))
         bb.push(iso(i - 10, j - 10, 0), iso(i + a, j, z0 + 30), iso(i - 10, j + b + 10, 0))
       }
-      // 规格总线
+      // 说明总线
       const BUSJ = -24; const BUSZ = 74
       {
         const g = []
@@ -882,10 +885,10 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         }
         els.push(h('g', { key: 'busg', pointerEvents: 'none' }, g))
         // 悬停说明（原图例里「紫色流线」那条）：透明粗线只用来接住鼠标
-        els.push(h('polyline', { key: 'bushit', points: pts([a, b, c]), fill: 'none', stroke: 'transparent', strokeWidth: 12, pointerEvents: 'stroke' }, h('title', {}, '字段规格：模板里每个字段的召回词、规则和值类型，下发到每道工序')))
+        els.push(h('polyline', { key: 'bushit', points: pts([a, b, c]), fill: 'none', stroke: 'transparent', strokeWidth: 12, pointerEvents: 'stroke' }, h('title', {}, '字段说明：模板里每个字段的关键词、规则和值类型，下发到每道工序')))
       }
-      // 复判回环：核验 → 提取。分歧由两个模型轮流复判（回到提取那一步重读原文），人工裁定按稳定编号存、重跑沿用。
-      // 起止点在楼背后的空地正中（楼和总线之间、与楼左右居中），向后穿过规格总线拱起；画在总线之后、楼之前
+      // 复查回环：核验 → 提取。分歧由两个模型轮流复查（回到提取那一步重读原文），人工判断按稳定编号存、重跑沿用。
+      // 起止点在楼背后的空地正中（楼和总线之间、与楼左右居中），向后穿过说明总线拱起；画在总线之后、楼之前
       {
         const LJ = BUSJ / 2; const LZ = H + 10
         // 在画面上和楼左右居中：往后挪（j 变小）画面会右移，用 i 抵回去
@@ -897,14 +900,14 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         const mid = [(a[0] + 3 * c1[0] + 3 * c2[0] + b[0]) / 8, (a[1] + 3 * c1[1] + 3 * c2[1] + b[1]) / 8]
         // 整根线在画面上右移一点（离开提取标签）
         els.push(h('g', { key: 'loop', transform: 'translate(34 0)' },
-          h('title', {}, `分歧复判：核验分歧回到提取，由两个模型轮流重读原文复判，至多 ${run.maxRounds ?? 3} 轮；仍不一致的交人工\n人工裁定按稳定编号保存，重跑沿用`),
+          h('title', {}, `分歧复查：核验分歧回到提取，由两个模型轮流重读原文复查，至多 ${run.maxRounds ?? 3} 轮；仍不一致的转人工\n人工判断按稳定编号保存，重跑沿用`),
           h('circle', { cx: a[0], cy: a[1], r: 2.6, fill: P.ink2 }),
           h('path', { d, fill: 'none', stroke: P.ink2, strokeWidth: 1.4, strokeDasharray: '5 5', markerEnd: 'url(#mx-arr)' }),
           h('path', { d, fill: 'none', stroke: 'transparent', strokeWidth: 12 }),
-          h('text', { x: mid[0], y: mid[1] - 12, textAnchor: 'middle', fill: P.ink2, fontSize: 10, ...halo }, `分歧复判至多 ${run.maxRounds ?? 3} 轮 · 人工裁定重跑沿用`)))
+          h('text', { x: mid[0], y: mid[1] - 12, textAnchor: 'middle', fill: P.ink2, fontSize: 10, ...halo }, `有分歧时复查，至多 ${run.maxRounds ?? 3} 轮 · 人工判断重跑沿用`)))
         bb.push([mid[0] - 76, mid[1] - 26], [mid[0] + 144, mid[1] - 26])
       }
-      // E1 读入楼：窗户＝分片进度
+      // E1 读入楼：窗户＝数据块进度
       {
         const s = stations[0]; const g = []
         g.push(...isoBox('ramp', -60, 44, 0, 60, 24, 8, CL))
@@ -917,7 +920,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         wins.forEach(([i, z], q) => { const lit = q < litN; g.push(leftPatch(`w${z}-${i}`, i, i + 7, 108, z, z + 6, { fill: lit ? (s.state === 'run' ? A : C.lamp) : C.win, opacity: lit ? 0.95 : 0.55, filter: lit && s.state === 'run' ? 'url(#mx-glow)' : undefined })) })
         els.push(h('g', { key: 'e1', ...click(0) }, h('title', {}, s.nm), g))
       }
-      // 走廊与验收门：①在提取出口，②在归一出口，④在核验出口，③在汇总出口（楼的顺序：分派、提取、归一、核验、汇总）
+      // 走廊与质检：①在提取出口，②在归一出口，④在核验出口，③在汇总出口（楼的顺序：分配、提取、归一、核验、汇总）
       const gateOf = (id) => run.gates?.find((x) => x.id === id)
       const GATE_AFTER = { 3: '①', 4: '②', 5: '④', 6: '③' }
       const corridor = (key, i0, i1, k) => {
@@ -934,7 +937,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
           const dp = iso((i0 + i1) / 2, cj + 12, 32)
           const fail = g && !g.pass && !g.skipped
           gate = h('g', { key: 'gate' },
-            h('title', {}, g ? `${g.label}：${g.skipped ? '跳过' : g.pass ? '通过' : '未过'}${g.detail ? `（${g.detail}）` : ''}` : '验收门：批次结束时判定'),
+            h('title', {}, g ? `${g.label}：${g.skipped ? '跳过' : g.pass ? '通过' : '未过'}${g.detail ? `（${g.detail}）` : ''}` : '质检：批次结束时判定'),
             h('polygon', { points: top, fill: gc, opacity: g ? 0.3 : 0.12 }),
             h('line', { x1: e0[0], y1: e0[1], x2: e1[0], y2: e1[1], stroke: gc, strokeWidth: 2, strokeLinecap: 'round', opacity: g ? 0.95 : 0.5 }),
             h('circle', { cx: dp[0], cy: dp[1], r: 7, fill: gc, stroke: C.card, strokeWidth: 1.5 }),
@@ -972,7 +975,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
           h('polygon', { points: pts([iso(i0, 0, H), iso(i0 + bw, 0, H), iso(i0 + bw, D, H), iso(i0 + bw, D, 0), iso(i0, D, 0), iso(i0, D, H)]), fill: 'transparent' }), g))
       }
       els.push(corridor('co6', hallEnd, yard, 6))
-      // E7 交付堆场：三台出货单元＝宽表、证据长表、冲突表；箱子＝已完成的分片
+      // E7 交付堆场：三台出货单元＝宽表、证据长表、冲突表；箱子＝已完成的数据块
       {
         const s = stations[6]; const g = []
         g.push(...isoBox('pad', yard, 6, 0, 150, 130, 4, { top: C.pad, left: C.padL, right: C.padR }))
@@ -999,14 +1002,14 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         els.push(h('g', { key: 'e7', opacity: s.state === 'idle' ? 0.6 : 1, ...click(6) }, h('title', {}, s.nm), g))
         const [x, y] = iso(yard + 6, 150)
         els.push(h('g', { key: 'yardcap', transform: `matrix(${IX[0]} ${IX[1]} ${JX[0]} ${JX[1]} ${x.toFixed(1)} ${y.toFixed(1)})`, pointerEvents: 'none' },
-          h('text', { x: 0, y: 0, fill: P.ink3, fontSize: 9.5 }, '每个值带原文引语 · 只读核对 · 移交')))
+          h('text', { x: 0, y: 0, fill: P.ink3, fontSize: 9.5 }, '每个值带原文引用 · 只读核对 · 移交')))
       }
       const underQueue = els.length // 模型小楼的连线画在排队箱子和数字下面，不压字
-      // 门前排队：箱子＝等待处理的分片
+      // 门前排队：箱子＝等待处理的数据块
       {
         const waiting = Math.max(0, run.shards.total - run.shards.done - (run.shards.running ?? 0))
         const loads = [running ? waiting : 0, 0, 0, 0, run.totals.review && !running ? Math.min(36, Math.ceil(run.totals.review / 10)) : 0, 0]
-        const label = ['等待读入（分片）', '', '', '', '待复核（每箱 10 项）', '']
+        const label = ['等待读入（数据块）', '', '', '', '待复核（每箱 10 项）', '']
         const pileAt = (k) => (k === 0 ? [12, 116] : [bay0(k) + 14, D + 12])
         loads.forEach((_, k) => { const [pi, pj] = pileAt(k); bb.push(iso(pi, pj + 24), iso(pi + 39, pj, 70)) })
         loads.forEach((n, k) => {
@@ -1021,29 +1024,29 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
           }
           const top = iso(pi + 19, pj + 11, Math.ceil(shown / 6) * 9 + 10)
           const shownN = k === 4 ? run.totals.review : n
-          els.push(h('g', { key: `q${k}`, ...click(k) }, h('title', {}, k === 4 ? `待复核 ${fmt(run.totals.review)} 项：核验分歧或规则票不一致、复判后仍不一致的，等人工裁定\n箱子＝待复核的项，每箱 10 项\n点开核验工序，再去复核` : `等待读入的分片 ${fmt(n)} 个，每箱一个分片`), g,
+          els.push(h('g', { key: `q${k}`, ...click(k) }, h('title', {}, k === 4 ? `待复核 ${fmt(run.totals.review)} 项：核验分歧、规则与模型不符，复查后仍不一致的，等人工判断\n箱子＝待复核的项，每箱 10 项\n点开核验工序，再去复核` : `等待读入的数据块 ${fmt(n)} 个，每箱一个数据块`), g,
             h('text', { x: top[0], y: top[1], textAnchor: 'middle', fill: A, fontSize: 17, fontWeight: 700, fontFamily: MONO, stroke: C.card, strokeWidth: 3.5, paintOrder: 'stroke' }, fmt(shownN)),
             // 待复核队列只留数字（和楼顶标签同一个数），说明在悬停提示里
             k === 4 ? null : h('text', { x: top[0], y: top[1] + 13, textAnchor: 'middle', fill: P.ink, fontSize: 10, stroke: C.card, strokeWidth: 3, paintOrder: 'stroke' }, `排队 · ${label[k]}`)))
         })
       }
-      // 验收门①：丢弃的引语（红箱）
+      // 质检①：丢弃的原文引用（红箱）
       if (t.quoteFail) {
         const gi = (bay0(2) + bw + bay0(3)) / 2 - 7; const gg = []
         for (let q = 0; q < Math.min(4, Math.ceil(t.quoteFail / 10)); q++) gg.push(...isoBox(`rq${q}`, gi + (q % 2) * 15 - 4, D + 6 + Math.floor(q / 2) * 13, 0, 13, 12, 11, RED))
         // 标签放在红箱正上方：左下是去模型旁路的斜管，下方是回 E6 的横管
         const lp = iso(gi + 5, D + 12, 22)
-        gg.push(h('text', { key: 't', x: lp[0], y: lp[1], textAnchor: 'middle', fill: P.bad, fontSize: 10, ...halo }, h('title', {}, '模型回答的引语在原文里找不到，或引语不支持所取的值：已丢弃，不进交付'), `${fmt(t.quoteFail)} 条模型回答已丢弃`))
+        gg.push(h('text', { key: 't', x: lp[0], y: lp[1], textAnchor: 'middle', fill: P.bad, fontSize: 10, ...halo }, h('title', {}, '模型回答的原文引用在原文里找不到，或原文引用不支持所取的值：已丢弃，不进交付'), `${fmt(t.quoteFail)} 条模型回答已丢弃`))
         els.push(h('g', { key: 'redq' }, gg))
       }
       // 处理中：发光的箱子
       if (running && run.current?.stage === 'E3') {
         const at = [bay0(2) + 30, D + 6]; const tp = iso(at[0] + 8, at[1] + 14, 0)
         els.push(h('g', { key: 'cur' }, h('g', { filter: 'url(#mx-glow)', className: 'mx-pulse' }, isoBox('cc', at[0], at[1], 0, 16, 14, 13, AMB)),
-          h('text', { x: tp[0] - 14, y: tp[1] + 16, textAnchor: 'end', fill: A, fontSize: 10.5, fontWeight: 700, ...halo }, `处理中 · ${run.shards.running ?? 0} 个分片${run.rate ? ` · ${fmt(run.rate)} 份/秒` : ''}`)))
+          h('text', { x: tp[0] - 14, y: tp[1] + 16, textAnchor: 'end', fill: A, fontSize: 10.5, fontWeight: 700, ...halo }, `处理中 · ${run.shards.running ?? 0} 个数据块${run.rate ? ` · ${fmt(run.rate)} 份/秒` : ''}`)))
       }
       // 模型房子：一栋＝一个模型服务（按模型名；提取、核验同端点同模型时只有一栋）。
-      // 管子只连真正调用模型的工序：读入（格式识别）、提取、核验（核验与复判）。哪道工序此刻有请求在途，那根管子就流动发光；
+      // 管子只连真正调用模型的工序：读入（格式识别）、提取、核验（核验与复查）。哪道工序此刻有请求在途，那根管子就流动发光；
       // 窗户按在途数／并发上限点亮。点房子，右侧显示这个模型的状态
       const houses = modelHousesOf(run)
       const last = running ? (run.series ?? []).filter((p) => p.length >= 18).at(-1) : null
@@ -1113,7 +1116,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         els.push(h('g', { key: `house${hi}`, ...click(8 + hi), style: { cursor: 'pointer' } }, h('title', {}, `${hs.model ?? hs.label}（${hs.roleText}）\n窗户＝并发名额（共 ${cap} 个${per > 1 ? `，每窗 ${per} 个` : ''}），亮着的＝在途${live ? ` ${live.inflight}` : ''}\n屋顶的箱子＝排队的请求${live ? ` ${live.waiting}` : ''}${recentFail ? '\n红窗＝最近 10 秒有调用失败' : ''}\n点开看模型状态`), g))
         bb.push(iso(mi - 6, mj + mb + 6), iso(mi - 170, mj + mb + 44), iso(mi + ma + 6, mj + mb + 6))
       })
-      // 屋顶标签：贴在每栋楼顶上方的胶囊，不用引线；只放两字工序名＋关键数＋单位，验收门一个色点；选中＝实心
+      // 屋顶标签：贴在每栋楼顶上方的胶囊，不用引线；只放两字工序名＋关键数＋单位，质检一个色点；选中＝实心
       // 细节（阶段名、说明、各行数）在悬停提示和右侧阶段面板里
       const textW = (str, fs, mono) => [...String(str)].reduce((w, ch) => w + (/[\u2E80-\uFFFF]/.test(ch) ? fs : fs * (mono ? 0.62 : 0.56)), 0)
       const gateDot = { ok: P.ok, warn: P.bad, '': P.ink3 }
@@ -1156,15 +1159,15 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
 
     /* 每道工序：做什么 → 产出什么（引擎的通用工序说明，不含病种内容） */
     const STEP_HELP = {
-      E0: ['载入提取模板并校验：每个字段的定义、值类型、选项、值域、粒度，适用的文书类型和栏目，以及规则（出规则票）', '字段规格，下发给后面每道工序'],
-      E1: ['识别格式，按表判定类别：文书表读入，检验、医嘱、收费等结构化表只取人口与就诊，忽略的表不读。清洗：解码嵌入内容（base64、HTML／XML、RTF），去掉图片等二进制（不识别图片里的文字）和导出残留的乱码，切栏目，剔除清洗后没有内容的空壳文书；截至时刻以后写成的跳过', '干净的文书与栏目'],
+      E0: ['载入提取模板并校验：每个字段的定义、值类型、选项、值域、汇总层级，适用的文书类型和栏目，以及规则（用来和模型结果对照）', '字段说明，下发给后面每道工序'],
+      E1: ['识别格式，按表判定类别：文书表读入，检验、医嘱、收费等结构化表只取人口与就诊，忽略的表不读。清洗：解码嵌入内容（base64、HTML／XML、RTF），去掉图片等二进制（不识别图片里的文字）和导出残留的乱码，切栏目，剔除清洗后没有内容的空白文书；截至时刻以后写成的跳过', '干净的文书与栏目'],
       E2: ['按文书类型和栏目决定每份文书要提取哪些字段，不看关键词；字段多的分组（每组约 30 个），太长的文书按栏目分段。这一步是规则，不用模型', '提取任务（文书或其中一段 × 一组字段）'],
-      E3: ['提取模型通读每个任务，返回值、断言（阳性／否认／既往／家族／计划）和逐字引语；插件在原文里定位引语，对不上的丢弃；模板写了明确规则的字段，规则另出一票对照；内容相同的任务只调一次模型', '值：每个都带原文引语、起止位置和出处'],
-      E2old: ['当时的做法：每个字段用关键词（召回词、正则）在文书里找命中，只看限定的文书类型和栏目；没提到的记「未提及」', '命中的「字段 × 文书」'],
-      E3old: ['当时的做法：规则对命中处定值，规则定不了的命中句送模型（仅规则模式下不送，记「待定」）', '值：每个都带原文引语、起止位置和出处'],
+      E3: ['提取模型通读每个任务，返回值、提及方式（阳性／否认／既往／家族／计划）和逐字的原文引用；插件在原文里定位原文引用，对不上的丢弃；模板写了明确规则的字段，规则再匹配一次作对照；内容相同的任务只调一次模型', '值：每个都带原文引用、起止位置和出处'],
+      E2old: ['当时的做法：每个字段用关键词（词表、正则）在文书里找命中，只看限定的文书类型和栏目；没提到的记「未提及」', '命中的「字段 × 文书」'],
+      E3old: ['当时的做法：规则对命中处定值，规则定不了的命中句送模型（仅规则模式下不送，记「待定」）', '值：每个都带原文引用、起止位置和出处'],
       E4: ['统一单位、日期和选项写法；按类型、选项、值域校验，不合的丢弃或标出', '规范值'],
-      E5: ['按字段粒度（文书／就诊／病人／时间点）和汇总规则合并成格，计算派生字段；同一格互斥的值登记为冲突，不自动选边', '宽表、时间点长表、冲突表'],
-      E6: ['核验模型抽样，对同样的任务背靠背通读重抽，按字段算一致率；核验分歧和规则票不一致的进人工复核；裁定按稳定编号保存，重跑沿用', '一致率与复核单'],
+      E5: ['按字段汇总层级（文书／就诊／病人／时间点）和汇总规则填进宽表单元格，算出计算字段；同一格互斥的值登记为冲突，不自动选边', '宽表、时间点长表、冲突表'],
+      E6: ['核验模型抽样，对同样的任务各自独立通读重抽，按字段算一致率；核验分歧和规则与模型不符的进人工复核；判断按稳定编号保存，重跑沿用', '一致率与复核单'],
       E7: ['写出宽表、证据长表、冲突表和报告，再只读核对源文件没有被改动', '交付目录'],
     }
 
@@ -1206,28 +1209,28 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       if (run.status === 'failed') a.push({ tone: 'crit', tag: '失败', title: '批次失败', sub: String(run.error ?? '').split('\n')[0].replace(/^Error:\s*/, '').slice(0, 80) })
       if (run.sourceCheck?.changed) a.push({ tone: 'crit', tag: '源文件', title: `源文件有 ${fmt(run.sourceCheck.changed)} 个变化`, sub: '只读核对不一致：运行期间输入被改过', onClick: at('E7') })
       const disk = run.disk
-      if (running && disk?.free != null && disk.free < 20 * GB) a.push({ tone: disk.free < 5 * GB ? 'crit' : 'warn', tag: '磁盘', title: `输出盘只剩 ${(disk.free / GB).toFixed(1)} GB`, sub: '空间不够时分片写不出来' })
+      if (running && disk?.free != null && disk.free < 20 * GB) a.push({ tone: disk.free < 5 * GB ? 'crit' : 'warn', tag: '磁盘', title: `输出盘只剩 ${(disk.free / GB).toFixed(1)} GB`, sub: '空间不够时数据块写不出来' })
       const mem = run.memory
       const memR = running && mem?.heapLimit ? mem.heapUsed / mem.heapLimit : null
       if (memR != null && memR >= 0.7) a.push({ tone: memR >= 0.85 ? 'crit' : 'warn', tag: '内存', title: `堆内存用了 ${Math.round(memR * 100)}%`, sub: '可在设置里减少工作线程数' })
-      if (!running) for (const g of run.gates ?? []) if (!g.pass && !g.skipped) a.push({ tone: 'warn', tag: `门${g.id}`, title: `验收门${g.id}未过`, sub: g.detail, onClick: at({ '①': 'E3', '②': 'E4', '③': 'E5', '④': 'E6' }[g.id]) })
+      if (!running) for (const g of run.gates ?? []) if (!g.pass && !g.skipped) a.push({ tone: 'warn', tag: `质检${g.id}`, title: `质检${g.id}未过`, sub: g.detail, onClick: at({ '①': 'E3', '②': 'E4', '③': 'E5', '④': 'E6' }[g.id]) })
       const rd = run.flow === 'read' ? t.ruleDisputes ?? 0 : 0
-      if (t.review) a.push({ tone: 'warn', tag: '复核', title: `待复核 ${fmt(t.review)} 项`, sub: rd ? `核验分歧 ${fmt(Math.max(0, t.review - rd))} · 规则票不一致 ${fmt(rd)}` : '核验分歧', onClick: () => goto('review') })
+      if (t.review) a.push({ tone: 'warn', tag: '复核', title: `待复核 ${fmt(t.review)} 项`, sub: rd ? `核验分歧 ${fmt(Math.max(0, t.review - rd))} · 规则与模型不符 ${fmt(rd)}` : '核验分歧', onClick: () => goto('review') })
       if (run.format?.held) a.push({ tone: 'warn', tag: '格式', title: `${fmt(run.format.held)} 张表的格式待确认`, sub: run.format.heldPolicy === 'skip' ? '这些表先跳过了' : '先按通用读法读了，确认后重跑更准', onClick: () => goto('formats') })
       for (const role of ['extract', 'verify']) {
         const m = run.models?.[role]
         const fr = m?.calls ? m.failed / m.calls : 0
         if (m?.calls >= 20 && fr > 0.02) a.push({ tone: 'warn', tag: '模型', title: `${role === 'extract' ? '提取' : '核验'}模型失败率 ${(fr * 100).toFixed(1)}%`, sub: `已自动重试 ${fmt(m.retries ?? 0)} 次；失败的调用没有值`, onClick: () => goto('calls') })
       }
-      if (t.quoteFail) a.push({ tone: 'warn', tag: '引语', title: `${fmt(t.quoteFail)} 条模型回答被丢弃`, sub: '引语在原文里找不到，或不支持所给的值', onClick: at('E3') })
-      if (t.conflicts) a.push({ tone: 'info', tag: '冲突', title: `${fmt(t.conflicts)} 个格子有冲突`, sub: '同一格子互斥的值，不自动选边', onClick: () => goto('wide') })
+      if (t.quoteFail) a.push({ tone: 'warn', tag: '原文引用', title: `${fmt(t.quoteFail)} 条模型回答被丢弃`, sub: '原文引用在原文里找不到，或不支持所给的值', onClick: at('E3') })
+      if (t.conflicts) a.push({ tone: 'info', tag: '冲突', title: `${fmt(t.conflicts)} 个单元格有冲突`, sub: '同一单元格互斥的值，不自动选边', onClick: () => goto('wide') })
       const docsAll = (t.documents ?? 0) + (t.hollow ?? 0)
-      if (t.hollow && docsAll && t.hollow / docsAll >= 0.3) a.push({ tone: 'info', tag: '读入', title: `空壳文书 ${fmt(t.hollow)} 份（${Math.round((t.hollow / docsAll) * 100)}%）`, sub: '清洗后没有内容，没有交给模型', onClick: at('E1') })
+      if (t.hollow && docsAll && t.hollow / docsAll >= 0.3) a.push({ tone: 'info', tag: '读入', title: `空白文书 ${fmt(t.hollow)} 份（${Math.round((t.hollow / docsAll) * 100)}%）`, sub: '清洗后没有内容，没有交给模型', onClick: at('E1') })
       const zipped = t.mediaKinds?.['压缩文书（未解）']
       if (zipped) a.push({ tone: 'info', tag: '读入', title: `${fmt(zipped)} 份压缩文书没有解开`, sub: '内容没有读到', onClick: at('E1') })
-      if (!run.model?.verifyModel && run.flow === 'read') a.push({ tone: 'info', tag: '核验', title: '未配置核验模型', sub: '不做抽样核验，验收门④跳过' })
+      if (!run.model?.verifyModel && run.flow === 'read') a.push({ tone: 'info', tag: '核验', title: '未配置核验模型', sub: '不做抽样核验，质检④跳过' })
       if (run.warnings?.length) a.push({ tone: 'info', tag: '提示', title: `${fmt(run.warnings.length)} 条提示`, sub: run.warnings[0].slice(0, 60), onClick: () => goto('report') })
-      if (run.status === 'cancelled') a.push({ tone: 'info', tag: '续跑', title: '批次已取消', sub: '点「＋ 新批次」里的「↻ 继续」接着跑，已完成的分片直接复用' })
+      if (run.status === 'cancelled') a.push({ tone: 'info', tag: '续跑', title: '批次已取消', sub: '点「＋ 新批次」里的「↻ 继续」接着跑，已完成的数据块直接复用' })
       const RANK = { crit: 0, warn: 1, info: 2 }
       a.sort((x, y) => RANK[x.tone] - RANK[y.tone])
       const COLOR = { crit: 'var(--bad)', warn: 'var(--warn)', info: 'var(--ink3)', ok: 'var(--ok)' }
@@ -1251,7 +1254,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
     const LAT_LABELS = ['<.5', '.5', '1', '2', '4', '8', '16+']
 
 
-    /** 一栋模型房子（一个模型服务）的合计表现：各角色（格式识别、提取、核验、复判）加起来 */
+    /** 一栋模型房子（一个模型服务）的合计表现：各角色（格式识别、提取、核验、复查）加起来 */
     function houseAgg(hs) {
       const a = { calls: 0, cached: 0, failed: 0, retries: 0, ms: 0, pt: 0, ct: 0, ptMax: 0, sentChars: 0, reusedChars: 0, hist: [0, 0, 0, 0, 0, 0, 0] }
       for (const [, , p] of hs.perf) { for (const k of ['calls', 'cached', 'failed', 'retries', 'ms', 'pt', 'ct', 'sentChars', 'reusedChars']) a[k] += p[k] ?? 0; a.ptMax = Math.max(a.ptMax, p.ptMax ?? 0); a.hist = a.hist.map((x, i) => x + (p.hist?.[i] ?? 0)) }
@@ -1344,7 +1347,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       const cols = houses.length
       const cell = (hi, v, cls) => h('b', { key: hi, className: cls }, v)
       const rows = [
-        ['调用', (a) => fmt(a.calls), '实际发给模型的调用（不含缓存复用），格式识别、提取、核验、复判合计'],
+        ['调用', (a) => fmt(a.calls), '实际发给模型的调用（不含缓存复用），格式识别、提取、核验、复查合计'],
         ['失败率', (a) => (a.calls ? h('span', { className: a.failed ? 'mx-bad' : '' }, `${((a.failed / a.calls) * 100).toFixed(a.failed && a.failed / a.calls < 0.1 ? 1 : 0)}%`, a.retries ? h('small', { className: 'mx-warn' }, ` ↻${fmt(a.retries)}`) : null) : '—'), '重试后仍失败的调用占比；↻＝断线、超时、429／5xx 自动重试的次数'],
         ['耗时分布', (a) => { const mx = Math.max(1, ...a.hist); return a.calls ? h('div', { className: 'mx-lat', title: a.hist.map((n, i) => `${LAT_LABELS[i]}s：${n}`).join('\n') }, h('div', { className: 'bars' }, a.hist.map((n, i) => h('i', { key: i, className: i >= 5 && n ? 'slow' : '', style: { height: `${Math.max(n ? 6 : 2, (n / mx) * 100)}%` } }))), h('div', { className: 'lbl' }, LAT_LABELS.map((x) => h('span', { key: x }, x)))) : '—' }, '每次调用的耗时（秒），8 秒以上标红'],
         ['上下文 均/最大', (a) => (a.calls ? `${kfmt(a.pt / a.calls)} / ${a.ptMax ? kfmt(a.ptMax) : '—'}` : '—'), '每次调用的输入 token'],
@@ -1354,7 +1357,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         h('div', { className: 'mx-side-h' }, h('b', {}, '批次概览'), h('span', { className: 'mx-cap' }, 'BATCH OVERVIEW')),
         block('模型用量', 'WORKLOAD', all ? h(React.Fragment, {},
           h('div', { className: 'mx-stack', style: { height: 8 } }, [[sent, 'var(--teal)'], [reused, 'var(--ok)'], [free, 'var(--line2)']].map(([n, c], i) => (n ? h('span', { key: i, style: { width: `${(n / all) * 100}%`, background: c } }) : null))),
-          h('div', { className: 'mx-legend mx-lg1' }, [['发送', sent, 'var(--teal)', '实际发给模型的文书字数（一份文书分几组字段、复判几轮就算几次）'], ['复用', reused, 'var(--ok)', '内容相同的调用直接用缓存的回复，不再发'], ['免送', free, 'var(--line2)', '不用交给模型的文书字数：空壳文书、截至时刻以后的、没派到字段的、成本开关跳过的']].map(([k, n, c, tip]) => h('span', { key: k, title: tip }, h('i', { style: { background: c } }), `${k} ${kfmt(n)} · ${pctOf(n)}`))),
+          h('div', { className: 'mx-legend mx-lg1' }, [['发送', sent, 'var(--teal)', '实际发给模型的文书字数（一份文书分几组字段、复查几轮就算几次）'], ['复用', reused, 'var(--ok)', '内容相同的调用直接用缓存的回复，不再发'], ['免送', free, 'var(--line2)', '不用交给模型的文书字数：空白文书、截至时刻以后的、没派到字段的、成本开关跳过的']].map(([k, n, c, tip]) => h('span', { key: k, title: tip }, h('i', { style: { background: c } }), `${k} ${kfmt(n)} · ${pctOf(n)}`))),
           h('div', { className: 'mx-ob-kv' },
             h('div', {}, h('span', {}, '调用'), h('b', {}, fmt(sum('calls')))),
             h('div', {}, h('span', {}, '复用'), h('b', {}, fmt(sum('cached')))),
@@ -1370,10 +1373,10 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
           houses.map((hs) => h(ConcPanel, { key: hs.slot, run, hs, title: roleOf(hs) })),
           !cols ? h('p', { className: 'mx-snote' }, '还没有模型') : null)),
         block('核验与复核', 'CROSS-CHECK', h(React.Fragment, {},
-          h('p', { className: 'mx-snote' }, run.model?.verifyModel ? `抽样核验 ${fmt(vn)} 次（字段 × 文书）· 复判前一致 ${vn ? pct(va / vn) : '—'} · 核验分歧 ${fmt(vEntries.reduce((a, x) => a + (x.adj ?? (x.n - x.agree)), 0))}` : '未配置核验模型，不做抽样核验'),
-          !legacy && run.mode !== 'model' ? h('p', { className: 'mx-snote' }, `规则票 ${fmt(t.votes ?? 0)} · 与模型一致 ${fmt(t.agree ?? 0)} · 不一致 ${fmt(rd)}`) : null,
-          t.adjResolved || t.ruleResolved ? h('p', { className: 'mx-snote' }, `复判自动解决 ${fmt(t.adjResolved ?? 0)}（至多 ${run.maxRounds ?? 3} 轮）`) : null,
-          run.needsDefinition?.length ? h('p', { className: 'mx-snote mx-warn' }, `${run.needsDefinition.length} 个字段需要改定义（复判前一致率不达标）`) : null,
+          h('p', { className: 'mx-snote' }, run.model?.verifyModel ? `抽样核验 ${fmt(vn)} 次（字段 × 文书）· 复查前一致 ${vn ? pct(va / vn) : '—'} · 核验分歧 ${fmt(vEntries.reduce((a, x) => a + (x.adj ?? (x.n - x.agree)), 0))}` : '未配置核验模型，不做抽样核验'),
+          !legacy && run.mode !== 'model' ? h('p', { className: 'mx-snote' }, `规则匹配 ${fmt(t.votes ?? 0)} · 与模型一致 ${fmt(t.agree ?? 0)} · 不一致 ${fmt(rd)}`) : null,
+          t.adjResolved || t.ruleResolved ? h('p', { className: 'mx-snote' }, `复查后自动一致 ${fmt(t.adjResolved ?? 0)}（至多 ${run.maxRounds ?? 3} 轮）`) : null,
+          run.needsDefinition?.length ? h('p', { className: 'mx-snote mx-warn' }, `${run.needsDefinition.length} 个字段需要改定义（复查前一致率不达标）`) : null,
           h('p', { className: 'mx-snote' }, `待人工复核 ${fmt(t.review)} 项`)),
           h('button', { className: 'mx-link', onClick: () => goto('review') }, '明细 →')))
     }
@@ -1436,7 +1439,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         return sec(`验收${g} · ${x?.label ?? label}`, x?.detail ? note(x.detail) : null, h('b', { className: x && !x.skipped ? (x.pass ? 'mx-ok' : 'mx-warn') : '' }, txt))
       }
       const kv = (pairs) => h('div', { className: 'mx-skv' }, pairs.filter(Boolean).map(([l, v, cls]) => h('div', { key: l }, h('span', {}, l), h('b', { className: `mx-num ${cls === 'ok' ? 'mx-ok' : cls === 'warn' ? 'mx-warn' : ''}` }, v))))
-      const shards = `${fmt(run.shards.done)} / ${fmt(run.shards.total)} 分片`
+      const shards = `${fmt(run.shards.done)} / ${fmt(run.shards.total)} 数据块`
       const methods = t.byMethod ?? {}
       const mdl = (methods.model ?? 0) + (methods['model+rule'] ?? 0)
       const verify = Object.entries(run.verify ?? {})
@@ -1469,7 +1472,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
           const cnt = (key) => scope.reduce((m, f) => { const k = key(f); m[k] = (m[k] ?? 0) + 1; return m }, {})
           const never = scope.filter((f) => f.model === 'never').length
           const voted = scope.filter((f) => f.model !== 'never' && f.rules?.length).length
-          const way = legacy ? [[run.mode === 'rules' ? '只用规则（旧批次）' : '关键词定位＋模型补充提取（旧批次）', scope.length]] : [['模型通读', scope.length - never - (run.mode === 'model' ? 0 : voted)], ...(run.mode === 'model' ? [] : [['模型通读＋规则票', voted]]), ['只用规则（model: never）', never]]
+          const way = legacy ? [[run.mode === 'rules' ? '只用规则（旧批次）' : '关键词定位＋模型补充提取（旧批次）', scope.length]] : [['模型通读', scope.length - never - (run.mode === 'model' ? 0 : voted)], ...(run.mode === 'model' ? [] : [['模型通读＋规则对照', voted]]), ['只用规则（model: never）', never]]
           const GR = { encounter: '就诊', patient: '病人', timepoint: '时间点', document: '文书' }
           const gr = cnt((f) => f.granularity ?? 'encounter')
           const line = (l, v) => h('p', { className: 'mx-snote' }, h('span', { style: { color: 'var(--ink3)', marginRight: 8 } }, l), v)
@@ -1480,13 +1483,13 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         action = ['查看字段清单', 'template']
       } else if (id === 'E1') {
         ring = h(Ring, { v: s.frac, label: `${Math.round((s.frac ?? 0) * 100)}%`, sub: shards, hot })
-        stats = [['进入提取的文书', big(t.documents)], ['结构化记录（不提取）', t.structured == null ? '—' : big(t.structured)], ['空壳文书（不提取）', t.hollow == null ? '—' : big(t.hollow), t.hollow ? 'warn' : ''], ['跳过（截至时刻）', fmt(t.skipped)], ['速率', run.rate ? `${fmt(run.rate)} 份/秒` : '—'], ['输入格式', run.plan?.format ?? '—']]
+        stats = [['进入提取的文书', big(t.documents)], ['结构化记录（不提取）', t.structured == null ? '—' : big(t.structured)], ['空白文书（不提取）', t.hollow == null ? '—' : big(t.hollow), t.hollow ? 'warn' : ''], ['跳过（截至时刻）', fmt(t.skipped)], ['速率', run.rate ? `${fmt(run.rate)} 份/秒` : '—'], ['输入格式', run.plan?.format ?? '—']]
         if (t.structured != null) parts.push(sec('读入了什么', h(Split, { parts: [['文书', (t.documents ?? 0) + (t.hollow ?? 0), 'var(--teal)'], ['结构化记录', t.structured ?? 0, 'var(--line2)']] }), '按表判定'))
-        if (t.hollow != null) parts.push(sec('清洗', h(React.Fragment, {}, h(Split, { parts: [['进入提取的文书', t.documents, 'var(--teal)'], ['空壳文书', t.hollow, 'var(--warn)']] }), note(`解码 ${fmt(t.decoded)} 个字段值，去掉导出乱码 ${fmt(t.garbled)} 个字段值，去掉图片与二进制 ${fmt(t.media ?? 0)} 处${Object.keys(t.mediaKinds ?? {}).length ? `（${Object.entries(t.mediaKinds).map(([k, v]) => `${k} ${fmt(v)}`).join('，')}）` : ''}，图片里的文字不识别。空壳文书＝清洗后各栏目加起来不到 2 个汉字，如「护理观察：-」、只有编码的记录`))))
+        if (t.hollow != null) parts.push(sec('清洗', h(React.Fragment, {}, h(Split, { parts: [['进入提取的文书', t.documents, 'var(--teal)'], ['空白文书', t.hollow, 'var(--warn)']] }), note(`解码 ${fmt(t.decoded)} 个字段值，去掉导出乱码 ${fmt(t.garbled)} 个字段值，去掉图片与二进制 ${fmt(t.media ?? 0)} 处${Object.keys(t.mediaKinds ?? {}).length ? `（${Object.entries(t.mediaKinds).map(([k, v]) => `${k} ${fmt(v)}`).join('，')}）` : ''}，图片里的文字不识别。空白文书＝清洗后各栏目加起来不到 2 个汉字，如「护理观察：-」、只有编码的记录`))))
         if (run.format) {
           parts.push(sec('格式识别', h(Split, { parts: [['采用', run.format.adopted ?? 0, 'var(--teal)'], ['待确认', run.format.held ?? 0, 'var(--warn)'], ['跳过', run.format.ignored ?? 0, 'var(--line2)']] }), `${fmt((run.format.adopted ?? 0) + (run.format.held ?? 0) + (run.format.ignored ?? 0))} 张表`))
-          if (run.format.scoped) parts.push(note(`${fmt(run.format.scoped)} 张结构化表两个模型在本插件用得到的项（类别、病人、就诊）上一致、其余角色有分歧：只在本插件内采用，不交人工`))
-          if (run.format.adjudicated || run.format.adjDisputed) parts.push(note(`两个模型背靠背各自起草，有分歧的表先复判（只重判有分歧的项，至多 ${run.maxRounds ?? 3} 轮）：复判后一致 ${fmt(run.format.adjudicated ?? 0)} 张${run.format.adjDisputed ? `，仍有分歧交人工 ${fmt(run.format.adjDisputed)} 张` : ''}`))
+          if (run.format.scoped) parts.push(note(`${fmt(run.format.scoped)} 张结构化表两个模型在本插件用得到的项（类别、病人、就诊）上一致、其余角色有分歧：只在本插件内采用，不转人工`))
+          if (run.format.adjudicated || run.format.adjDisputed) parts.push(note(`两个模型各自独立起草，有分歧的表先复查（只重判有分歧的项，至多 ${run.maxRounds ?? 3} 轮）：复查后一致 ${fmt(run.format.adjudicated ?? 0)} 张${run.format.adjDisputed ? `，仍有分歧转人工 ${fmt(run.format.adjDisputed)} 张` : ''}`))
           if (run.format.held) action = [`去确认 ${run.format.held} 张表`, 'formats']
         }
       } else if (id === 'E2') {
@@ -1504,14 +1507,14 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         }
       } else if (id === 'E3') {
         ring = h(Ring, { v: s.frac, label: `${Math.round((s.frac ?? 0) * 100)}%`, sub: shards, hot })
-        stats = [['值', big(t.values)], ['提取模型', run.model?.model ?? '—'], ['模型调用', big(t.calls)], ['命中缓存', big(t.cached)], ['调用失败', fmt(t.failed), t.failed ? 'warn' : ''], ['引语对不上丢弃', fmt(t.quoteFail), t.quoteFail ? 'warn' : '']]
+        stats = [['值', big(t.values)], ['提取模型', run.model?.model ?? '—'], ['模型调用', big(t.calls)], ['命中缓存', big(t.cached)], ['调用失败', fmt(t.failed), t.failed ? 'warn' : ''], ['原文引用对不上丢弃', fmt(t.quoteFail), t.quoteFail ? 'warn' : '']]
         parts.push(sec('值的来源', h(Split, { parts: legacy
           ? [['规则', methods.rule ?? 0, 'var(--fact)'], ['模型', methods.model ?? 0, 'var(--vio)'], ['模型＋规则', methods['model+rule'] ?? 0, 'var(--decide)']]
-          : [['模型', methods.model ?? 0, 'var(--vio)'], ['模型（规则票一致）', methods['model+rule'] ?? 0, 'var(--decide)'], ['只用规则的字段', methods.rule ?? 0, 'var(--fact)']] })))
-        if (!legacy && run.mode !== 'model') parts.push(sec('规则票', note(t.votes ? `模板写了明确规则的字段，规则另出了 ${fmt(t.votes)} 票：与模型一致 ${fmt(t.agree)}，不一致 ${fmt(t.ruleDisputes)} 项进人工复核` : '这批文书里规则没有命中（模板写了明确规则的字段才出规则票）'), t.ruleDisputes ? h('b', { className: 'mx-warn' }, `${fmt(t.ruleDisputes)} 项待复核`) : null))
-        parts.push(gateLine('①', '引语与原文逐字一致'))
-        if (!gate('①')) parts.push(note(`模型回答 ${fmt(mdl + t.quoteFail)} 条，引语对不上丢弃 ${fmt(t.quoteFail)} 条`))
-        const qp = (run.problems ?? []).filter((x) => /引语/.test(x.problem))
+          : [['模型', methods.model ?? 0, 'var(--vio)'], ['模型（与规则一致）', methods['model+rule'] ?? 0, 'var(--decide)'], ['只用规则的字段', methods.rule ?? 0, 'var(--fact)']] })))
+        if (!legacy && run.mode !== 'model') parts.push(sec('规则对照', note(t.votes ? `模板写了明确规则的字段，规则另匹配出 ${fmt(t.votes)} 个结果：与模型一致 ${fmt(t.agree)}，不一致 ${fmt(t.ruleDisputes)} 项进人工复核` : '这批文书里规则没有命中（模板写了明确规则的字段才做规则对照）'), t.ruleDisputes ? h('b', { className: 'mx-warn' }, `${fmt(t.ruleDisputes)} 项待复核`) : null))
+        parts.push(gateLine('①', '原文引用与原文逐字一致'))
+        if (!gate('①')) parts.push(note(`模型回答 ${fmt(mdl + t.quoteFail)} 条，原文引用对不上丢弃 ${fmt(t.quoteFail)} 条`))
+        const qp = (run.problems ?? []).filter((x) => /引语|原文引用/.test(x.problem))
         if (qp.length) parts.push(sec('被丢弃的回答（举例）', h('ul', { className: 'mx-slist' }, qp.slice(0, 5).map((x, i) => h('li', { key: i }, `${nameOf(x.field)}：${x.problem}`)))))
         const rows = top(Object.entries(run.byField ?? {}), 'values').map(([f, v]) => [nameOf(f), v.values, null, null, `${nameOf(f)}（${f}）：${fmt(v.values)} 个值，${fmt(v.docs)} 份文书`])
         parts.push(sec('提取值最多的字段', rows.length ? h(RankBars, { rows }) : note('还没有值'), `${Object.keys(run.byField ?? {}).length} / ${run.template.fields} 个字段有值`))
@@ -1523,7 +1526,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         parts.push(sec('值的合规情况', h(Split, { parts: [['合规', Math.max(0, t.values - t.outOfRange), 'var(--teal)'], ['类型或选项不对', t.invalid, 'var(--warn)'], ['超出值域', t.outOfRange, 'var(--bad)']] })))
         parts.push(sec('归一做了什么', note('单位换算到字段规定的单位，日期规范成 YYYY-MM-DD（可只到年、月），选项归到规范名；类型、选项不对的丢弃，超出值域的照常交付并标「超出值域」')))
         parts.push(gateLine('②', '值在类型、选项、值域之内'))
-        const ip = (run.problems ?? []).filter((x) => !/引语/.test(x.problem))
+        const ip = (run.problems ?? []).filter((x) => !/引语|原文引用/.test(x.problem))
         if (ip.length) parts.push(sec('被丢弃的回答（举例）', h('ul', { className: 'mx-slist' }, ip.slice(0, 5).map((x, i) => h('li', { key: i }, `${nameOf(x.field)}：${x.problem}`)))))
         action = ['报告', 'report']
       } else if (id === 'E5') {
@@ -1539,22 +1542,22 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       } else if (id === 'E6') {
         ring = h(Ring, { v: vn ? va / vn : 0, label: vn ? pct(va / vn) : '—', sub: '核验一致率', hot: vn > 0 && va / vn < 0.9 })
         const rd = legacy ? 0 : t.ruleDisputes ?? 0
-        stats = [['核验模型', run.model?.verifyModel || '未配置'], ['抽样（字段 × 文书）', vn ? `${fmt(vn)} 次` : '—'], ['待复核', fmt(t.review), t.review ? 'warn' : ''], ...(legacy ? [] : [['其中核验分歧', fmt(Math.max(0, t.review - rd))], ['其中规则票不一致', fmt(rd)]])]
-        if (!legacy) parts.push(sec('怎么核验', note(`核验模型对同样的提取任务背靠背通读（按文书抽样，另保证每个有值的字段都核验到），按字段比较文书级结论；两边都「未提及」的不计入一致率`)))
+        stats = [['核验模型', run.model?.verifyModel || '未配置'], ['抽样（字段 × 文书）', vn ? `${fmt(vn)} 次` : '—'], ['待复核', fmt(t.review), t.review ? 'warn' : ''], ...(legacy ? [] : [['其中核验分歧', fmt(Math.max(0, t.review - rd))], ['其中规则与模型不符', fmt(rd)]])]
+        if (!legacy) parts.push(sec('怎么核验', note(`核验模型对同样的提取任务各自独立通读（按文书抽样，另保证每个有值的字段都核验到），按字段比较文书级结论；两边都「未提及」的不计入一致率`)))
         const weak = verify.filter(([, x]) => x.n >= 3).map(([f, x]) => [f, x.agree / x.n, x]).sort((a, b) => a[1] - b[1]).slice(0, 5)
         parts.push(sec('一致率最低的字段', weak.length ? h(RankBars, { max: 1, rows: weak.map(([f, r, x]) => [nameOf(f), r, r.toFixed(2), r < 0.9 ? 'var(--warn)' : 'var(--teal)', `${nameOf(f)}（${f}）：${x.agree} / ${x.n} 次一致`]) }) : note(run.model?.verifyModel ? '抽样不足（每个字段至少 3 次）' : '在设置里配置核验模型后才会抽样核验')))
-        // 复判：分歧两个模型轮流复判，一致即采用；验收门④按复判前算
+        // 复查：分歧两个模型轮流复查，一致即采用；质检④按复查前算
         const adjN = verify.reduce((a2, [, x]) => a2 + (x.adj ?? 0), 0); const adjOk = verify.reduce((a2, [, x]) => a2 + (x.resolved ?? 0), 0)
         if (!legacy && (adjN || t.ruleDisputes)) {
           const byR = (t.adjByRound ?? []).map((n, i) => [i + 1, n]).filter(([, n]) => n)
-          parts.push(sec(`复判（至多 ${run.maxRounds ?? 3} 轮）`, h(React.Fragment, {},
-            h(Split, { parts: [['复判已解决', adjOk + (t.ruleResolved ?? 0), 'var(--ok)'], ['交人工', Math.max(0, adjN - adjOk) + Math.max(0, (t.ruleDisputes ?? 0) - (t.ruleResolved ?? 0)), 'var(--warn)']] }),
-            note(`核验分歧 ${fmt(adjN)} 项：复判解决 ${fmt(adjOk)}${byR.length ? `（${byR.map(([rr, n]) => `第 ${rr} 轮 ${n}`).join('、')}）` : ''}；规则票不一致 ${fmt(t.ruleDisputes ?? 0)} 项：解决 ${fmt(t.ruleResolved ?? 0)}。一致率按复判前算——复判只修好了被抽到的那几份`)),
+          parts.push(sec(`复查（至多 ${run.maxRounds ?? 3} 轮）`, h(React.Fragment, {},
+            h(Split, { parts: [['复查后一致', adjOk + (t.ruleResolved ?? 0), 'var(--ok)'], ['转人工', Math.max(0, adjN - adjOk) + Math.max(0, (t.ruleDisputes ?? 0) - (t.ruleResolved ?? 0)), 'var(--warn)']] }),
+            note(`核验分歧 ${fmt(adjN)} 项：复查后一致 ${fmt(adjOk)}${byR.length ? `（${byR.map(([rr, n]) => `第 ${rr} 轮 ${n}`).join('、')}）` : ''}；规则与模型不符 ${fmt(t.ruleDisputes ?? 0)} 项：解决 ${fmt(t.ruleResolved ?? 0)}。一致率按复查前算——复查只修好了被抽到的那几份`)),
             h('button', { className: 'mx-link', onClick: () => goto('review') }, '抽查 →')))
         }
         const nd = run.needsDefinition ?? []
         if (nd.length) parts.push(sec('需要改字段定义', h(React.Fragment, {},
-          note('这些字段复判前就对不上：没被抽到的文书只有第一遍的结果，重跑不会变（同样的提示命中缓存）。看复核里的分歧，改模板里这个字段的定义、算／不算的写法或例子'),
+          note('这些字段复查前就对不上：没被抽到的文书只有第一遍的结果，重跑不会变（同样的提示命中缓存）。看复核里的分歧，改模板里这个字段的定义、算／不算的写法或例子'),
           h('div', { className: 'mx-rank' }, nd.slice(0, 8).map((x) => h('button', { key: x.field, type: 'button', className: 'mx-nd', title: `${x.why}；抽样 ${x.n} 次，一致 ${x.agree}`, onClick: () => { focusField.id = x.field; goto('template') } },
             h('span', {}, nameOf(x.field)), h('small', {}, x.why), h('b', { className: 'mx-num mx-warn' }, pct(x.agree / x.n)), h('i', {}, '改 →')))))))
         parts.push(gateLine('④', '抽样核验一致率'))
@@ -1564,7 +1567,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         stats = [['源文件核对', run.sourceCheck ? (run.sourceCheck.changed ? `${run.sourceCheck.changed} 个变化` : '一致') : '—', run.sourceCheck ? (run.sourceCheck.changed ? 'warn' : 'ok') : '']]
         if (run.output) parts.push(sec('输出位置', h('div', { className: 'mx-spath' }, h('span', { title: run.output }, run.output),
           h('button', { className: 'mx-btn sm', onClick: () => { navigator.clipboard?.writeText(run.output).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500) }).catch(() => {}) } }, copied ? '已复制' : '复制'))))
-        parts.push(sec('交付内容', h('ul', { className: 'mx-slist' }, ['宽表（病人／就诊／文书）', '时间点长表', '证据长表（每个值的原文引语与位置）', '冲突表', '报告'].map((x) => h('li', { key: x }, x)))))
+        parts.push(sec('交付内容', h('ul', { className: 'mx-slist' }, ['宽表（病人／就诊／文书）', '时间点长表', '证据长表（每个值的原文引用与位置）', '冲突表', '报告'].map((x) => h('li', { key: x }, x)))))
         action = ['报告', 'report']
       }
 
@@ -1622,7 +1625,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         h('div', { className: 'mx-spark-foot' }, has ? h(React.Fragment, {}, h('span', {}, `平均 ${fmt(Math.round(avg))}`), h('span', {}, `峰值 ${fmt(Math.round(Math.max(...series)))}`)) : h('span', {}, run.status === 'running' ? '速率曲线：采样中…' : pts0.length ? '批次太短，没有速率曲线' : '这个批次没有记录速率（旧版本跑的）')))
     }
 
-    /** 运行进度：完成、速率、用时（运行中为预计剩余）、分片与文书，速率曲线。 */
+    /** 运行进度：完成、速率、用时（运行中为预计剩余）、数据块与文书，速率曲线。 */
     function ProgressPanel({ run }) {
       const t = run.totals
       const running = run.status === 'running'
@@ -1639,18 +1642,18 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
           h('div', {}, h('span', {}, '速率'), h('b', {}, rate ? fmt(rate) : '—', h('small', {}, '份/秒'))),
           h('div', { title: dur(running ? eta : elapsed) }, h('span', {}, running ? '预计剩余' : '用时'), h('b', {}, ...clockParts(running ? eta : elapsed)))),
         h('div', { className: 'mx-kv2' },
-          h('p', {}, h('span', {}, '分片'), h('b', {}, fmt(sh.done), h('small', {}, ` / ${fmt(sh.total)}`))),
+          h('p', {}, h('span', {}, '数据块'), h('b', {}, fmt(sh.done), h('small', {}, ` / ${fmt(sh.total)}`))),
           h('p', {}, h('span', {}, '文书'), h('b', {}, big(t.documents)), t.structured ? h('small', {}, `（另有结构化记录 ${big(t.structured)}，不提取）`) : null)),
         h(Spark, { run }))
     }
 
-    /** 处理结果：值、病人、就诊，值的来源比例条，验收门，待复核与冲突，交付位置。 */
+    /** 处理结果：值、病人、就诊，值的来源比例条，质检，待复核与冲突，交付位置。 */
     function ResultsPanel({ run, stations, onSel, goto }) {
       const t = run.totals
       const [copied, setCopied] = useState(false)
       const m = t.byMethod ?? {}
       const way = run.flow !== 'read' ? [['规则', m.rule ?? 0, 'var(--fact)'], ['模型', m.model ?? 0, 'var(--vio)'], ['模型＋规则', m['model+rule'] ?? 0, 'var(--decide)']]
-        : [['模型', m.model ?? 0, 'var(--vio)'], ['规则票一致', m['model+rule'] ?? 0, 'var(--decide)'], ['只用规则', m.rule ?? 0, 'var(--fact)']]
+        : [['模型', m.model ?? 0, 'var(--vio)'], ['与规则一致', m['model+rule'] ?? 0, 'var(--decide)'], ['只用规则', m.rule ?? 0, 'var(--fact)']]
       const sum = way.reduce((a, x) => a + x[1], 0)
       const GATE_AT = { '①': 'E3', '②': 'E4', '③': 'E5', '④': 'E6' }
       const tag = run.status === 'review' ? h('span', { className: 'mx-chip w' }, '待复核') : run.status === 'failed' ? h('span', { className: 'mx-chip b' }, '失败') : run.status === 'cancelled' ? h('span', { className: 'mx-chip b' }, '已取消') : null
@@ -1697,7 +1700,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       return h('div', { className: 'mx-ro' },
         roHead('资源占用', 'RESOURCES', h('span', { className: 'mx-faint', style: { fontSize: 11 } }, '本机')),
         h('div', { className: 'mx-gauges' },
-          gauge('堆内存', memRatio, mem?.heapLimit ? `${((running ? mem.heapUsed : mem.peakHeap) / GB).toFixed(1)} / ${(mem.heapLimit / GB).toFixed(1)}G` : '—', memRatio >= 0.85 ? 'crit' : memRatio >= 0.7 ? 'warn' : '', '主线程堆内存（结束后显示本批峰值）；分片在工作线程里处理，计入下方进程常驻', mem?.heapLimit && mem.peakHeap ? mem.peakHeap / mem.heapLimit : null),
+          gauge('堆内存', memRatio, mem?.heapLimit ? `${((running ? mem.heapUsed : mem.peakHeap) / GB).toFixed(1)} / ${(mem.heapLimit / GB).toFixed(1)}G` : '—', memRatio >= 0.85 ? 'crit' : memRatio >= 0.7 ? 'warn' : '', '主线程堆内存（结束后显示本批峰值）；数据块在工作线程里处理，计入下方进程常驻', mem?.heapLimit && mem.peakHeap ? mem.peakHeap / mem.heapLimit : null),
           gauge('磁盘', disk?.total ? 1 - disk.free / disk.total : null, disk?.total ? `剩 ${(disk.free / GB).toFixed(disk.free < 10 * GB ? 1 : 0)}G` : '—', disk?.total && disk.free < 5 * GB ? 'crit' : disk?.total && disk.free < 20 * GB ? 'warn' : '', '输出目录所在磁盘；圈上的点是本批最满的时候', disk?.total && Number.isFinite(disk.minFree) ? 1 - disk.minFree / disk.total : null)),
         mem?.peakRss ? h('div', { className: 'mx-res-line', title: '整个进程的常驻内存（含工作线程）' }, '进程常驻', h('b', {}, `${((running ? mem.rss ?? mem.peakRss : mem.peakRss) / GB).toFixed(1)}G`), h('span', {}, running ? `峰值 ${(mem.peakRss / GB).toFixed(1)}G` : '峰值'))
           : h('div', { className: 'mx-res-line' }, h('span', {}, '这个批次没有记录资源（旧版本跑的），重跑后显示')))
@@ -1706,10 +1709,10 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
     /* --------------------------------------------------------------- formats */
     const FMT_STATUS = { agreed: ['自动采用', 'ok'], confirmed: ['已确认', 'ok'], disputed: ['有分歧', 'w'], invalid: ['校验未过', 'w'], pending: ['待确认', 'w'], failed: ['调用失败', 'b'], rejected: ['已跳过', ''] }
     const FMT_ORIGIN = { model: '提取模型', verify: '核验模型', rule: '规则', user: '人工' }
-    const DRAFT_LABEL = { model: '提取模型草稿', verify: '核验模型草稿', rule: '规则草稿' }
+    const DRAFT_LABEL = { model: '提取模型的方案', verify: '核验模型的方案', rule: '规则的方案' }
     const FIELD_KIND = { time: '时间', number: '数', code: '代码', text: '短文', long: '长文', embedded: '嵌入文书', pseudonym: '假名' }
     const stripSpec = (s) => { if (!s) return {}; const { origin, accept, ...rest } = s; return rest }
-    /** 规格的一句话小结；labels：字段 → 中文名（数据元对照表） */
+    /** 读法的一句话小结；labels：字段 → 中文名（数据元对照表） */
     function specLine(spec, labels = {}) {
       if (!spec) return '—'
       const nm = (f) => (labels[f] ? `${labels[f]}（${f}）` : f)
@@ -1766,7 +1769,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
                       h('td', { className: 'mx-muted', style: { fontSize: 11.5 } }, [r.borrowedFrom ? `沿用${r.borrowedFrom}` : r.reason, ...(r.diffs ?? []), ...(r.problems ?? []).slice(0, 2)].filter(Boolean).join('；') || '—'))
                   }))))),
         h('div', { className: 'mx-frame mx-scroll mx-pad', style: { width: 480, flex: 'none', overflowX: 'hidden' } },
-          !current ? h('div', { className: 'mx-faint' }, '点左边的一张表，查看识别规格和各方草稿，并确认、修改或跳过。')
+          !current ? h('div', { className: 'mx-faint' }, '点左边的一张表，查看识别出的读法和各方方案，并确认、修改或跳过。')
             : h(FormatDetail, { key: current.signature, row: current, recordTypes: data.value?.recordTypes ?? [], decide })))
     }
 
@@ -1783,17 +1786,17 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         row.reason ? h('div', { className: 'mx-mo', style: { wordBreak: 'break-all' } }, row.reason, ...(row.diffs ?? []).map((d, i) => h('div', { key: i }, `· ${d}`)), ...(row.problems ?? []).map((d, i) => h('div', { key: `p${i}`, className: 'mx-warn' }, `· ${d}`))) : null,
         row.scope ? h('div', { className: 'mx-mo', style: { marginTop: 6 } }, '只在本插件内采用：这是结构化表，本插件只用类别、病人与就诊，这几项一致；下面这些角色有分歧，本插件用不到，病历事件还原不会借用这条结果。', ...(row.partialDiffs ?? []).map((d, i) => h('div', { key: i, className: 'mx-faint' }, `· ${d}`))) : null,
         row.rounds?.length ? h(React.Fragment, {},
-          h('div', { className: 'mx-sec' }, h('b', {}, '复判经过'), h('span', { className: 'mx-cap' }, row.adjudicated ? `第 ${row.adjudicated} 轮一致` : `${row.rounds.length} 轮仍不一致`)),
+          h('div', { className: 'mx-sec' }, h('b', {}, '复查经过'), h('span', { className: 'mx-cap' }, row.adjudicated ? `第 ${row.adjudicated} 轮一致` : `${row.rounds.length} 轮仍不一致`)),
           row.firstDiffs?.length ? h('div', { className: 'mx-faint', style: { fontSize: 11 } }, `起初的分歧：${row.firstDiffs.join('；')}`) : null,
           h('div', { className: 'mx-rounds' }, row.rounds.map((rd) => h('div', { key: rd.round, className: 'mx-round' },
             h('em', {}, `第 ${rd.round} 轮`),
-            h('div', {}, h('small', {}, '提取模型'), h('div', { style: { wordBreak: 'break-all' } }, specLine(rd.extract, labels)), rd.extractReason ? h('div', { className: 'mx-why' }, rd.extractReason) : null, rd.extractInvalid ? h('div', { className: 'mx-warn', style: { fontSize: 10.5 } }, `改出的规格没过校验，当作坚持：${rd.extractInvalid[0]}`) : null),
-            rd.verify ? h('div', {}, h('small', {}, '核验模型'), h('div', { style: { wordBreak: 'break-all' } }, specLine(rd.verify, labels)), rd.verifyReason ? h('div', { className: 'mx-why' }, rd.verifyReason) : null, rd.verifyInvalid ? h('div', { className: 'mx-warn', style: { fontSize: 10.5 } }, `改出的规格没过校验，当作坚持：${rd.verifyInvalid[0]}`) : null) : h('div', { className: 'mx-faint' }, rd.extract ? '（对照规则草稿，只复判 1 轮）' : ''))))) : null,
-        h('div', { className: 'mx-sec' }, h('b', {}, '当前规格'), h('span', { className: 'mx-cap' }, FMT_ORIGIN[row.spec?.origin] ?? '')),
+            h('div', {}, h('small', {}, '提取模型'), h('div', { style: { wordBreak: 'break-all' } }, specLine(rd.extract, labels)), rd.extractReason ? h('div', { className: 'mx-why' }, rd.extractReason) : null, rd.extractInvalid ? h('div', { className: 'mx-warn', style: { fontSize: 10.5 } }, `改出的读法没过校验，当作坚持：${rd.extractInvalid[0]}`) : null),
+            rd.verify ? h('div', {}, h('small', {}, '核验模型'), h('div', { style: { wordBreak: 'break-all' } }, specLine(rd.verify, labels)), rd.verifyReason ? h('div', { className: 'mx-why' }, rd.verifyReason) : null, rd.verifyInvalid ? h('div', { className: 'mx-warn', style: { fontSize: 10.5 } }, `改出的读法没过校验，当作坚持：${rd.verifyInvalid[0]}`) : null) : h('div', { className: 'mx-faint' }, rd.extract ? '（对照规则的方案，只复查 1 轮）' : ''))))) : null,
+        h('div', { className: 'mx-sec' }, h('b', {}, '当前读法'), h('span', { className: 'mx-cap' }, FMT_ORIGIN[row.spec?.origin] ?? '')),
         h('div', { style: { fontSize: 12, lineHeight: 1.7, wordBreak: 'break-all' } }, specLine(row.spec, labels)),
         row.spec?.note ? h('div', { className: 'mx-faint', style: { fontSize: 11, marginTop: 4 } }, `依据：${row.spec.note}`) : null,
         h('div', { style: { display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 10 } },
-          h('button', { className: 'mx-btn mx-new', onClick: () => decide({ signature: row.signature, action: 'confirm' }) }, '✓ 采用当前规格'),
+          h('button', { className: 'mx-btn mx-new', onClick: () => decide({ signature: row.signature, action: 'confirm' }) }, '✓ 采用当前读法'),
           h('button', { className: 'mx-btn', onClick: () => decide({ signature: row.signature, action: 'reject' }) }, '跳过这张表'),
           h('button', { className: 'mx-btn', title: '从格式库删掉，下次运行重新起草', onClick: () => decide({ signature: row.signature, action: 'reset' }) }, '重新起草'),
           h('button', { className: `mx-btn${editing ? ' on' : ''}`, onClick: () => setEditing(!editing) }, '编辑…')),
@@ -1803,7 +1806,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
           jsonErr ? h('div', { className: 'mx-err', style: { marginBottom: 6 } }, jsonErr) : null,
           h('button', { className: 'mx-btn mx-new', onClick: () => { let spec; try { spec = JSON.parse(text) } catch (e) { return setJsonErr(`不是合法的 JSON：${msg(e)}`) } setJsonErr(''); decide({ signature: row.signature, action: 'confirm', spec }) } }, '校验并确认')) : null,
         Object.keys(drafts).length ? h(React.Fragment, {},
-          h('div', { className: 'mx-sec' }, h('b', {}, '各方草稿'), h('span', { className: 'mx-cap' }, 'DRAFTS')),
+          h('div', { className: 'mx-sec' }, h('b', {}, '各方方案'), h('span', { className: 'mx-cap' }, 'DRAFTS')),
           Object.entries(DRAFT_LABEL).filter(([k]) => drafts[k]).map(([k, l]) => h('div', { key: k, className: 'mx-mrow' },
             h('div', { style: { display: 'flex', alignItems: 'center', gap: 8 } }, h('b', { style: { fontSize: 12 } }, l), h('span', { className: 'mx-sp' }),
               h('button', { className: 'mx-btn sm', onClick: () => decide({ signature: row.signature, action: 'confirm', use: k }) }, '采用这份')),
@@ -1893,12 +1896,12 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
                 t.references.map((r, i) => h('span', { key: i }, i ? h('span', { className: 'mx-faint' }, '；') : null, r.url ? h('a', { href: r.url, target: '_blank', rel: 'noreferrer', style: { color: 'var(--teal2)' } }, r.title) : r.title))) : null,
               h('div', { style: { display: 'flex', gap: 4, marginTop: 8 } }, [['fields', `字段 ${t.fields.length}`], ['json', 'JSON（编辑、另存）']].map(([k, l]) => h('button', { key: k, className: `mx-btn sm${view === k ? ' on' : ''}`, onClick: () => setView(k) }, l)), h('span', { className: 'mx-sp' }), h('button', { className: 'mx-btn sm', onClick: () => download(false), title: '把这个模板导出成 Excel，改好后用左侧「导入 Excel」导回来' }, '⇩ 下载 Excel'), h('button', { className: 'mx-btn sm pri', onClick: copyAsMine, title: '以当前模板为底稿，换一个新 id，在 JSON 里改好后保存到我的模板库' }, '＋ 复制为我的模板'))),
             view === 'fields' ? h('div', { className: 'mx-scroll', style: { flex: 1 } }, h('table', {},
-              h('thead', {}, h('tr', {}, ['字段', '名称', '组', '优先级', '类型', '粒度', '模型', '定义', '召回／规则'].map((x) => h('th', { key: x, style: nw }, x)))),
+              h('thead', {}, h('tr', {}, ['字段', '名称', '组', '优先级', '类型', '汇总层级', '模型', '定义', '关键词／规则'].map((x) => h('th', { key: x, style: nw }, x)))),
               h('tbody', {}, t.fields.map((f) => h('tr', { key: f.id, id: `mx-f-${f.id}`, className: focus === f.id ? 'sel' : undefined },
                 h('td', { className: 'mx-num', style: nw }, f.id), h('td', { style: { minWidth: 120 } }, f.name), h('td', { className: 'mx-faint', style: nw }, groupName[f.group] ?? f.group ?? ''), h('td', { style: nw }, h('span', { className: `mx-chip ${f.priority === 'P0' ? 'v' : ''}` }, f.priority ?? 'P1')),
                 h('td', { style: nw }, f.type), h('td', { className: 'mx-faint', style: nw }, f.granularity ?? 'encounter'), h('td', { className: 'mx-faint', style: nw }, f.model ?? 'auto'),
                 h('td', { style: { maxWidth: 360, fontSize: 11.5 } }, f.definition),
-                h('td', { className: 'mx-faint', style: { maxWidth: 280, fontSize: 11 } }, f.type === 'derived' ? `派生：${f.derive?.op}` : [...(f.recall?.terms ?? []), ...(f.options ?? []).map((o) => o.value)].slice(0, 8).join('、') + (f.rules?.length ? ` · 规则 ${f.rules.length}` : '')))))))
+                h('td', { className: 'mx-faint', style: { maxWidth: 280, fontSize: 11 } }, f.type === 'derived' ? `计算：${f.derive?.op}` : [...(f.recall?.terms ?? []), ...(f.options ?? []).map((o) => o.value)].slice(0, 8).join('、') + (f.rules?.length ? ` · 规则 ${f.rules.length}` : '')))))))
               : h('div', { className: 'mx-pad mx-col', style: { flex: 1 } },
                 h('textarea', { className: 'mx-json', value: draft, onChange: (e) => setDraft(e.target.value), spellCheck: false }),
                 h('div', { style: { display: 'flex', gap: 8, alignItems: 'flex-start' } }, h('button', { className: 'mx-btn pri', onClick: save }, '校验并保存到模板库'), h('pre', { className: 'mx-md', style: { margin: 0, color: 'var(--ink2)' } }, state))))))
@@ -1956,7 +1959,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       for (const v of dv) {
         if (v.s < at) continue
         parts.push(body.slice(at, v.s))
-        parts.push(h('span', { key: v.id, className: `${qCls(v)}${sel === v.id ? ' sel' : ''}`, title: `${v.field} ${fieldName[v.field] ?? ''} = ${v.value ?? '待定'}（${v.assertion}，${v.method}）`, onClick: () => setSel(v.id) }, body.slice(v.s, v.e)))
+        parts.push(h('span', { key: v.id, className: `${qCls(v)}${sel === v.id ? ' sel' : ''}`, title: `${v.field} ${fieldName[v.field] ?? ''} = ${v.value ?? '待定'}（${v.assertion}，${methodLabel(v.method)}）`, onClick: () => setSel(v.id) }, body.slice(v.s, v.e)))
         at = v.e
       }
       parts.push(body.slice(at))
@@ -1974,7 +1977,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
           h('div', { style: { display: 'grid', gridTemplateColumns: '1fr 300px', flex: 1, minHeight: 0 } },
             h('div', { className: 'mx-scroll mx-pad mx-doc', style: { lineHeight: 2 } }, text.loading ? '加载中…' : text.error ? h('div', { className: 'mx-err' }, text.error) : parts),
             h('div', { className: 'mx-scroll mx-pad', style: { borderLeft: '1px solid var(--line)' } },
-              selV ? h('div', { className: 'mx-mo' }, h('b', {}, `${selV.field} ${fieldName[selV.field] ?? ''}`), h('div', {}, `值：${selV.value ?? '待定'}${selV.unit ? ` ${selV.unit}` : ''}${selV.variant ? `（${selV.variant}）` : ''}`), h('div', {}, `断言：${selV.assertion} · 栏目：${selV.section ?? '—'}`), h('div', {}, `方法：${selV.method}${selV.flags?.length ? ` · ${selV.flags.join('、')}` : ''}`), h('div', { className: 'mx-faint mx-num' }, selV.id)) : null,
+              selV ? h('div', { className: 'mx-mo' }, h('b', {}, `${selV.field} ${fieldName[selV.field] ?? ''}`), h('div', {}, `值：${selV.value ?? '待定'}${selV.unit ? ` ${selV.unit}` : ''}${selV.variant ? `（${selV.variant}）` : ''}`), h('div', {}, `提及方式：${selV.assertion} · 栏目：${selV.section ?? '—'}`), h('div', {}, `来源：${methodLabel(selV.method)}${selV.flags?.length ? ` · ${selV.flags.map(flagLabel).join('、')}` : ''}`), h('div', { className: 'mx-faint mx-num' }, selV.id)) : null,
               dv.map((v) => h('div', { key: v.id, className: 'mx-mrow', style: { cursor: 'pointer', background: sel === v.id ? 'var(--panel3)' : undefined }, onClick: () => setSel(v.id) },
                 h('span', { className: 'mx-num mx-faint' }, v.field), ' ', fieldName[v.field] ?? '', ' = ', h('b', {}, String(v.value ?? '待定')), ' ', h('span', { className: `mx-chip ${v.assertion === '否认' ? '' : v.assertion === '阳性' ? 'ok' : 'v'}` }, v.assertion)))))))
     }
@@ -1982,14 +1985,14 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
     /* --------------------------------------------------------------- review */
     /**
      * 复核页（借鉴匿名化插件的比对与复核）：
-     *   左栏：状态（待裁定／已裁定／复判已解决）＋按「字段 × 类别」分组，选中字段再按两边结论细分，计数一目了然；
-     *   右栏：当前范围的复核卡，键盘 J/K 移动、1/2/3 裁定、U 撤销，裁定后自动跳到下一项；
-     *   整组裁定（「本组 n 项都这样处理」，两步确认）；原文两边分色标出，可就地展开全文；
-     *   「应用裁定」不调模型、立即重新汇总交付数据，交人工的都裁定了批次转为完成。
+     *   左栏：状态（待判断／已判断／复查后一致）＋按「字段 × 类别」分组，选中字段再按两边说法细分，计数一目了然；
+     *   右栏：当前范围的复核卡，键盘 J/K 移动、1/2/3 判断、U 撤销，判断后自动跳到下一项；
+     *   整组判断（「本组 n 项都这样处理」，两步确认）；原文两边分色标出，可就地展开全文；
+     *   「更新宽表」不调模型、立即重新汇总交付数据，转人工的都判断了批次转为完成。
      */
     const RV_LIMIT = 20
-    const DECISION_LABEL = (kind) => ({ confirm: '已维持最终结果', useVerify: kind === 'rule' ? '已采纳规则票' : '已按核验模型改判', reject: '已驳回最终值' })
-    /** 片段里两边的值分色：a＝最终结果（提取模型一方），b＝规则票／核验模型一方，ab＝两边重叠 */
+    const DECISION_LABEL = (kind) => ({ confirm: '已维持最终结果', useVerify: kind === 'rule' ? '已改用规则匹配结果' : '已改用核验模型的结果', reject: '已不采用最终结果' })
+    /** 片段里两边的值分色：a＝最终结果（提取模型一方），b＝规则匹配／核验模型一方，ab＝两边重叠 */
     function marked(text, base, sides, keyBase) {
       const n = text.length
       if (!n) return text
@@ -2029,7 +2032,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
     function ReviewCard({ run, it, on, local, busy, onFocus, onDecide }) {
       const [full, setFull] = useState(false)
       const decision = local !== undefined ? local : it.decision
-      const otherName = it.kind === 'rule' ? '规则票' : '核验模型'
+      const otherName = it.kind === 'rule' ? '规则匹配' : '核验模型'
       const noFinal = !it.finalValues.length
       const ref = React.useRef(null)
       useEffect(() => { if (on && ref.current) ref.current.scrollIntoView({ block: 'nearest', behavior: 'smooth' }) }, [on])
@@ -2037,26 +2040,26 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       return h('div', { ref, className: `mx-rv${on ? ' on' : ''}${decision ? ' done' : ''}`, onClick: onFocus },
         h('div', { className: 'mx-rv-h' },
           h('b', { className: 'mx-num' }, it.field), h('b', {}, it.fieldName ?? ''),
-          h('span', { className: `mx-chip ${it.kind === 'rule' ? 'f' : 'v'}` }, it.kind === 'rule' ? '规则票不一致' : '核验分歧'),
+          h('span', { className: `mx-chip ${it.kind === 'rule' ? 'f' : 'v'}` }, it.kind === 'rule' ? '规则与模型不符' : '核验分歧'),
           h('span', { className: 'mx-faint' }, `${it.patient} · ${it.recordType} · ${it.written ?? '时间不详'}`),
           h('span', { className: 'mx-sp' }),
-          it.resolved ? h('span', { className: 'mx-chip ok' }, `复判第 ${it.resolved.round} 轮解决（${it.resolved.by === 'extract' ? '提取模型改口' : '核验模型改口'}）`) : null,
+          it.resolved ? h('span', { className: 'mx-chip ok' }, `复查第 ${it.resolved.round} 轮一致（${it.resolved.by === 'extract' ? '提取模型改口' : '核验模型改口'}）`) : null,
           decision ? h('span', { className: 'mx-chip ok' }, DECISION_LABEL(it.kind)[decision.decision] ?? decision.decision) : null),
         h('div', { className: 'mx-rv-cols' },
-          h('div', { className: 'mx-rv-a' }, h('div', { className: 'mx-faint' }, it.resolved ? '采用的结果' : '最终结果'), h('b', {}, it.final), it.finalValues.slice(0, 4).map((x, i) => h('div', { key: i, className: 'mx-faint' }, `「${x.quote}」 ${x.assertion} · ${x.method}`))),
+          h('div', { className: 'mx-rv-a' }, h('div', { className: 'mx-faint' }, it.resolved ? '采用的结果' : '最终结果'), h('b', {}, it.final), it.finalValues.slice(0, 4).map((x, i) => h('div', { key: i, className: 'mx-faint' }, `「${x.quote}」 ${x.assertion} · ${methodLabel(x.method)}`))),
           h('div', { className: 'mx-rv-b' }, h('div', { className: 'mx-faint' }, otherName), h('b', {}, it.verify), it.verifyValues.slice(0, 4).map((x, i) => h('div', { key: i, className: 'mx-faint' }, `「${x.quote}」 ${x.assertion}`)))),
         it.rounds?.length ? h('div', { className: 'mx-rounds' }, it.rounds.map((rd) => h('div', { key: rd.round, className: 'mx-round' },
           h('em', {}, `第 ${rd.round} 轮`),
           h('div', {}, h('small', {}, '提取模型'), h('b', {}, rd.extract?.length ? rd.extract.map((x) => `${x.value}（${x.assertion}）`).join('；') : '原文没写'), rd.extract?.slice(0, 2).map((x, i) => h('div', { key: i, className: 'mx-faint' }, `「${x.quote}」`)), rd.extractReason ? h('div', { className: 'mx-why' }, rd.extractReason) : null),
-          rd.verify ? h('div', {}, h('small', {}, '核验模型'), h('b', {}, rd.verify.length ? rd.verify.map((x) => `${x.value}（${x.assertion}）`).join('；') : '原文没写'), rd.verify.slice(0, 2).map((x, i) => h('div', { key: i, className: 'mx-faint' }, `「${x.quote}」`)), rd.verifyReason ? h('div', { className: 'mx-why' }, rd.verifyReason) : null) : h('div', { className: 'mx-faint' }, it.kind === 'rule' ? '（规则不变，只复判 1 轮）' : '')))) : null,
+          rd.verify ? h('div', {}, h('small', {}, '核验模型'), h('b', {}, rd.verify.length ? rd.verify.map((x) => `${x.value}（${x.assertion}）`).join('；') : '原文没写'), rd.verify.slice(0, 2).map((x, i) => h('div', { key: i, className: 'mx-faint' }, `「${x.quote}」`)), rd.verifyReason ? h('div', { className: 'mx-why' }, rd.verifyReason) : null) : h('div', { className: 'mx-faint' }, it.kind === 'rule' ? '（规则不变，只复查 1 轮）' : '')))) : null,
         full ? h(FullText, { run, it }) : it.snippets.slice(0, 3).map((s, i) => h('div', { key: i, className: 'mx-snip' }, marked(s.text, s.s, sidesOf(it), `s${i}`))),
         h('div', { className: 'mx-rv-act' },
           decision
             ? h(React.Fragment, {}, h('span', { className: 'mx-ok' }, `✓ ${DECISION_LABEL(it.kind)[decision.decision] ?? decision.decision}`), btn('U', 'clear', '撤销'))
             : h(React.Fragment, {},
               btn('1', 'confirm', '维持最终结果'),
-              btn('2', 'useVerify', it.kind === 'rule' ? '采纳规则票' : '按核验模型改判', { pri: true, title: `宽表这一格改用${otherName}的结论：${it.verify}` }),
-              btn('3', 'reject', '两者都不对（驳回）', { disabled: noFinal, title: noFinal ? '最终结果本来就是「未提及」，驳回与维持相同' : '驳回最终结果的值（宽表这一格不再用它们）' })),
+              btn('2', 'useVerify', it.kind === 'rule' ? '改用规则匹配结果' : '改用核验模型的结果', { pri: true, title: `宽表这一格改用${otherName}的结论：${it.verify}` }),
+              btn('3', 'reject', '两边都不对', { disabled: noFinal, title: noFinal ? '最终结果本来就是「未提及」，「两边都不对」与维持相同' : '最终结果的值不采用（宽表这一格不再用它们）' })),
           h('span', { className: 'mx-sp' }),
           h('button', { className: 'mx-link', onClick: (e) => { e.stopPropagation(); setFull(!full) } }, full ? '收起全文' : '展开全文')))
     }
@@ -2066,9 +2069,9 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       const [sel, setSel] = useState(null) // { kind, field, pattern? }
       const [offset, setOffset] = useState(0)
       const [focus, setFocus] = useState(0)
-      const [local, setLocal] = useState({}) // id -> decision（待裁定里裁定过的留在原处，翻页后才离开）
+      const [local, setLocal] = useState({}) // id -> decision（待判断里判断过的留在原处，翻页后才离开）
       const [busy, setBusy] = useState(false)
-      const [bulk, setBulk] = useState(null) // 待确认的整组裁定
+      const [bulk, setBulk] = useState(null) // 待确认的整组判断
       const [note, setNote] = useState(null)
       const [gtick, setGtick] = useState(0)
       const groups = useAsync(() => call('reviewGroups', { runId: run.id, status }), [run.id, status, gtick])
@@ -2081,7 +2084,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       const pick = (next) => { setSel(next); setOffset(0); setBulk(null) }
       const pickStatus = (s) => { setStatus(s); setSel(null); setOffset(0); setBulk(null) }
       const refreshGroups = () => setGtick((n) => n + 1)
-      // 翻页：待裁定里本页已裁定的不再算在偏移里（它们已经离开这个筛选）
+      // 翻页：待判断里本页已判断的不再算在偏移里（它们已经离开这个筛选）
       const doneHere = status === 'todo' ? items.filter((it) => local[it.id]).length : 0
       const nextOffset = offset + items.length - doneHere
       const hasNext = v && offset + RV_LIMIT < v.total
@@ -2093,7 +2096,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
           const d = decision === 'clear' ? null : { decision }
           setLocal((m) => ({ ...m, [it.id]: d }))
           refreshGroups()
-          // 自动跳到本页下一条没裁定的（同匿名化插件「下一个待判断」）
+          // 自动跳到本页下一条没判断的（同匿名化插件「下一个待判断」）
           if (decision !== 'clear') {
             const i = items.findIndex((x) => x.id === it.id)
             const after = items.findIndex((x, j) => j > i && !(x.id === it.id ? d : decisionOf(x)))
@@ -2113,7 +2116,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         try {
           const r = await call('decideGroup', { runId: run.id, field: sel.field, kind: sel.kind, pattern: sel.pattern ?? null, decision })
           setBulk(null)
-          setNote({ ok: true, text: `已裁定 ${fmt(r.decided)} 项。点「应用裁定」更新宽表。` })
+          setNote({ ok: true, text: `已判断 ${fmt(r.decided)} 项。点左下「更新宽表」生效。` })
           refreshGroups(); q.reload()
         } catch (e) { onError(msg(e)) } finally { setBusy(false) }
       }
@@ -2121,11 +2124,11 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         setBusy(true); setNote(null)
         try {
           const r = await call('applyDecisions', { runId: run.id })
-          setNote({ ok: true, text: r.todo ? `已按裁定重新汇总交付数据（冲突 ${fmt(r.conflicts)}）；还有 ${fmt(r.todo)} 项待裁定。` : `已按裁定重新汇总交付数据；交人工的 ${fmt(r.decided)} 项都已裁定，批次转为完成。` })
+          setNote({ ok: true, text: r.todo ? `已按你的判断重新汇总交付数据（冲突 ${fmt(r.conflicts)}）；还有 ${fmt(r.todo)} 项待判断。` : `已按你的判断重新汇总交付数据；转人工的 ${fmt(r.decided)} 项都已判断，批次转为完成。` })
           refreshGroups(); onRunChanged?.()
         } catch (e) { setNote({ ok: false, text: msg(e) }) } finally { setBusy(false) }
       }
-      // 键盘：J/K（↓/↑）移动，1/2/3 裁定，U 撤销，N 下一个待裁定
+      // 键盘：J/K（↓/↑）移动，1/2/3 判断，U 撤销，N 下一个待判断
       useEffect(() => {
         const onKey = (e) => {
           if (e.metaKey || e.ctrlKey || e.altKey) return
@@ -2149,10 +2152,10 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       const selGroup = sel && g ? g.groups.find((x) => x.field === sel.field && x.kind === sel.kind) : null
       const selPattern = sel?.pattern != null && selGroup ? selGroup.patterns.find((p) => p.pattern === sel.pattern) : null
       const scopeTodo = selPattern ? selPattern.todo : selGroup ? selGroup.todo : 0
-      // 当前范围里最终结果全是「未提及」：驳回没有可驳的值
+      // 当前范围里最终结果全是「未提及」：「两边都不对」没有可去掉的值
       const allNone = selPattern ? selPattern.final === '未提及' : Boolean(selGroup && selGroup.more === 0 && selGroup.patterns.every((p) => p.final === '未提及'))
-      const otherName = (kind) => (kind === 'rule' ? '规则票' : '核验')
-      const STATUS = [['todo', '待裁定', counts.todo], ['decided', '已裁定', counts.decided], ['resolved', '复判已解决（抽查）', counts.resolved]]
+      const otherName = (kind) => (kind === 'rule' ? '规则匹配' : '核验')
+      const STATUS = [['todo', '待判断', counts.todo], ['decided', '已判断', counts.decided], ['resolved', '复查后一致（抽查）', counts.resolved]]
       const canApply = g?.hasOutput && run.status !== 'running'
 
       return h('div', { className: 'mx-rvx' },
@@ -2168,15 +2171,15 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
                   h('div', { className: `mx-pi mx-rvx-g${on && sel.pattern == null ? ' on' : ''}`, title: `${x.field} ${x.fieldName} · ${otherName(x.kind)}`, onClick: () => pick({ field: x.field, kind: x.kind }) },
                     h('b', {}, h('span', { className: 'mx-num' }, x.field), ' ', x.fieldName),
                     h('span', { className: 'mx-num' }, fmt(n)),
-                    h('span', { style: { gridColumn: '1 / 3' } }, h('span', { className: `mx-chip ${x.kind === 'rule' ? 'f' : 'v'}` }, x.kind === 'rule' ? '规则票' : '核验'), `${x.patternCount} 种结论组合${status !== 'todo' && x.todo ? ` · 待裁定 ${x.todo}` : ''}`)),
+                    h('span', { style: { gridColumn: '1 / 3' } }, h('span', { className: `mx-chip ${x.kind === 'rule' ? 'f' : 'v'}` }, x.kind === 'rule' ? '规则匹配' : '核验'), `${x.patternCount} 种不同说法${status !== 'todo' && x.todo ? ` · 待判断 ${x.todo}` : ''}`)),
                   on ? x.patterns.map((p) => h('div', { key: p.pattern, className: `mx-rvx-p${sel.pattern === p.pattern ? ' on' : ''}`, title: `最终：${p.final}\n${otherName(x.kind)}：${p.verify}`, onClick: () => pick({ field: x.field, kind: x.kind, pattern: p.pattern }) },
                     h('span', { className: 'mx-rvx-pv' }, h('em', { className: 'a' }, p.final), ' ⇄ ', h('em', { className: 'b' }, p.verify)),
                     h('i', { className: 'mx-num' }, fmt(status === 'todo' ? p.todo : p.n)))) : null,
-                  on && x.more ? h('div', { className: 'mx-faint mx-rvx-p' }, `其余 ${fmt(x.more)} 项（结论组合太多，未逐一列出）`) : null)
+                  on && x.more ? h('div', { className: 'mx-faint mx-rvx-p' }, `其余 ${fmt(x.more)} 项（说法组合太多，未逐一列出）`) : null)
               })),
           h('div', { className: 'mx-rvx-apply' },
-            h('button', { className: `mx-btn${g?.dirty ? ' mx-new' : ''}`, disabled: busy || !canApply, title: canApply ? '不调模型，按全部裁定重新汇总：替换交付目录里的宽表、时间点、冲突表与 result.xlsx' : '批次在运行或没有交付目录', onClick: apply }, busy ? '处理中…' : '应用裁定 → 更新宽表'),
-            h('div', { className: 'mx-faint' }, g?.dirty ? '有新的裁定还没应用到交付数据' : g?.humanReview?.appliedAt ? `已于 ${fmtTime(g.humanReview.appliedAt)} 应用${g.humanReview.carried ? '（沿用以前的裁定）' : ''}` : '裁定按稳定编号存，应用后立即生效，重跑也沿用'))),
+            h('button', { className: `mx-btn${g?.dirty ? ' mx-new' : ''}`, disabled: busy || !canApply, title: canApply ? '不调模型，按全部判断重新汇总：替换交付目录里的宽表、时间点、冲突表与 result.xlsx' : '批次在运行或没有交付目录', onClick: apply }, busy ? '处理中…' : '更新宽表'),
+            h('div', { className: 'mx-faint' }, g?.dirty ? '有新的判断还没更新到宽表' : g?.humanReview?.appliedAt ? `已于 ${fmtTime(g.humanReview.appliedAt)} 更新宽表${g.humanReview.carried ? '（沿用以前的判断）' : ''}` : '判断结果会保存，更新宽表后生效，重跑也沿用'))),
         h('section', { className: 'mx-frame mx-col mx-rvx-main' },
           h('div', { className: 'mx-pad mx-rvx-bar' },
             h('b', {}, '复核'), h('span', { className: 'mx-cap' }, 'REVIEW'),
@@ -2185,30 +2188,30 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
             v ? h('span', { className: 'mx-faint mx-num' }, v.total ? `${fmt(offset + 1)}–${fmt(offset + items.length)} / ${fmt(v.total)}` : '0 项') : null,
             h('button', { className: 'mx-btn sm', disabled: offset === 0, onClick: () => setOffset(Math.max(0, offset - RV_LIMIT)) }, '‹'),
             h('button', { className: 'mx-btn sm', disabled: !hasNext, onClick: () => setOffset(status === 'todo' ? nextOffset : offset + RV_LIMIT) }, '›'),
-            h('button', { className: 'mx-btn sm pri', disabled: !items.some((x) => !decisionOf(x)) && !hasNext, title: '跳到下一条还没裁定的（N）', onClick: nextTodo }, '下一个待裁定 →')),
-          // 整组裁定：同一字段、同样两边结论的项一次处理（两步确认）
+            h('button', { className: 'mx-btn sm pri', disabled: !items.some((x) => !decisionOf(x)) && !hasNext, title: '跳到下一条还没判断的（N）', onClick: nextTodo }, '下一个待判断 →')),
+          // 整组判断：同一字段、同样两边说法的项一次处理（两步确认）
           status === 'todo' && sel && scopeTodo > 1 ? h('div', { className: 'mx-rvx-bulk' },
             bulk
               ? h(React.Fragment, {},
-                h('span', {}, `确定把这 ${fmt(scopeTodo)} 项都「${{ confirm: '维持最终结果', useVerify: sel.kind === 'rule' ? '采纳规则票' : '按核验模型改判', reject: '驳回最终值' }[bulk]}」？已裁定的不受影响，可逐条撤销。`),
+                h('span', {}, `确定把这 ${fmt(scopeTodo)} 项都「${{ confirm: '维持最终结果', useVerify: sel.kind === 'rule' ? '改用规则匹配结果' : '改用核验模型的结果', reject: '不采用最终结果' }[bulk]}」？已判断的不受影响，可逐条撤销。`),
                 h('button', { className: 'mx-btn sm pri', disabled: busy, onClick: () => decideGroup(bulk) }, busy ? '处理中…' : '确定'),
                 h('button', { className: 'mx-btn sm', disabled: busy, onClick: () => setBulk(null) }, '取消'))
               : h(React.Fragment, {},
-                h('span', {}, `本${selPattern ? '组' : '字段'} ${fmt(scopeTodo)} 项待裁定，都这样处理：`),
+                h('span', {}, `本${selPattern ? '组' : '字段'} ${fmt(scopeTodo)} 项待判断，都这样处理：`),
                 h('button', { className: 'mx-btn sm', onClick: () => setBulk('confirm') }, '维持最终结果'),
-                h('button', { className: 'mx-btn sm', onClick: () => setBulk('useVerify') }, sel.kind === 'rule' ? '采纳规则票' : '按核验模型改判'),
-                allNone ? null : h('button', { className: 'mx-btn sm', onClick: () => setBulk('reject') }, '驳回最终值'),
+                h('button', { className: 'mx-btn sm', onClick: () => setBulk('useVerify') }, sel.kind === 'rule' ? '改用规则匹配结果' : '改用核验模型的结果'),
+                allNone ? null : h('button', { className: 'mx-btn sm', onClick: () => setBulk('reject') }, '不采用最终结果'),
                 sel.kind === 'rule' && allNone ? h('span', { className: 'mx-faint mx-rvx-hint' }, '这些都是规则报了、模型说原文没写：多半是这个字段的规则写宽了。维持后到', h('button', { className: 'mx-link mx-tl', onClick: () => goto?.('template') }, '「模板」'), '收紧规则，重跑就不再报') : null)) : null,
           note ? h('div', { className: `mx-rvx-note${note.ok ? '' : ' bad'}`, onClick: () => setNote(null) }, note.text) : null,
           h('div', { className: 'mx-rvx-legend' },
-            h('span', {}, h('mark', { className: 'mx-mk a' }, '最终结果'), ' ', h('mark', { className: 'mx-mk b' }, '规则票／核验模型'), ' ', h('mark', { className: 'mx-mk ab' }, '两边都引了')),
+            h('span', {}, h('mark', { className: 'mx-mk a' }, '最终结果'), ' ', h('mark', { className: 'mx-mk b' }, '规则匹配／核验模型'), ' ', h('mark', { className: 'mx-mk ab' }, '两边都引了')),
             h('span', { className: 'mx-sp' }),
-            h('span', { className: 'mx-faint' }, h('kbd', {}, 'J'), h('kbd', {}, 'K'), ' 上下 · ', h('kbd', {}, '1'), h('kbd', {}, '2'), h('kbd', {}, '3'), ' 裁定 · ', h('kbd', {}, 'U'), ' 撤销 · ', h('kbd', {}, 'N'), ' 下一个待裁定')),
+            h('span', { className: 'mx-faint' }, h('kbd', {}, 'J'), h('kbd', {}, 'K'), ' 上下 · ', h('kbd', {}, '1'), h('kbd', {}, '2'), h('kbd', {}, '3'), ' 判断 · ', h('kbd', {}, 'U'), ' 撤销 · ', h('kbd', {}, 'N'), ' 下一个待判断')),
           h('div', { className: 'mx-scroll mx-pad', style: { flex: 1 } },
             !v ? h('div', { className: 'mx-faint' }, q.error ?? '加载中…')
               : !items.length ? h('div', { className: 'mx-empty' }, status === 'todo'
-                ? (counts.open ? '这里的项都裁定了。点左下「应用裁定」更新宽表。' : run.model?.verifyModel || run.mode !== 'model' ? '没有待复核的项。' : '未配置核验模型，没有抽样核验。')
-                : status === 'decided' ? '还没有裁定。' : '没有复判自动解决的项。')
+                ? (counts.open ? '这里的项都判断了。点左下「更新宽表」生效。' : run.model?.verifyModel || run.mode !== 'model' ? '没有待复核的项。' : '未配置核验模型，没有抽样核验。')
+                : status === 'decided' ? '还没有判断。' : '没有复查后自动一致的项。')
                 : items.map((it, i) => h(ReviewCard, { key: it.id, run, it, on: i === focus, local: local[it.id], busy, onFocus: () => setFocus(i), onDecide: decide })))))
     }
 
@@ -2343,11 +2346,11 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
               h('label', { className: 'mx-field mx-wide' }, 'API Key', h('input', { className: 'mx-input', type: 'password', autoComplete: 'off', value: form.apiKey ?? '', placeholder: cfg.hasApiKey && !form.clearKey ? '已保存（留空不修改）' : '没有可不填', onChange: (e) => { set('apiKey', e.target.value); if (e.target.value) set('clearKey', false) } }))),
             cfg.hasApiKey ? h('label', { className: 'mx-scheck' }, h('input', { type: 'checkbox', checked: form.clearKey === true, onChange: (e) => { set('clearKey', e.target.checked); if (e.target.checked) set('apiKey', '') } }), h('span', {}, '清除已保存的 API Key')) : null,
             testLine('extract')),
-          card('核验模型', '抽样对同样的任务背靠背重新提取，统计一致率；也给格式识别核对。可不配，不配就不做抽样核验。最好和提取模型不是同一个。',
+          card('核验模型', '抽样对同样的任务各自独立重新提取，统计一致率；也给格式识别核对。可不配，不配就不做抽样核验。最好和提取模型不是同一个。',
             h('div', { className: 'mx-grid2' },
               field('verifyBaseURL', '端点（空＝同提取模型）', { placeholder: form.baseURL || 'http://127.0.0.1:11434/v1' }),
               h('div', { className: 'mx-field' }, '模型', h(ModelPicker, { value: form.verifyModel, onChange: (v) => set('verifyModel', v), placeholder: '空＝不做抽样核验', baseURL: form.verifyBaseURL || form.baseURL || '', apiKey: form.apiKey ?? '' }))),
-            sameName ? h('p', { className: 'mx-shint bad' }, `核验模型和提取模型都是「${form.model}」：背靠背重抽等于自己核自己，一致率会偏高`) : null,
+            sameName ? h('p', { className: 'mx-shint bad' }, `核验模型和提取模型都是「${form.model}」：各自独立重抽等于自己核自己，一致率会偏高`) : null,
             form.verifyModel ? testLine('verify') : null),
           card('调用', '两个模型共用。',
             check('disableThinking', '关闭思考模式', '推理模型（如 Qwen3）更快、更省 token'),
@@ -2363,13 +2366,13 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
               select('extractMode', '默认模式', Object.entries(MODE_LABEL)),
               field('priorities', '只提取这些优先级', { placeholder: '空＝全部，如 P0,P1' }),
               field('mapping', '通用文件字段映射（JSON）', { placeholder: '空＝自动识别，如 {"text":"content"}' }))),
-          card('抽样核验与复判', '需要配置核验模型。',
+          card('抽样核验与复查', '需要配置核验模型。',
             h('div', { className: 'mx-grid2' },
               field('verifySampleRate', '核验抽样比例（0–1）', { type: 'number', step: 0.01, min: 0, max: 1 }),
-              field('verifyMinPerField', '每字段每分片至少核验几份', { type: 'number', min: 0 }),
-              field('verifyThreshold', '验收门④一致率阈值（0–1）', { type: 'number', step: 0.01, min: 0, max: 1 }),
-              field('maxRounds', '复判轮次上限（1–6）', { type: 'number', min: 1, max: 6 }, '分歧时两个模型轮流复判，仍不一致交人工')))),
-        format: () => card('格式识别（通用文件）', '按表识别类别、写成时间、病人、就诊与栏目：规则草稿＋提取模型起草＋核验模型背靠背，一致才自动采用，其余在「格式」页确认。只发字段名、统计和截短样例，不发正文。',
+              field('verifyMinPerField', '每字段每数据块至少核验几份', { type: 'number', min: 0 }),
+              field('verifyThreshold', '质检④一致率阈值（0–1）', { type: 'number', step: 0.01, min: 0, max: 1 }),
+              field('maxRounds', '复查轮次上限（1–6）', { type: 'number', min: 1, max: 6 }, '分歧时两个模型轮流复查，仍不一致转人工')))),
+        format: () => card('格式识别（通用文件）', '按表识别类别、写成时间、病人、就诊与栏目：规则给的方案＋提取模型、核验模型各自独立起草，一致才自动采用，其余在「格式」页确认。只发字段名、统计和截短样例，不发正文。',
           check('formatRecognition', '启用格式识别'),
           check('borrowFormats', '借用病历事件还原插件已采用的识别结果'),
           h('div', { className: 'mx-grid2' },
@@ -2380,7 +2383,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
             h('div', { className: 'mx-grid2' },
               field('outputRoot', '默认输出根目录', { placeholder: '空＝输入旁的 _medical-extract' }),
               field('workers', '工作线程数', { type: 'number', min: 0 }, '0＝自动'),
-              field('shardUnits', 'p_doc 导出：每个分片的病人数', { type: 'number', min: 1 }))),
+              field('shardUnits', 'p_doc 导出：每个数据块的病人数', { type: 'number', min: 1 }))),
           card('界面', null, check('showSidebarEntry', '在左侧栏显示「病历文书提取」入口'))),
       }
       return h('div', { className: 'mx-settings' }, h('style', {}, CSS),
