@@ -474,15 +474,15 @@ window.__ModuleLoader__.load({
         h('div', { className: 'mx-grid2 tm' },
           h('label', { className: 'mx-field' }, '抽取模板',
             h('select', { className: 'mx-input', value: template, title: tplList.find((t) => t.id === template)?.name ?? '', onChange: (e) => setTemplate(e.target.value) },
-              h('option', { value: '' }, `默认（${cfg.value?.template ?? '…'}）`), tplList.map((t) => h('option', { key: t.id, value: t.id }, `${t.domain ? `${t.domain} · ` : ''}${t.name} · ${t.fields} 字段${t.origin === 'builtin' ? '' : '（我的）'}`)))),
+              h('option', { value: '', disabled: true }, '请选择模板…'), tplList.map((t) => h('option', { key: t.id, value: t.id }, `${t.domain ? `${t.domain} · ` : ''}${t.name} · ${t.fields} 字段${t.origin === 'builtin' ? '' : '（我的）'}`)))),
           h('label', { className: 'mx-field' }, '模式',
-            h('select', { className: 'mx-input', value: mode, onChange: (e) => setMode(e.target.value) },
-              h('option', { value: '' }, `默认（${MODE_LABEL[cfg.value?.mode] ?? '…'}）`), Object.entries(MODE_LABEL).map(([k, l]) => h('option', { key: k, value: k }, l))))),
+            h('select', { className: 'mx-input', value: mode || cfg.value?.mode || 'hybrid', onChange: (e) => setMode(e.target.value) },
+              Object.entries(MODE_LABEL).map(([k, l]) => h('option', { key: k, value: k }, l))))),
         h('label', { className: 'mx-pick', style: { fontSize: 11.5 } }, h('input', { type: 'checkbox', checked: p0, onChange: (e) => setP0(e.target.checked) }), '只抽 P0 字段'),
         h('label', { className: 'mx-field' }, '输出根目录', h('input', { className: 'mx-input', value: outputRoot, onChange: (e) => setOut(e.target.value), placeholder: '空＝设置里的默认值，再缺省为输入旁的 _medical-extract' })),
         h('label', { className: 'mx-field' }, '截至时刻（可空）', h('input', { className: 'mx-input', value: asOf, onChange: (e) => setAsOf(e.target.value), placeholder: 'YYYY-MM-DD HH:mm · 只用此刻以前写成的文书' })),
         h('div', { className: 'mx-pop-act' },
-          h('button', { className: 'mx-btn mx-new', style: { flex: 1 }, disabled: !inputDir || busy, onClick: () => go({ inputDir, outputRoot, template, mode, asOf, priorities: p0 ? ['P0'] : undefined }) }, busy ? '启动中…' : '▶ 开始'),
+          h('button', { className: 'mx-btn mx-new', style: { flex: 1 }, disabled: !inputDir || !template || busy, title: !template ? '先选择抽取模板' : undefined, onClick: () => go({ inputDir, outputRoot, template, mode: mode || cfg.value?.mode || 'hybrid', asOf, priorities: p0 ? ['P0'] : undefined }) }, busy ? '启动中…' : '▶ 开始'),
           resumable ? h('button', { className: 'mx-btn', disabled: busy, title: `继续批次 ${resumable.id}：已完成的分片和模型调用直接复用`, onClick: () => go({ resumeFrom: resumable.id }) }, '↻ 继续') : null))
     }
 
