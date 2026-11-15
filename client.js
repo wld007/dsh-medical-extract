@@ -1043,7 +1043,8 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       if (running && run.current?.stage === 'E3') {
         const at = [bay0(2) + 30, D + 6]; const tp = iso(at[0] + 8, at[1] + 14, 0)
         els.push(h('g', { key: 'cur' }, h('g', { filter: 'url(#mx-glow)', className: 'mx-pulse' }, isoBox('cc', at[0], at[1], 0, 16, 14, 13, AMB)),
-          h('text', { x: tp[0] - 14, y: tp[1] + 16, textAnchor: 'end', fill: A, fontSize: 10.5, fontWeight: 700, ...halo }, `处理中 · ${run.shards.running ?? 0} 个数据块${run.rate ? ` · ${fmt(run.rate)} 份/秒` : ''}`)))
+          // 说明放在发光箱子左侧、和箱子齐高：下方是提取模型小楼，楼顶的排队数会和它重叠
+          h('text', { x: tp[0] - 16, y: tp[1] - 4, textAnchor: 'end', fill: A, fontSize: 10.5, fontWeight: 700, ...halo }, `处理中 · ${run.shards.running ?? 0} 个数据块${run.rate ? ` · ${fmt(run.rate)} 份/秒` : ''}`)))
       }
       // 模型房子：一栋＝一个模型服务（按模型名；提取、核验同端点同模型时只有一栋）。
       // 管子只连真正调用模型的工序：读入（格式识别）、提取、核验（核验与复查）。哪道工序此刻有请求在途，那根管子就流动发光；
