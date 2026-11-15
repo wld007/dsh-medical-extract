@@ -177,3 +177,13 @@ test('读入·清洗：图片与二进制丢掉、HTML／RTF 转文字（图片�
   // 普通文字不受影响
   assert.equal(cleanValue('血压 130/80mmHg，否认胸痛。'), '血压 130/80mmHg，否认胸痛。')
 })
+
+test('全局模型并发：多个限流器共用一个计数，不超过上限', async () => {
+  const { sharedLimiter } = await import('../lib/engine/shard.js')
+  const sab = new SharedArrayBuffer(4)
+  const a = sharedLimiter(sab, 3); const b = sharedLimiter(sab, 3)
+  let now = 0; let peak = 0
+  const job = (lim) => lim(async () => { now++; peak = Math.max(peak, now); await new Promise((r) => setTimeout(r, 5)); now-- })
+  await Promise.all([...Array(10)].flatMap(() => [job(a), job(b)]))
+  assert.equal(peak, 3); assert.equal(new Int32Array(sab)[0], 0)
+})
