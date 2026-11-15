@@ -41,7 +41,7 @@ body{background:var(--dsw-alias-bg-base)}</style>
   plugin.apply(ctx)
   ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(Page))
   const q = new URLSearchParams(location.search)
-  const clickText = (sel, text) => { for (const el of document.querySelectorAll(sel)) if (el.textContent.includes(text)) { el.dispatchEvent(new MouseEvent('click', { bubbles: true })); return true } return false }
+  const clickText = (sel, text) => { for (const el of document.querySelectorAll(sel)) if (text.startsWith('^') ? el.textContent.trim().startsWith(text.slice(1)) : el.textContent.includes(text)) { el.dispatchEvent(new MouseEvent('click', { bubbles: true })); return true } return false }
   const steps = (q.get('steps') || '').split('|').filter(Boolean)
   let i = 0
   const timer = setInterval(() => {
