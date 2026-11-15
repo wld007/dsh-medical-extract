@@ -70,6 +70,10 @@ test('格式识别：两模型一致自动采用，按规格出文书（栏目�
   assert.equal(run.format.adopted, 2)
   assert.equal(run.format.held, 0)
   assert.equal(run.totals.patients, 2)
+  // 分派明细：按文书类型、按字段
+  assert.equal(run.dispatch['病程记录'].docs, 4)
+  assert.ok(run.dispatch['病程记录'].tasks >= 4)
+  assert.ok(Object.values(run.fieldDocs).every((n) => n > 0 && n <= run.totals.documents))
   // 发给模型的格式提示里没有正文
   for (const p of [...extract.seen, ...verify.seen].filter((x) => x.includes('表画像'))) {
     assert.ok(!p.includes('否认自杀观念') && !p.includes('消极念头') && !p.includes('食欲减退'), '格式提示不应含长文本正文')

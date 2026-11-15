@@ -217,6 +217,16 @@ window.__ModuleLoader__.load({
 .mx-gauge text{font-family:var(--mono);font-size:12px;font-weight:600;fill:var(--ink)}
 .mx-gauge span{font-size:11.5px;color:var(--ink2);white-space:nowrap}
 .mx-gauge small{font-family:var(--mono);font-size:10.5px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.mx-dtab{width:100%;border-collapse:collapse;font-size:11.5px}
+.mx-dtab th{font-weight:400;font-size:10.5px;color:var(--ink3);text-align:right;padding:2px 4px;border-bottom:1px solid var(--line)}
+.mx-dtab th:first-child,.mx-dtab td:first-child{text-align:left;padding-left:0;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mx-dtab td{text-align:right;padding:3px 4px;border-bottom:1px solid var(--line);color:var(--ink)}
+.mx-dtab td:last-child,.mx-dtab th:last-child{padding-right:0}
+.mx-dz{display:flex;flex-direction:column;gap:2px;margin-bottom:6px;font-size:11.5px}
+.mx-dz p{margin:0;display:flex;gap:8px;align-items:baseline;min-width:0}
+.mx-dz p span{flex:none}
+.mx-dz p b{flex:none;font-weight:600}
+.mx-dz p small{color:var(--ink3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .mx-res-line{display:flex;justify-content:center;align-items:baseline;gap:6px;font-size:11.5px;color:var(--ink2)}
 .mx-res-line b{font-family:var(--mono);font-weight:600;color:var(--ink)}
 .mx-res-line span{color:var(--ink3)}
@@ -1162,7 +1172,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
     const STEP_HELP = {
       E0: ['载入提取模板并校验：每个字段的定义、值类型、选项、值域、汇总层级，适用的文书类型和栏目，以及规则（用来和模型结果对照）', '字段说明，下发给后面每道工序'],
       E1: ['识别格式，按表判定类别：文书表读入，检验、医嘱、收费等结构化表只取人口与就诊，忽略的表不读。清洗：解码嵌入内容（base64、HTML／XML、RTF），去掉图片等二进制（不识别图片里的文字）和导出残留的乱码，切栏目，剔除清洗后没有内容的空白文书；截至时刻以后写成的跳过', '干净的文书与栏目'],
-      E2: ['按文书类型和栏目决定每份文书要提取哪些字段，不看关键词；字段多的分组（每组约 30 个），太长的文书按栏目分段。这一步是规则，不用模型', '提取任务（文书或其中一段 × 一组字段）'],
+      E2: ['按文书类型和栏目给每份文书派字段，再切成提取任务（规则，不用模型）', '提取任务'],
       E3: ['提取模型通读每个任务，返回值、提及方式（阳性／否认／既往／家族／计划）和逐字的原文引用；插件在原文里定位原文引用，对不上的丢弃；模板写了明确规则的字段，规则再匹配一次作对照；内容相同的任务只调一次模型', '值：每个都带原文引用、起止位置和出处'],
       E2old: ['当时的做法：每个字段用关键词（词表、正则）在文书里找命中，只看限定的文书类型和栏目；没提到的记「未提及」', '命中的「字段 × 文书」'],
       E3old: ['当时的做法：规则对命中处定值，规则定不了的命中句送模型（仅规则模式下不送，记「待定」）', '值：每个都带原文引用、起止位置和出处'],
@@ -1496,11 +1506,38 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       } else if (id === 'E2') {
         ring = h(Ring, { v: s.frac, label: `${Math.round((s.frac ?? 0) * 100)}%`, sub: shards, hot })
         if (!legacy) {
-          const per = (n) => (t.documents ? (n / t.documents).toFixed(1) : '—')
-          stats = [['提取任务', big(t.tasks)], ['字段 × 文书', big(t.assigned)], ['每份文书派到', `${per(t.assigned)} 个字段`], ['每份文书', `${per(t.tasks)} 个任务`]]
-          parts.push(sec('怎么派', h(React.Fragment, {},
-            note(`按文书类型和栏目派：字段限定了文书类型的只派给这些文书，限定了栏目的只派给有这些栏目的文书；不看关键词，原文换个写法也不会漏。共 ${fmt(t.documents)} 份文书，平均每份派到 ${per(t.assigned)} 个字段（模板 ${fmt(run.template.fields)} 个）`),
-            note('任务＝文书（超过 6000 字按栏目分段）× 一组字段（每组至多 30 个），是送模型的最小单位；内容相同的任务只调一次模型'))))
+          const per = (n, d = t.documents) => (d ? (n / d).toFixed(1) : '—')
+          stats = [['文书', big(t.documents)], ['提取任务', big(t.tasks)], ['每份文书', `${per(t.assigned)} 字段 · ${per(t.tasks)} 任务`]]
+          const disp = Object.entries(run.dispatch ?? {}).sort((a, b) => b[1].docs - a[1].docs)
+          if (!run.dispatch) parts.push(note(run.status === 'running' ? '分派明细在第一个数据块做完后出现' : '这个批次没有记录分派明细（旧版本跑的），重跑后显示'))
+          else {
+            // 按文书类型：多少份、每份派到几个字段、几个任务；派不到字段的、切了段的标出来
+            const top = disp.slice(0, 8); const rest = disp.slice(8)
+            const row = ([k, d]) => h('tr', { key: k, title: `${k}：${fmt(d.docs)} 份，共派 ${fmt(d.fields)} 个字段次、${fmt(d.tasks)} 个任务${d.split ? `\n${fmt(d.split)} 份太长，按栏目切成几段` : ''}${d.none ? `\n${fmt(d.none)} 份一个字段都没派到（模板不读这类文书，或字段限定的栏目它没有）` : ''}` },
+              h('td', {}, k), h('td', { className: 'mx-num' }, fmt(d.docs)),
+              h('td', { className: `mx-num${d.none === d.docs ? ' mx-faint' : ''}` }, d.none === d.docs ? '不派' : Math.round(d.fields / (d.docs - d.none))),
+              h('td', { className: 'mx-num' }, fmt(d.tasks)))
+            const restSum = rest.reduce((m, [, d]) => { for (const x of ['docs', 'tasks', 'fields', 'split', 'none']) m[x] += d[x]; return m }, { docs: 0, tasks: 0, fields: 0, split: 0, none: 0 })
+            const none = disp.reduce((n, [, d]) => n + d.none, 0); const split = disp.reduce((n, [, d]) => n + d.split, 0)
+            parts.push(sec('按文书类型', h(React.Fragment, {},
+              h('table', { className: 'mx-dtab' }, h('thead', {}, h('tr', {}, h('th', {}, '文书类型'), h('th', {}, '份'), h('th', { title: '每份派到的字段数（不含一个都没派到的）' }, '字段/份'), h('th', {}, '任务'))),
+                h('tbody', {}, top.map(row), rest.length ? row([`其他 ${rest.length} 类`, restSum]) : null)),
+              none || split ? note([none ? `${fmt(none)} 份没派到字段` : '', split ? `${fmt(split)} 份太长按栏目分段` : ''].filter(Boolean).join('；')) : null),
+              `${disp.length} 类`))
+            // 按字段：一份都没派到的（宽表里这列必空）与派得最少的，写明限定条件
+            const fd = run.fieldDocs ?? {}
+            const scope = fields.filter((f) => f.type !== 'derived' && f.model !== 'never' && (!run.priorities?.length || run.priorities.includes(f.priority)))
+            const why = (f) => [f.sources?.recordTypes?.length ? `只派给 ${f.sources.recordTypes.join('、')}` : '', f.sources?.sections?.length ? `只看 ${f.sources.sections.join('、')}` : ''].filter(Boolean).join('；') || '不限'
+            const zero = scope.filter((f) => !fd[f.id])
+            const low = scope.filter((f) => fd[f.id]).sort((a, b) => fd[a.id] - fd[b.id]).slice(0, 5)
+            if (scope.length && t.documents) parts.push(sec('按字段', h(React.Fragment, {},
+              zero.length ? h('div', { className: 'mx-dz' }, h('b', { className: 'mx-warn' }, `${zero.length} 个字段一份都没派到`),
+                zero.slice(0, 6).map((f) => h('p', { key: f.id, title: `${f.id} ${f.name}` }, h('span', {}, f.name), h('small', {}, why(f)))),
+                zero.length > 6 ? h('p', { className: 'mx-faint' }, `还有 ${zero.length - 6} 个`) : null) : note(`${scope.length} 个字段都派到了文书`),
+              low.length ? h('div', { className: 'mx-dz' }, low.map((f) => h('p', { key: f.id, title: `${f.name}（${f.id}）：派到 ${fmt(fd[f.id])} / ${fmt(t.documents)} 份文书\n${why(f)}` },
+                h('span', {}, f.name), h('b', { className: 'mx-num' }, `${fmt(fd[f.id])} 份`), h('small', {}, why(f))))) : null),
+              low.length ? '派得最少的' : null))
+          }
           if (t.noKeyword) parts.push(sec('成本开关', note(`已开：${fmt(t.noKeyword)} 份文书一个模板关键词都没有，整份跳过（这些文书没有交给模型）`)))
         } else {
           stats = [['命中（字段 × 文书）', big(t.recalled)], ['文书', big(t.documents)]]
