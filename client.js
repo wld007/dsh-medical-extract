@@ -435,6 +435,13 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
 .mx-fl{gap:0}
 .mx-fl-bar{display:flex;gap:8px;align-items:center;border-bottom:1px solid var(--line);flex-wrap:wrap}
 .mx-fl-tg{display:flex;gap:4px}.mx-fl-tg .mx-dc-tgb{flex:none}
+.mx-dc-ff{display:flex;flex-wrap:wrap;gap:4px;padding:0 10px 8px;border-bottom:1px solid var(--line)}
+.mx-dc-ffb{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line2);background:var(--panel2);color:var(--ink2);border-radius:999px;padding:2px 9px;font:inherit;font-size:11.5px;cursor:pointer}
+.mx-dc-ffb i{font-style:normal;font-family:var(--mono);font-size:10.5px;color:var(--ink3)}
+.mx-dc-ffb.on{border-color:var(--teal);color:var(--teal2);background:var(--tealdim)}
+.mx-dc-ffb.on i{color:var(--teal2)}
+.mx-dc-ffb.todo:not(.zero) i,.mx-dc-ffb.hint:not(.zero) i{color:var(--warn)}
+.mx-dc-ffb.zero{opacity:.5}
 .mx-fl-note{padding:6px 14px;font-size:11.5px;color:var(--warn);border-bottom:1px solid var(--line)}
 .mx-fl-tbl{width:100%;border-collapse:collapse;font-size:12px}
 .mx-fl-tbl th{position:sticky;top:0;background:var(--panel);text-align:left;font-weight:500;color:var(--ink3);font-size:11px;padding:7px 10px;border-bottom:1px solid var(--line);z-index:1}
@@ -2156,6 +2163,10 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       const [busy, setBusy] = useState(false)
       const [note, setNote] = useState(null)
       const [showOther, setShowOther] = useState(false)
+      // 右栏字段筛选：可多选（todo 待判断、val 有值、hint 可能漏提、none 未提及）；空集＝全部。本机记住，切文书、切病人保持
+      const FF_KEY = 'mx-dc-ff'
+      const [ff, setFf] = useState(() => { try { const x = JSON.parse(localStorage.getItem(FF_KEY) ?? 'null'); return Array.isArray(x) ? new Set(x) : new Set(['todo', 'val', 'hint']) } catch { return new Set(['todo', 'val', 'hint']) } })
+      const setFfSave = (next) => { setFf(next); try { localStorage.setItem(FF_KEY, JSON.stringify([...next])) } catch { /* 隐私模式 */ } }
       // 收起当前病人（文书仍是它的）
       const [shut, setShut] = useState(false)
       const patient = focus?.patient ?? null
@@ -2299,8 +2310,23 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
 
       const fieldsAssigned = v ? v.fields.filter((f) => f.assigned) : []
       const fieldsOther = v ? v.fields.filter((f) => !f.assigned) : []
-      // 有分歧的字段排最前，再按模板顺序
-      const ordered = [...fieldsAssigned].sort((a, b) => (reviewOf(b.id).some((x) => !x.decision) ? 1 : 0) - (reviewOf(a.id).some((x) => !x.decision) ? 1 : 0))
+      // 字段归类（一类一个）：待判断（有没判断的分歧）＞有值＞可能漏提（未提及但原文有关键词）＞未提及
+      const catOf = (f) => {
+        const rvs = reviewOf(f.id)
+        if (rvs.some((x) => !x.decision)) return 'todo'
+        if (byField(f.id).length || addedOf(f.id).length) return 'val'
+        if (f.hits.length && !rvs.length) return 'hint'
+        return 'none'
+      }
+      const cats = new Map(fieldsAssigned.map((f) => [f.id, catOf(f)]))
+      const catN = { todo: 0, val: 0, hint: 0, none: 0 }
+      for (const c of cats.values()) catN[c]++
+      // 有分歧的字段排最前，再按模板顺序；按筛选过滤（正在补值或选中的字段始终显示）
+      const ordered = [...fieldsAssigned]
+        .filter((f) => !ff.size || ff.has(cats.get(f.id)) || f.id === pending || f.id === selField)
+        .sort((a, b) => (reviewOf(b.id).some((x) => !x.decision) ? 1 : 0) - (reviewOf(a.id).some((x) => !x.decision) ? 1 : 0))
+      const FF = [['todo', '待判断'], ['val', '有值'], ['hint', '可能漏提'], ['none', '未提及']]
+      const toggleFf = (k) => { const n = new Set(ff); if (n.has(k)) n.delete(k); else n.add(k); setFfSave(n) }
       const docIdx = docs.findIndex((d) => d.doc === docId)
       useEffect(() => {
         const onKey = (e) => {
@@ -2418,9 +2444,14 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
           h('div', { className: 'mx-pad mx-dc-bar' },
             h('b', {}, '模板字段'),
             v ? h('span', { className: 'mx-faint' }, `分到 ${fieldsAssigned.length} 个 · 有值 ${fieldsAssigned.filter((f) => byField(f.id).length || addedOf(f.id).length).length} 个`) : null),
+          v && fieldsAssigned.length ? h('div', { className: 'mx-dc-ff' },
+            h('button', { className: `mx-dc-ffb${!ff.size ? ' on' : ''}`, title: '显示全部字段', onClick: () => setFfSave(new Set()) }, '全部', h('i', {}, String(fieldsAssigned.length))),
+            FF.map(([k, l]) => h('button', { key: k, className: `mx-dc-ffb ${k}${ff.has(k) ? ' on' : ''}${catN[k] ? '' : ' zero'}`, title: { todo: '有还没判断的分歧（核验分歧、规则与模型不符）', val: '提取到值或人工补充了值', hint: '未提及，但原文里出现了这个字段的关键词：看看是不是漏提', none: '未提及，原文里也没有关键词' }[k] + '（可多选）', onClick: () => toggleFf(k) }, l, h('i', {}, String(catN[k]))))) : null,
           note ? h('div', { className: `mx-rvx-note${note.ok ? '' : ' bad'}`, onClick: () => setNote(null) }, note.text) : null,
           h('div', { className: 'mx-scroll mx-dc-fields' },
-            !v ? null : !fieldsAssigned.length ? h('div', { className: 'mx-faint', style: { padding: 10 } }, '这类文书模板里没有分配字段。') : ordered.map(fieldCard),
+            !v ? null : !fieldsAssigned.length ? h('div', { className: 'mx-faint', style: { padding: 10 } }, '这类文书模板里没有分配字段。')
+              : !ordered.length ? h('div', { className: 'mx-faint', style: { padding: 10 } }, '没有符合筛选的字段。', h('button', { className: 'mx-link', style: { marginLeft: 6 }, onClick: () => setFfSave(new Set()) }, '看全部'))
+                : ordered.map(fieldCard),
             v && fieldsOther.length ? h('button', { className: 'mx-link mx-dc-other', onClick: () => setShowOther(!showOther) }, `${showOther ? '▾' : '▸'} 其他 ${fieldsOther.length} 个字段（这类文书不提取）`) : null,
             v && showOther ? fieldsOther.map(fieldCard) : null),
           h('div', { className: 'mx-dc-foot' },
