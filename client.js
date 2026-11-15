@@ -41,7 +41,7 @@ window.__ModuleLoader__.load({
 .mx-top{display:flex;align-items:center;gap:14px;padding:6px 12px;background:linear-gradient(90deg,color-mix(in srgb,var(--teal) 10%,transparent),transparent 40%),var(--panel);flex:none}
 .mx-logo{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,#9a7bff,#4a27b0);display:grid;place-items:center;flex:none}
 .mx-brand{display:flex;align-items:center;gap:10px;flex:none}.mx-brand b{display:block;font-size:15px;letter-spacing:2px}.mx-brand span{font-family:var(--mono);font-size:10px;color:var(--ink2);letter-spacing:1px}
-.mx-status{display:flex;align-items:center;gap:8px;padding:4px 12px 4px 10px;border-radius:8px;border:1px solid var(--line2);min-width:170px;max-width:340px}
+.mx-status{display:flex;align-items:center;gap:8px;height:58px;padding:4px 12px 4px 10px;border-radius:8px;border:1px solid var(--line2);min-width:170px;max-width:340px}
 .mx-status>div{display:flex;flex-direction:column;line-height:16px;min-width:0}.mx-status>div>*{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mx-status b{font-size:13px}.mx-status span{font-size:11px;color:var(--ink2)}.mx-status .mx-tl{color:var(--teal)}
 .mx-lamp{width:9px;height:9px;border-radius:50%;background:var(--line2);flex:none}
@@ -244,7 +244,7 @@ window.__ModuleLoader__.load({
 .mx-pulse{animation:mx-pulse 1.4s ease-in-out infinite}
 @keyframes mx-pulse{50%{opacity:.35}}
 
-.mx-tpl{display:inline-flex;align-items:center;gap:8px;padding:4px 10px;border:1px solid color-mix(in srgb,var(--teal) 45%,transparent);border-radius:8px;background:var(--tealdim);max-width:260px}
+.mx-tpl{display:inline-flex;align-items:center;gap:8px;height:58px;padding:4px 12px 4px 10px;border:1px solid color-mix(in srgb,var(--teal) 45%,transparent);border-radius:8px;background:var(--tealdim);max-width:260px}
 .mx-tpl>div{display:flex;flex-direction:column;line-height:16px;min-width:0}.mx-tpl b{font-size:12.5px;color:var(--teal2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mx-tpl span{font-size:10.5px;color:var(--ink2);white-space:nowrap}
 .mx-fr{display:grid;grid-template-columns:92px 1fr 40px;gap:8px;align-items:center;font-size:11px;margin-bottom:6px}
 .mx-fr>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mx-fr em{font-style:normal;font-family:var(--mono);color:var(--ink3);margin-right:4px}
