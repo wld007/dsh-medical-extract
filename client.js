@@ -729,11 +729,14 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       for (const [role, p] of Object.entries(M)) {
         const [r0, st] = ROLE_ST[role] ?? [null, null]; if (!r0) continue
         const hs = houses.find((x) => x.model && x.roles.includes(r0)); if (!hs) continue
-        hs.calls[st] = (hs.calls[st] ?? 0) + (p.calls ?? 0); hs.total += p.calls ?? 0; hs.failed += p.failed ?? 0; hs.perf.push([role, st, p])
+        hs.calls[st] = (hs.calls[st] ?? 0) + (p.calls ?? 0); hs.cached = hs.cached ?? {}; hs.cached[st] = (hs.cached[st] ?? 0) + (p.cached ?? 0); hs.total += p.calls ?? 0; hs.failed += p.failed ?? 0; hs.perf.push([role, st, p])
       }
       for (const hs of houses) {
-        const used = hs.stations.filter((st) => st !== 'format' || hs.calls.format || run.format)
-        hs.roleText = hs.model ? used.map((st) => STATION_LABEL[st]).join(' · ') : (hs.roles.includes('verify') ? '核验 · 复判' : '提取')
+        // 格式识别只在通用文件、本批真的识别了表时才算（区域平台导出不做；格式库里已有结果、命中缓存的也不算这个模型干了活）
+        const fmtNow = run.status === 'running' && String(run.current?.step ?? '').startsWith('格式识别')
+        hs.didFormat = Boolean(hs.calls.format || fmtNow)
+        const FMT = hs.roles.includes('extract') ? '格式识别（起草）' : '格式识别（核对）'
+        hs.roleText = hs.model ? hs.stations.filter((st) => st !== 'format' || hs.didFormat).map((st) => (st === 'format' ? FMT : STATION_LABEL[st])).join(' · ') : (hs.roles.includes('verify') ? '核验 · 复判' : '提取')
       }
       return houses
     }
@@ -975,7 +978,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         const g = []; const pipes = []
         g.push(...isoBox('mp', mi - 6, mj - 6, -3, ma + 12, mb + 12, 3, { top: C.pad, left: C.padL, right: C.padR }))
         // 管子（画在排队箱子和数字下面，不压字）：这个模型用在哪几道工序（格式识别只在通用文件、做了格式识别时画）
-        const uses = hs.stations.filter((x) => x !== 'format' || run.format || run.current?.step?.startsWith?.('格式识别'))
+        const uses = hs.stations.filter((x) => x !== 'format' || hs.didFormat)
         const seenSpot = new Set()
         uses.forEach((st) => {
           const sp = st === 'verify' && uses.includes('adjudicate') ? SPOT.verify : SPOT[st]
@@ -1328,7 +1331,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
           kv([['调用', fmt(agg.calls)], ['缓存复用', fmt(agg.cached)], ['失败率', agg.calls ? `${(fr * 100).toFixed(fr && fr < 0.1 ? 1 : 0)}%` : '—', fr > 0.02 ? 'bad' : ''], ['自动重试', fmt(agg.retries)], ['Token', kfmt(agg.pt + agg.ct)], ['吞吐峰值', `${kfmt(peakT)} token/秒`]])),
         sec('按工序', h('div', { className: 'mx-ob-models', style: { gridTemplateColumns: '64px repeat(3, minmax(0,1fr))' } },
           h('span', {}), h('b', {}, '调用'), h('b', {}, '缓存'), h('b', {}, '失败'),
-          ...hs.stations.flatMap((st) => { const x = byStation[st] ?? { calls: 0, cached: 0, failed: 0 }; return [h('span', { key: `${st}n` }, STATION_LABEL[st]), h('b', { key: `${st}c` }, fmt(x.calls)), h('b', { key: `${st}k` }, fmt(x.cached)), h('b', { key: `${st}f`, className: x.failed ? 'mx-bad' : '' }, fmt(x.failed))] }))),
+          ...hs.stations.filter((st) => st !== 'format' || hs.didFormat).flatMap((st) => { const x = byStation[st] ?? { calls: 0, cached: 0, failed: 0 }; return [h('span', { key: `${st}n` }, STATION_LABEL[st]), h('b', { key: `${st}c` }, fmt(x.calls)), h('b', { key: `${st}k` }, fmt(x.cached)), h('b', { key: `${st}f`, className: x.failed ? 'mx-bad' : '' }, fmt(x.failed))] }))),
         sec('并发', h(ConcPanel, { run, hs, title: '' })),
         sec('每次调用', h(React.Fragment, {},
           kv([['耗时 均', agg.calls ? `${(agg.ms / agg.calls / 1000).toFixed(1)}s` : '—'], ['输出 均', agg.calls ? `${fmt(Math.round(agg.ct / agg.calls))} token` : '—'], ['上下文 均', agg.calls ? kfmt(agg.pt / agg.calls) : '—'], ['上下文 最大', agg.ptMax ? kfmt(agg.ptMax) : '—']]),
