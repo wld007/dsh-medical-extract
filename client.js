@@ -149,7 +149,7 @@ window.__ModuleLoader__.load({
 .mx-line .mx-hero{flex:1;min-height:360px}
 .mx-line .mx-scene{flex:1 1 0;min-height:0;width:100%;height:100%}
 .mx-line .mx-side{width:auto;min-height:0}
-.mx-bottom{flex:none;display:grid;grid-template-columns:1.2fr 1.25fr 1fr}
+.mx-bottom{flex:none;display:grid;grid-template-columns:1.15fr 1.3fr .85fr}
 .mx-ro{padding:10px 14px 11px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:9px;min-width:0;overflow:hidden}
 .mx-ro:last-child{border-right:0}
 .mx-ro .mx-legend{margin-top:-4px;padding-top:0}
@@ -165,29 +165,42 @@ window.__ModuleLoader__.load({
 .mx-big .mx-big-pair{gap:1px}
 .mx-big-pair p{margin:0;display:flex;gap:6px;align-items:baseline}
 .mx-big-pair b{font-size:12.5px}
-.mx-steps{display:flex;gap:4px}
-.mx-step{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;padding:0;border:0;background:none;font:inherit;font-size:10.5px;color:var(--ink3);cursor:pointer}
-.mx-step i{display:block;width:100%;height:5px;border-radius:3px}
-.mx-step.on{color:var(--teal2);font-weight:600}
-.mx-step.on i{outline:1.5px solid var(--teal);outline-offset:1.5px}
-.mx-ro-line{display:flex;align-items:center;gap:6px 12px;flex-wrap:wrap;font-size:11.5px}
-.mx-link{padding:0;border:0;background:none;font:inherit;color:var(--ink2);cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}
+.mx-kv2{display:flex;gap:4px 18px;flex-wrap:wrap;font-size:11.5px;color:var(--ink3)}
+.mx-kv2 p{margin:0;display:flex;gap:7px;align-items:baseline}
+.mx-kv2 b{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--ink)}
+.mx-kv2 small{font-size:10.5px;color:var(--ink3)}
+.mx-spark{margin-top:auto}
+.mx-spark svg{display:block;width:100%;height:40px}
+.mx-spark .grid{stroke:var(--line);stroke-width:1}
+.mx-spark .area{fill:var(--tealdim)}
+.mx-spark .line{fill:none;stroke:var(--teal);stroke-width:1.6;vector-effect:non-scaling-stroke}
+.mx-spark .avg{stroke:var(--ink3);stroke-width:1;stroke-dasharray:4 3;vector-effect:non-scaling-stroke}
+.mx-spark-foot{display:flex;justify-content:space-between;font-size:10.5px;color:var(--ink3);margin-top:2px}
+.mx-ro-line{display:flex;align-items:center;gap:6px 14px;flex-wrap:wrap;font-size:11.5px;color:var(--ink2)}
+.mx-ro-line b{font-family:var(--mono);font-weight:600;color:var(--ink)}
+.mx-link{padding:0;border:0;background:none;font:inherit;color:var(--ink2);cursor:pointer}
 .mx-link:hover{color:var(--teal2)}
-.mx-link.mx-warn{color:var(--warn)}
-.mx-ro .mx-spath span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--mono);font-size:10.5px;color:var(--ink3);min-width:0}
-.mx-gates{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-.mx-gate{display:flex;align-items:center;justify-content:center;gap:5px;height:26px;border:1px solid var(--line2);border-radius:4px;background:none;font:inherit;font-size:11.5px;color:var(--ink3);cursor:pointer}
-.mx-gate em{font-style:normal;font-size:12px}
-.mx-gate.ok{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 45%,transparent);background:color-mix(in srgb,var(--ok) 8%,transparent)}
-.mx-gate.bad{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 55%,transparent);background:color-mix(in srgb,var(--bad) 9%,transparent)}
-.mx-mon{display:flex;flex-direction:column;gap:3px;min-height:0}
-.mx-mon-r{display:flex;align-items:center;gap:7px;font-size:11.5px;min-width:0}
-.mx-mon-r i{flex:none;width:3px;height:14px;border-radius:2px;background:var(--warn)}
-.mx-mon-r.crit i{background:var(--bad)}
-.mx-mon-r>span:first-of-type{flex:none;color:var(--ink3);font-size:10.5px}
-.mx-mon-r b{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
-.mx-mon-r.click{cursor:pointer}.mx-mon-r.click:hover b{color:var(--teal2)}
-.mx-mon-go{margin-left:auto;color:var(--ink3)}
+.mx-link.mx-warn b{color:var(--warn)}
+.mx-types span{display:inline-flex;gap:5px;color:var(--ink3)}
+.mx-types b{color:var(--ink2)}
+.mx-gdots{display:inline-flex;align-items:center;gap:4px;margin-left:auto;color:var(--ink3)}
+.mx-gdot{width:20px;height:20px;padding:0;border-radius:50%;border:1px solid var(--line2);background:none;font:inherit;font-size:11.5px;line-height:18px;color:var(--ink3);cursor:pointer}
+.mx-gdot.ok{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 50%,transparent);background:color-mix(in srgb,var(--ok) 9%,transparent)}
+.mx-gdot.bad{color:#fff;border-color:var(--bad);background:var(--bad)}
+.mx-ro .mx-spath{margin-top:auto}
+.mx-ro .mx-spath span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--mono);font-size:10.5px;color:var(--ink3);min-width:0}
+.mx-gauges{flex:1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;align-items:center}
+.mx-gauge{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0;text-align:center}
+.mx-gauge svg{width:58px;height:58px}
+.mx-gauge .trk{fill:none;stroke:var(--line2);stroke-width:6}
+.mx-gauge .arc{fill:none;stroke-width:6;stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%}
+.mx-gauge .pk{fill:var(--ink2);stroke:var(--panel);stroke-width:1.2}
+.mx-gauge text{font-family:var(--mono);font-size:12px;font-weight:600;fill:var(--ink)}
+.mx-gauge span{font-size:11.5px;color:var(--ink2);white-space:nowrap}
+.mx-gauge small{font-family:var(--mono);font-size:10.5px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.mx-res-line{display:flex;justify-content:center;align-items:baseline;gap:6px;font-size:11.5px;color:var(--ink2)}
+.mx-res-line b{font-family:var(--mono);font-weight:600;color:var(--ink)}
+.mx-res-line span{color:var(--ink3)}
 @media (max-width:1200px){.mx-line{grid-template-columns:minmax(0,1fr) 290px}.mx-bottom{grid-template-columns:1fr 1fr}.mx-bottom .mx-ro:last-child{grid-column:1 / -1;border-top:1px solid var(--line)}}
 .mx-hero .mx-scene{flex:1}
 .mx-hud{position:absolute;z-index:1;font-size:11px;color:var(--ink2);pointer-events:none}
@@ -585,9 +598,9 @@ window.__ModuleLoader__.load({
               h('div', {}, h('i', { className: 'sw box' }), '箱子＝一个分片'), h('div', {}, h('i', { className: 'sw red' }), '红色＝验收门未过'),
               h('div', {}, h('i', { className: 'sw vio' }), '青灯＝模型补抽（旁路）'), h('div', {}, h('i', { className: 'sw flow' }), '紫色流线＝字段规格下发'))),
           h('div', { className: 'mx-frame mx-bottom' },
-            h(ProgressPanel, { run, stations, sel: k, onSel: setSelK }),
-            h(ResultsPanel, { run, goto }),
-            h(MonitorPanel, { run, stations, onSel: setSelK, goto }))),
+            h(ProgressPanel, { run }),
+            h(ResultsPanel, { run, stations, onSel: setSelK, goto }),
+            h(ResourcesPanel, { run }))),
           h(StationPanel, { run, s: stations[k], goto })))
     }
 
@@ -1067,95 +1080,121 @@ window.__ModuleLoader__.load({
       if (sec < 3600) return `${Math.floor(sec / 60)} 分 ${String(sec % 60).padStart(2, '0')} 秒`
       return `${Math.floor(sec / 3600)} 小时 ${String(Math.floor((sec % 3600) / 60)).padStart(2, '0')} 分`
     }
+    /** 时长的大字写法：41 秒 → [41, 秒]；3 分 05 秒 → [3:05, 分]；1 小时 12 分 → [1:12, 时] */
+    function clockParts(ms) {
+      if (ms == null || !Number.isFinite(ms)) return ['—']
+      const sec = Math.round(ms / 1000)
+      if (sec < 60) return [String(sec), h('small', { key: 'u' }, '秒')]
+      if (sec < 3600) return [`${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`, h('small', { key: 'u' }, '分')]
+      return [`${Math.floor(sec / 3600)}:${String(Math.floor((sec % 3600) / 60)).padStart(2, '0')}`, h('small', { key: 'u' }, '时')]
+    }
     const roHead = (title, cap, aside) => h('div', { className: 'mx-ro-h' }, h('b', {}, title), h('span', { className: 'mx-cap' }, cap), h('span', { className: 'mx-sp' }), aside)
 
-    /** 进展：完成度、速率、剩余（运行中）或用时（结束后），以及八道工序的状态条（点了切右侧详情）。 */
-    function ProgressPanel({ run, stations, sel, onSel }) {
+    /** 速率曲线（份/秒）：由 run.series［毫秒, 累计文书］分桶算出，虚线是平均。 */
+    function Spark({ run }) {
+      const pts0 = run.series ?? []
+      const W = 260; const H = 40
+      const span = pts0.length ? pts0[pts0.length - 1][0] : 0
+      const B = Math.min(40, Math.max(1, pts0.length - 1))
+      const bins = new Array(B).fill(0)
+      for (let i = 1; i < pts0.length; i++) { const b = Math.min(B - 1, Math.floor((pts0[i][0] / Math.max(1, span)) * B)); bins[b] += pts0[i][1] - pts0[i - 1][1] }
+      const binSec = span / B / 1000
+      const series = bins.map((n) => (binSec > 0 ? n / binSec : 0))
+      const has = pts0.length >= 6 && B >= 4 && series.some((x) => x > 0)
+      const total = pts0.length ? pts0[pts0.length - 1][1] : 0
+      const avg = span > 0 ? total / (span / 1000) : 0
+      const max = Math.max(1, ...series)
+      const yOf = (v) => H - 3 - (v / max) * (H - 8)
+      // 桶中点连线，两端延到边上，面积图不出三角缺口
+      const xy = has ? [`0,${yOf(series[0])}`, ...series.map((v, i) => `${((i + 0.5) / B) * W},${yOf(v)}`), `${W},${yOf(series[B - 1])}`] : [`0,${H - 3}`, `${W},${H - 3}`]
+      const ay = H - 3 - (avg / max) * (H - 8)
+      return h('div', { className: 'mx-spark', title: has ? `处理速率（份/秒）：平均 ${fmt(Math.round(avg))}，峰值 ${fmt(Math.round(Math.max(...series)))}` : '' },
+        h('svg', { viewBox: `0 0 ${W} ${H}`, preserveAspectRatio: 'none' },
+          [1, 2, 3].map((g) => h('path', { key: g, className: 'grid', d: `M0 ${(H / 4) * g}H${W}` })),
+          has ? h('path', { className: 'area', d: `M0 ${H} L${xy.join(' L')} L${W} ${H} Z` }) : null,
+          h('polyline', { className: 'line', points: xy.join(' ') }),
+          has && avg > 0 ? h('path', { className: 'avg', d: `M0 ${ay}H${W}` }) : null),
+        h('div', { className: 'mx-spark-foot' }, has ? h(React.Fragment, {}, h('span', {}, `平均 ${fmt(Math.round(avg))}`), h('span', {}, `峰值 ${fmt(Math.round(Math.max(...series)))}`)) : h('span', {}, run.status === 'running' ? '速率曲线：采样中…' : pts0.length ? '批次太短，没有速率曲线' : '这个批次没有记录速率（旧版本跑的）')))
+    }
+
+    /** 运行进度：完成、速率、用时（运行中为预计剩余）、分片与文书，速率曲线。 */
+    function ProgressPanel({ run }) {
       const t = run.totals
       const running = run.status === 'running'
       const sh = run.shards
       const frac = sh.total ? sh.done / sh.total : 0
       const elapsed = run.startedAt ? (running ? Date.now() : Date.parse(run.finishedAt ?? run.startedAt)) - Date.parse(run.startedAt) : null
       const eta = running && sh.done > 0 && sh.total > sh.done && elapsed ? (elapsed / sh.done) * (sh.total - sh.done) : null
-      const order = [7, 0, 1, 2, 3, 4, 5, 6] // E0（模板塔）在 stations 末尾
-      const tone = { done: 'var(--teal)', run: 'var(--vio)', hold: 'var(--warn)', part: 'var(--bad)', idle: 'var(--line2)' }
+      // 批次很短（不到 2 秒）时引擎来不及记速率：结束后按文书数 ÷ 用时补上
+      const rate = run.rate || (!running && elapsed > 0 && t.documents ? Math.round(t.documents / (elapsed / 1000)) : 0)
       return h('div', { className: 'mx-ro' },
-        roHead('进展', 'PROGRESS', running ? h('span', { className: 'mx-live' }, h('i'), run.current?.step ?? '运行中') : statusChip(run.status)),
+        roHead('运行进度', 'PROGRESS', running ? h('span', { className: 'mx-live' }, h('i'), run.current?.step ?? '运行中') : null),
         h('div', { className: 'mx-big' },
           h('div', {}, h('span', {}, '完成'), h('b', {}, Math.round(frac * 100), h('small', {}, '%'))),
-          h('div', {}, h('span', {}, '速率'), h('b', {}, run.rate ? fmt(run.rate) : '—', h('small', {}, '份/秒'))),
-          h('div', {}, h('span', {}, running ? '预计剩余' : '用时'), h('b', { className: 'mx-dim' }, dur(running ? eta : elapsed))),
-          h('div', { className: 'mx-big-pair' },
-            h('p', {}, h('span', {}, '分片'), h('b', {}, fmt(sh.done), h('small', {}, ` / ${fmt(sh.total)}`))),
-            h('p', {}, h('span', {}, '文书'), h('b', {}, big(t.documents))))),
-        h('div', { className: 'mx-steps' }, order.map((i) => {
-          const s = stations[i]
-          return h('button', { key: s.no, className: `mx-step${sel === i ? ' on' : ''}`, title: `${s.nm}：${STATE_LABEL[s.state]}`, onClick: () => onSel(i) },
-            h('i', { style: { background: tone[s.state] ?? tone.idle } }), s.ab)
-        })))
+          h('div', {}, h('span', {}, '速率'), h('b', {}, rate ? fmt(rate) : '—', h('small', {}, '份/秒'))),
+          h('div', { title: dur(running ? eta : elapsed) }, h('span', {}, running ? '预计剩余' : '用时'), h('b', {}, ...clockParts(running ? eta : elapsed)))),
+        h('div', { className: 'mx-kv2' },
+          h('p', {}, h('span', {}, '分片'), h('b', {}, fmt(sh.done), h('small', {}, ` / ${fmt(sh.total)}`))),
+          h('p', {}, h('span', {}, '文书'), h('b', {}, big(t.documents)), t.structured ? h('small', {}, `（另有结构化记录 ${big(t.structured)}，不抽取）`) : null)),
+        h(Spark, { run }))
     }
 
-    /** 结果：取到多少、落到多少病人与就诊、有值字段、取值途径，待处理的冲突与复核，交付位置。 */
-    function ResultsPanel({ run, goto }) {
+    /** 处理结果：值、病人、就诊，取值途径比例条，验收门，待复核与冲突，交付位置。 */
+    function ResultsPanel({ run, stations, onSel, goto }) {
       const t = run.totals
       const [copied, setCopied] = useState(false)
       const m = t.byMethod ?? {}
-      const filled = run.rollup?.filled ?? {}
-      const hit = Object.keys(run.byField ?? {}).length || Object.values(filled).filter((x) => x.filled > 0).length
+      const way = [['规则', m.rule ?? 0, 'var(--fact)'], ['模型', m.model ?? 0, 'var(--vio)'], ['模型＋规则', m['model+rule'] ?? 0, 'var(--decide)']]
+      const sum = way.reduce((a, x) => a + x[1], 0)
+      const GATE_AT = { '①': 'E3', '②': 'E4', '③': 'E5', '④': 'E6' }
+      const tag = run.status === 'review' ? h('span', { className: 'mx-chip w' }, '待复核') : run.status === 'failed' ? h('span', { className: 'mx-chip b' }, '失败') : run.status === 'cancelled' ? h('span', { className: 'mx-chip b' }, '已取消') : null
       return h('div', { className: 'mx-ro' },
-        roHead('结果', 'RESULTS', null),
+        roHead('处理结果', 'RESULTS', tag),
         h('div', { className: 'mx-big' },
           h('div', {}, h('span', {}, '值'), h('b', {}, big(t.values))),
           h('div', {}, h('span', {}, '病人'), h('b', {}, big(t.patients))),
-          h('div', {}, h('span', {}, '就诊'), h('b', {}, big(t.encounters))),
-          h('div', { title: '本批取到过值的字段数 / 模板字段数' }, h('span', {}, '有值字段'), h('b', {}, hit, h('small', {}, ` / ${run.template.fields}`)))),
-        h(Split, { parts: [['规则', m.rule ?? 0, 'var(--fact)'], ['模型', m.model ?? 0, 'var(--vio)'], ['模型＋规则', m['model+rule'] ?? 0, 'var(--decide)']] }),
+          h('div', {}, h('span', {}, '就诊'), h('b', {}, big(t.encounters)))),
+        h('div', { className: 'mx-stack', title: way.map(([k, n]) => `${k} ${fmt(n)}`).join(' · ') }, sum ? way.map(([k, n, c]) => (n ? h('span', { key: k, style: { width: `${(n / sum) * 100}%`, background: c } }) : null)) : null),
         h('div', { className: 'mx-ro-line' },
-          h('button', { className: `mx-link${t.review ? ' mx-warn' : ''}`, onClick: () => goto('review') }, `待复核 ${fmt(t.review)}`),
-          h('button', { className: `mx-link${t.conflicts ? ' mx-warn' : ''}`, onClick: () => goto('wide') }, `冲突 ${fmt(t.conflicts)}`),
-          run.output ? h('span', { className: 'mx-spath', style: { flex: 1, minWidth: 0 } }, h('span', { title: run.output }, run.output),
-            h('button', { className: 'mx-btn sm', onClick: () => { navigator.clipboard?.writeText(run.output).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500) }).catch(() => {}) } }, copied ? '已复制' : '复制')) : null))
+          h('button', { className: `mx-link${t.review ? ' mx-warn' : ''}`, onClick: () => goto('review') }, '待复核 ', h('b', {}, fmt(t.review))),
+          h('button', { className: `mx-link${t.conflicts ? ' mx-warn' : ''}`, onClick: () => goto('wide') }, '冲突 ', h('b', {}, fmt(t.conflicts))),
+          h('span', { className: 'mx-gdots' }, '验收', ['①', '②', '③', '④'].map((id) => {
+            const g = run.gates?.find((x) => x.id === id)
+            const cls = !g || g.skipped ? '' : g.pass ? 'ok' : 'bad'
+            return h('button', { key: id, className: `mx-gdot ${cls}`, title: g ? `${g.label}：${g.pass ? '通过' : g.skipped ? '跳过' : '未过'}\n${g.detail}` : '尚未验收', onClick: () => onSel(stations.findIndex((s) => s.no === GATE_AT[id])) }, id)
+          }))),
+        h('div', { className: 'mx-ro-line mx-types' }, way.filter(([, n]) => n).map(([k, n]) => h('span', { key: k }, k, h('b', {}, sum ? `${Math.round((n / sum) * 100)}%` : '—')))),
+        run.output ? h('div', { className: 'mx-spath' }, h('span', { title: run.output }, run.output),
+          h('button', { className: 'mx-btn sm', onClick: () => { navigator.clipboard?.writeText(run.output).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500) }).catch(() => {}) } }, copied ? '已复制' : '复制')) : null)
     }
 
-    /** 提醒条目：[级别, 来源, 标题, 说明, 去哪个页] */
-    function alertsOf(run) {
-      const t = run.totals
-      const items = []
-      if (run.error) items.push(['crit', '批次', '批次出错', run.error.split('\n')[0], null])
-      for (const g of run.gates ?? []) if (!g.pass && !g.skipped) items.push(['crit', `门${g.id}`, `验收门${g.id}未过`, g.detail, g.id === '④' ? 'review' : 'report'])
-      if (run.sourceCheck?.changed) items.push(['crit', '源文件', `源文件有 ${run.sourceCheck.changed} 个变化`, '只读核对不一致', null])
-      if (run.format?.held) items.push(['warn', '格式', `${fmt(run.format.held)} 张表格式待确认`, '确认后按确认结果重跑', 'formats'])
-      if (t.failed) items.push(['warn', '模型', `模型调用失败 ${fmt(t.failed)} 次`, '断线、超时等，已重试仍失败', 'calls'])
-      if (t.quoteFail) items.push(['warn', '取值', `${fmt(t.quoteFail)} 条模型回答被丢弃`, '引语对不上原文或不支持取值', 'report'])
-      for (const w of run.warnings ?? []) if (!/格式还没定/.test(w)) items.push(['warn', '提示', w, '', null])
-      return items
-    }
-
-    /** 监控：四道验收门、模型调用与核验、需要处理的提醒（点了去对应页面）。 */
-    function MonitorPanel({ run, stations, onSel, goto }) {
-      const t = run.totals
-      const v = Object.values(run.verify ?? {})
-      const vn = v.reduce((a, x) => a + x.n, 0); const va = v.reduce((a, x) => a + x.agree, 0)
-      const GATE_AT = { '①': 'E3', '②': 'E4', '③': 'E5', '④': 'E6' }
-      const items = alertsOf(run)
+    /** 资源占用（同匿名化插件）：堆内存、输出盘，进程常驻。圈上的小点是本批峰值。 */
+    function ResourcesPanel({ run }) {
+      const GB = 1024 ** 3
+      const running = run.status === 'running'
+      const mem = run.memory; const disk = run.disk
+      const gauge = (label, ratio, detail, tone, title, peak) => {
+        const r = 23; const len = 2 * Math.PI * r
+        const v = ratio == null || !Number.isFinite(ratio) ? null : Math.max(0, Math.min(1, ratio))
+        const pk = peak == null || !Number.isFinite(peak) || v == null ? null : Math.max(v, Math.min(1, peak))
+        const ang = pk == null ? 0 : pk * 2 * Math.PI - Math.PI / 2
+        const color = tone === 'crit' ? 'var(--bad)' : tone === 'warn' ? 'var(--warn)' : 'var(--teal)'
+        return h('div', { className: 'mx-gauge', title },
+          h('svg', { viewBox: '0 0 58 58' },
+            h('circle', { className: 'trk', cx: 29, cy: 29, r }),
+            v == null ? null : h('circle', { className: 'arc', cx: 29, cy: 29, r, stroke: color, strokeDasharray: `${(len * v).toFixed(1)} ${len.toFixed(1)}` }),
+            pk != null && pk > 0 ? h('circle', { className: 'pk', cx: (29 + r * Math.cos(ang)).toFixed(2), cy: (29 + r * Math.sin(ang)).toFixed(2), r: 3.4 }, h('title', {}, `峰值 ${Math.round(pk * 100)}%`)) : null,
+            h('text', { x: 29, y: 33, textAnchor: 'middle' }, v == null ? '—' : `${Math.round(v * 100)}%`)),
+          h('span', {}, label), h('small', {}, detail))
+      }
+      const memRatio = mem?.heapLimit ? (running ? mem.heapUsed : mem.peakHeap) / mem.heapLimit : null
       return h('div', { className: 'mx-ro' },
-        roHead('监控', 'MONITOR', items.length ? h('span', { className: `mx-num ${items.some((x) => x[0] === 'crit') ? 'mx-bad' : 'mx-warn'}`, style: { fontSize: 11 } }, `${items.length} 条提醒`) : h('span', { className: 'mx-num mx-ok', style: { fontSize: 11 } }, '无异常')),
-        h('div', { className: 'mx-gates' }, ['①', '②', '③', '④'].map((id) => {
-          const g = run.gates?.find((x) => x.id === id)
-          const cls = !g || g.skipped ? '' : g.pass ? 'ok' : 'bad'
-          return h('button', { key: id, className: `mx-gate ${cls}`, title: g ? `${g.label}：${g.detail}` : '尚未验收', onClick: () => onSel(stations.findIndex((s) => s.no === GATE_AT[id])) },
-            h('em', {}, id), !g ? '—' : g.skipped ? '跳过' : g.pass ? '通过' : '未过')
-        })),
-        h('div', { className: 'mx-ro-line mx-muted' },
-          run.model ? h(React.Fragment, {},
-            h('button', { className: 'mx-link', onClick: () => goto('calls') }, `模型调用 ${big(t.calls)}`),
-            h('span', {}, `缓存 ${big(t.cached)}`),
-            h('span', { className: t.failed ? 'mx-warn' : '' }, `失败 ${fmt(t.failed)}`),
-            h('span', { className: vn && va / vn < 0.9 ? 'mx-warn' : '' }, `核验一致 ${vn ? pct(va / vn) : '—'}`))
-            : h('span', {}, '未配置模型：只跑规则')),
-        h('div', { className: 'mx-mon' }, items.length ? items.slice(0, 2).map(([lv, src, title, sub, to], i) => h('div', { key: i, className: `mx-mon-r ${lv}${to ? ' click' : ''}`, title: sub || title, onClick: to ? () => goto(to) : undefined },
-          h('i'), h('span', { className: 'mx-num' }, src), h('b', {}, title), to ? h('span', { className: 'mx-mon-go' }, '→') : null))
-          : h('div', { className: 'mx-faint', style: { fontSize: 11.5 } }, run.status === 'running' ? '运行中，暂无需要处理的事' : '没有需要处理的事')))
+        roHead('资源占用', 'RESOURCES', h('span', { className: 'mx-faint', style: { fontSize: 11 } }, '本机')),
+        h('div', { className: 'mx-gauges' },
+          gauge('堆内存', memRatio, mem?.heapLimit ? `${((running ? mem.heapUsed : mem.peakHeap) / GB).toFixed(1)} / ${(mem.heapLimit / GB).toFixed(1)}G` : '—', memRatio >= 0.85 ? 'crit' : memRatio >= 0.7 ? 'warn' : '', '主线程堆内存（结束后显示本批峰值）；分片在工作线程里处理，计入下方进程常驻', mem?.heapLimit && mem.peakHeap ? mem.peakHeap / mem.heapLimit : null),
+          gauge('磁盘', disk?.total ? 1 - disk.free / disk.total : null, disk?.total ? `剩 ${(disk.free / GB).toFixed(disk.free < 10 * GB ? 1 : 0)}G` : '—', disk?.total && disk.free < 5 * GB ? 'crit' : disk?.total && disk.free < 20 * GB ? 'warn' : '', '输出目录所在磁盘；圈上的点是本批最满的时候', disk?.total && Number.isFinite(disk.minFree) ? 1 - disk.minFree / disk.total : null)),
+        mem?.peakRss ? h('div', { className: 'mx-res-line', title: '整个进程的常驻内存（含工作线程）' }, '进程常驻', h('b', {}, `${((running ? mem.rss ?? mem.peakRss : mem.peakRss) / GB).toFixed(1)}G`), h('span', {}, running ? `峰值 ${(mem.peakRss / GB).toFixed(1)}G` : '峰值'))
+          : h('div', { className: 'mx-res-line' }, h('span', {}, '这个批次没有记录资源（旧版本跑的），重跑后显示')))
     }
 
     /* --------------------------------------------------------------- formats */
