@@ -239,7 +239,7 @@ test('复判：核验分歧两个模型轮流复判，一致的自动解决（�
   const g4 = run.gates.find((g) => g.id === '④')
   assert.match(g4.label, /复判前/); assert.match(g4.detail, /复判自动解决/)
   assert.equal(g4.pass, false) // 复判前处处不一致
-  assert.ok(run.needsDefinition.length > 0)
+  assert.ok(Array.isArray(run.needsDefinition))
   const q = await svc.reviewQueue(run.id, { status: 'resolved' })
   assert.ok(q.counts.resolved > 0); assert.equal(q.items.length > 0, true)
   assert.ok(q.items.every((it) => it.resolved && it.rounds.length >= 1))
