@@ -261,7 +261,7 @@ window.__ModuleLoader__.load({
 .mx-caret{font-size:9px;opacity:.7;margin-left:5px}
 .mx-shade{position:fixed;inset:0;z-index:940;background:rgba(0,0,0,.35)}
 .mx-pop{position:absolute;right:0;top:36px;z-index:950;width:460px;padding:14px 16px;border:1px solid color-mix(in srgb,var(--teal) 50%,transparent);border-radius:8px;background:var(--panel);box-shadow:0 20px 60px rgba(0,0,0,.55);display:flex;flex-direction:column;gap:10px;text-align:left}
-.mx-pop-h{display:flex;justify-content:space-between;align-items:center}.mx-pop-h b{font-size:12px;letter-spacing:2px;color:var(--teal2);font-weight:600}
+.mx-pop-h{display:flex;justify-content:space-between;align-items:center;gap:6px}.mx-pop-h b{font-size:12px;letter-spacing:2px;color:var(--teal2);font-weight:600}
 .mx-pop .mx-field{gap:4px}
 .mx-pick{display:flex;gap:8px;align-items:center;font-size:10.5px}
 .mx-pop-act{display:flex;gap:8px;margin-top:2px}
@@ -389,6 +389,9 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
 .mx-fr>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mx-fr em{font-style:normal;font-family:var(--mono);color:var(--ink3);margin-right:4px}
 .mx-fr .mx-stack{margin:0;height:7px}
 .mx-fr b{font-family:var(--mono);font-weight:500;text-align:right;font-size:10.5px;color:var(--ink2)}
+.mx-clear{margin:2px 0 8px;padding:10px 12px;border:1px solid color-mix(in srgb,var(--bad) 45%,var(--line2));border-radius:6px;background:color-mix(in srgb,var(--bad) 6%,var(--panel));display:flex;flex-direction:column;gap:6px;font-size:12px}
+.mx-clear p{margin:0;color:var(--ink2);line-height:1.5}.mx-clear-act{display:flex;justify-content:flex-end;gap:6px}
+.mx-btn.mx-danger{background:var(--bad);border-color:var(--bad);color:#fff}.mx-btn.mx-danger:disabled{opacity:.6}
 .mx-legend{display:flex;gap:10px;flex-wrap:wrap;font-size:10.5px;color:var(--ink2);margin-top:auto;padding-top:6px}
 .mx-legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px}
 /* 一行放下：不折行，三项平分宽度，太窄时各自省略号（悬停看全） */
@@ -602,6 +605,8 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       const [error, setError] = useState('')
       const [showNew, setShowNew] = useState(false)
       const [runsOpen, setRunsOpen] = useState(false)
+      // 清空批次记录：null＝没在确认；{ deliverable, busy, error }＝确认中
+      const [clearing, setClearing] = useState(null)
       const [modal, setModal] = useState(null)
       const [version, setVersion] = useState(null)
       const [now, setNow] = useState(Date.now())
@@ -645,6 +650,15 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       const openPatient = (p) => { setFocus({ patient: p }); setTab('source') }
       const openDoc = (it) => { setFocus({ patient: it.patient, doc: it.doc, field: it.field ?? null }); setTab('source') }
       const selectRun = (id) => { setRunId(id); setRun(null); setFocus(null); setRunsOpen(false); setTab('line') }
+      const clearAll = async () => {
+        setClearing((c) => ({ ...c, busy: true, error: '' }))
+        try {
+          const v = await call('clearRuns', { deliverable: clearing?.deliverable === true })
+          setRun(null); setFocus(null); setRunId(activeId ?? null)
+          await refreshList()
+          setClearing(v.failed?.length ? { deliverable: false, busy: false, error: `已删除 ${v.removed} 个，${v.failed.length} 个失败：${v.failed[0].error}` } : null)
+        } catch (e) { setClearing((c) => ({ ...c, busy: false, error: msg(e) })) }
+      }
       const elapsed = run?.startedAt ? Math.max(0, (run.status === 'running' ? now : Date.parse(run.finishedAt ?? run.startedAt)) - Date.parse(run.startedAt)) : null
       const percent = run?.shards?.total ? Math.round(run.shards.done / run.shards.total * 100) : null
       const lineStatus = run?.status ?? 'idle'
@@ -687,10 +701,20 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
               openSettings: () => { setShowNew(false); setModal('settings') },
             }) : null),
           h('div', { className: 'mx-act' },
-            h('button', { className: 'mx-btn mx-hbtn', 'aria-expanded': runsOpen ? 'true' : 'false', onClick: () => { if (!runsOpen) refreshList(); setRunsOpen(!runsOpen) } }, '记录', runs.length ? h('i', { className: 'mx-hcount' }, String(runs.length)) : null),
+            h('button', { className: 'mx-btn mx-hbtn', 'aria-expanded': runsOpen ? 'true' : 'false', onClick: () => { if (!runsOpen) refreshList(); setClearing(null); setRunsOpen(!runsOpen) } }, '记录', runs.length ? h('i', { className: 'mx-hcount' }, String(runs.length)) : null),
             runsOpen ? h('div', { className: 'mx-shade', onMouseDown: () => setRunsOpen(false) }) : null,
             runsOpen ? h('div', { className: 'mx-pop mx-runs-pop', role: 'dialog', 'aria-label': '批次记录' },
-              h('div', { className: 'mx-pop-h' }, h('b', {}, '批次记录'), h('span', { className: 'mx-sp' }), h('button', { className: 'mx-btn sm', onClick: refreshList }, '刷新')),
+              h('div', { className: 'mx-pop-h' }, h('b', {}, '批次记录'), h('span', { className: 'mx-sp' }), h('button', { className: 'mx-btn sm', onClick: refreshList }, '刷新'),
+                h('button', { className: 'mx-btn sm', disabled: !runs.some((r) => r.id !== activeId) || !!clearing, title: '删除所有批次记录（正在运行的保留）', onClick: () => setClearing({ deliverable: false, busy: false, error: '' }) }, '清空')),
+              clearing ? h('div', { className: 'mx-clear' },
+                h('b', {}, `清空 ${runs.filter((r) => r.id !== activeId).length} 个批次记录${activeId ? '（正在运行的保留）' : ''}`),
+                h('p', {}, '删除这些批次的报告、过程文件和调用记录，记录列表清空，已取消或失败的批次也不能再续跑。不可撤销。'),
+                h('p', {}, '保留：人工裁定（重跑沿用）、模型回复缓存、格式库。'),
+                h('label', { className: 'mx-pick' }, h('input', { type: 'checkbox', checked: clearing.deliverable === true, disabled: clearing.busy, onChange: (e) => setClearing({ ...clearing, deliverable: e.target.checked }) }), '同时删除交付数据（输出根目录 output 下的结果）'),
+                clearing.error ? h('div', { className: 'mx-err' }, clearing.error) : null,
+                h('div', { className: 'mx-clear-act' },
+                  h('button', { className: 'mx-btn sm', disabled: clearing.busy, onClick: () => setClearing(null) }, '取消'),
+                  h('button', { className: 'mx-btn sm mx-danger', disabled: clearing.busy, onClick: clearAll }, clearing.busy ? '正在删除…' : '全部删除'))) : null,
               !runs.length ? h('div', { className: 'mx-faint' }, '还没有批次。')
                 : h('div', { className: 'mx-runs' }, runs.map((r) => h('div', { key: r.id, role: 'button', tabIndex: 0, className: `mx-run${r.id === runId ? ' on' : ''}`, onClick: () => selectRun(r.id) },
                   h('div', { className: 'mx-run-top' }, h('span', { className: 'mx-run-name', title: r.outputRoot }, `${r.input} · ${r.template}`), statusChip(r.status)),
