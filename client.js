@@ -987,9 +987,10 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
           }
           const top = iso(pi + 19, pj + 11, Math.ceil(shown / 6) * 9 + 10)
           const shownN = k === 4 ? run.totals.review : n
-          els.push(h('g', { key: `q${k}`, ...click(k) }, h('title', {}, k === 4 ? `待复核 ${fmt(run.totals.review)} 项，每箱 10 项；点开核验工序，再去复核` : `等待读入的分片 ${fmt(n)} 个，每箱一个分片`), g,
+          els.push(h('g', { key: `q${k}`, ...click(k) }, h('title', {}, k === 4 ? `待复核 ${fmt(run.totals.review)} 项：核验分歧或规则票不一致、复判后仍不一致的，等人工裁定\n箱子＝待复核的项，每箱 10 项\n点开核验工序，再去复核` : `等待读入的分片 ${fmt(n)} 个，每箱一个分片`), g,
             h('text', { x: top[0], y: top[1], textAnchor: 'middle', fill: A, fontSize: 17, fontWeight: 700, fontFamily: MONO, stroke: C.card, strokeWidth: 3.5, paintOrder: 'stroke' }, fmt(shownN)),
-            h('text', { x: top[0], y: top[1] + 13, textAnchor: 'middle', fill: P.ink, fontSize: 10, stroke: C.card, strokeWidth: 3, paintOrder: 'stroke' }, `排队 · ${label[k]}`)))
+            // 待复核队列只留数字（和楼顶标签同一个数），说明在悬停提示里
+            k === 4 ? null : h('text', { x: top[0], y: top[1] + 13, textAnchor: 'middle', fill: P.ink, fontSize: 10, stroke: C.card, strokeWidth: 3, paintOrder: 'stroke' }, `排队 · ${label[k]}`)))
         })
       }
       // 验收门①：丢弃的引语（红箱）
