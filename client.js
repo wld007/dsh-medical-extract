@@ -1471,6 +1471,8 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       /** 字段清单：[[字段 id, 主数字文本, 附注, 提示]]，名称＋数字＋附注一行 */
       const fieldList = (rows, warn) => h('div', { className: 'mx-dz' }, rows.map(([fid, txt, small, tip]) => h('p', { key: fid, title: tip ?? `${nameOf(fid)}（${fid}）` },
         h('span', {}, nameOf(fid)), txt != null ? h('b', { className: `mx-num${warn ? ' mx-warn' : ''}` }, txt) : null, small ? h('small', {}, small) : null)))
+      const running = run.status === 'running'
+      const progRing = h(Ring, { v: s.frac, label: `${Math.round((s.frac ?? 0) * 100)}%`, sub: shards, hot })
       let ring = null; let stats = []; const parts = []; let action = null
       if (id === 'E0') {
         // 不是模板本身的介绍（模板页有），而是这个模板在这批数据上用上了多少：哪些组一个值都没有，往往是模板选错或数据里本来没有
@@ -1512,7 +1514,9 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         }
         action = ['查看字段清单', 'template']
       } else if (id === 'E1') {
-        ring = h(Ring, { v: s.frac, label: `${Math.round((s.frac ?? 0) * 100)}%`, sub: shards, hot })
+        // 运行中看进度；结束后圈改成这一步的结果：多少文书进入提取
+        const docAll = (t.documents ?? 0) + (t.hollow ?? 0)
+        ring = running || !docAll ? progRing : h(Ring, { v: t.documents / docAll, label: pct(t.documents / docAll), sub: `文书进入提取（${fmt(t.documents)} / ${fmt(docAll)}）`, hot: t.documents / docAll < 0.5 })
         stats = [['进入提取的文书', big(t.documents)], ['结构化记录（不提取）', t.structured == null ? '—' : big(t.structured)], ['空白文书（不提取）', t.hollow == null ? '—' : big(t.hollow), t.hollow ? 'warn' : ''], ['跳过（截至时刻）', fmt(t.skipped)], ['速率', run.rate ? `${fmt(run.rate)} 份/秒` : '—'], ['输入格式', run.plan?.format ?? '—']]
         if (t.structured != null) parts.push(sec('记录构成', h(Split, { parts: [['文书', (t.documents ?? 0) + (t.hollow ?? 0), 'var(--teal)'], ['结构化记录', t.structured ?? 0, 'var(--line2)']] }), '按表判定'))
         if (t.hollow != null) parts.push(sec('清洗', h(React.Fragment, {},
@@ -1526,7 +1530,10 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
           if (run.format.held) action = [`去确认 ${run.format.held} 张表`, 'formats']
         }
       } else if (id === 'E2') {
-        ring = h(Ring, { v: s.frac, label: `${Math.round((s.frac ?? 0) * 100)}%`, sub: shards, hot })
+        // 结束后：模板字段里有多少派到了文书（没派到的那列宽表必空）
+        const dScope = fields.filter((f) => f.type !== 'derived' && f.model !== 'never' && (!run.priorities?.length || run.priorities.includes(f.priority)))
+        const dHit = dScope.filter((f) => run.fieldDocs?.[f.id]).length
+        ring = running || !run.fieldDocs || !dScope.length ? progRing : h(Ring, { v: dHit / dScope.length, label: `${dHit}/${dScope.length}`, sub: '字段派到了文书', hot: dHit < dScope.length })
         if (!legacy) {
           const per = (n, d = t.documents) => (d ? (n / d).toFixed(1) : '—')
           stats = [['文书', big(t.documents)], ['提取任务', big(t.tasks)], ['每份文书', `${per(t.assigned)} 字段 · ${per(t.tasks)} 任务`]]
@@ -1566,7 +1573,9 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
           parts.push(sec('数量对照', h(React.Fragment, {}, h(RankBars, { rows: [['文书', t.documents], ['命中', t.recalled], ['提取的值', t.values]] }), note('命中按「字段 × 文书」计：一个字段在一份文书里提到了算 1 个；一个命中里可能提取出多个值，也可能一个都没有（比如提到了但是否认）'))))
         }
       } else if (id === 'E3') {
-        ring = h(Ring, { v: s.frac, label: `${Math.round((s.frac ?? 0) * 100)}%`, sub: shards, hot })
+        // 结束后：模型回答里原文引用核对通过的比例
+        const answered = mdl + (t.quoteFail ?? 0)
+        ring = running || !answered ? progRing : h(Ring, { v: mdl / answered, label: pct(mdl / answered), sub: `原文引用核对通过（丢弃 ${fmt(t.quoteFail)}）`, hot: t.quoteFail / answered > 0.05 })
         stats = [['值', big(t.values)], ['提取模型', run.model?.model ?? '—'], ['模型调用', big(t.calls)], ['命中缓存', big(t.cached)], ['调用失败', fmt(t.failed), t.failed ? 'warn' : ''], ['原文引用对不上丢弃', fmt(t.quoteFail), t.quoteFail ? 'warn' : '']]
         parts.push(sec('值的来源', h(Split, { parts: legacy
           ? [['规则', methods.rule ?? 0, 'var(--fact)'], ['模型', methods.model ?? 0, 'var(--vio)'], ['模型＋规则', methods['model+rule'] ?? 0, 'var(--decide)']]
@@ -1600,7 +1609,9 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         if (ip.length) parts.push(sec('丢弃示例', h('ul', { className: 'mx-slist' }, ip.slice(0, 5).map((x, i) => h('li', { key: i }, `${nameOf(x.field)}：${x.problem}`)))))
         action = ['报告', 'report']
       } else if (id === 'E5') {
-        ring = h(Ring, { v: s.frac, label: `${Math.round((s.frac ?? 0) * 100)}%`, sub: s.state === 'done' ? '已汇总' : '汇总', hot })
+        // 结束后：宽表单元格填充率（有值或明确否认的格子 / 全部格子）
+        const fl = Object.values(run.rollup?.filled ?? {}).reduce((a, x) => [a[0] + (x.filled ?? 0), a[1] + (x.rows ?? 0)], [0, 0])
+        ring = running || !fl[1] ? h(Ring, { v: s.frac, label: `${Math.round((s.frac ?? 0) * 100)}%`, sub: '汇总', hot }) : h(Ring, { v: fl[0] / fl[1], label: pct(fl[0] / fl[1]), sub: `单元格有值（${big(fl[0])} / ${big(fl[1])}）` })
         stats = [['病人', big(t.patients)], ['就诊', big(t.encounters)], ['冲突', fmt(t.conflicts), t.conflicts ? 'warn' : '']]
         const filled = Object.entries(run.rollup?.filled ?? {}).filter(([, x]) => x.rows > 0).map(([f, x]) => [f, x.filled / x.rows, x])
         const best = filled.filter(([, r]) => r > 0).sort((a, b) => b[1] - a[1]).slice(0, 6)
@@ -1633,7 +1644,8 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         parts.push(gateLine('④', '抽样核验一致率'))
         action = [t.review ? `去复核 ${fmt(t.review)} 项` : '复核', 'review']
       } else if (id === 'E7') {
-        ring = h(Ring, { v: run.output ? 1 : 0, label: run.output ? '已交付' : '—', sub: run.output ? null : '未交付' })
+        // 交付没有比例可看：圈改成值的总数，源文件核对结果写在下面
+        ring = run.output ? h(Ring, { v: run.sourceCheck?.changed ? 0.4 : 1, label: big(t.values), sub: `个值已交付 · ${fmt(t.patients)} 位病人`, hot: Boolean(run.sourceCheck?.changed) }) : h(Ring, { v: 0, label: '—', sub: '未交付' })
         stats = [['源文件核对', run.sourceCheck ? (run.sourceCheck.changed ? `${run.sourceCheck.changed} 个变化` : '一致') : '—', run.sourceCheck ? (run.sourceCheck.changed ? 'warn' : 'ok') : '']]
         if (run.output) parts.push(sec('输出位置', h('div', { className: 'mx-spath' }, h('span', { title: run.output }, run.output),
           h('button', { className: 'mx-btn sm', onClick: () => { navigator.clipboard?.writeText(run.output).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500) }).catch(() => {}) } }, copied ? '已复制' : '复制'))))
