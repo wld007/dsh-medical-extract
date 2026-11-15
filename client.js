@@ -177,15 +177,24 @@ window.__ModuleLoader__.load({
 .mx-hero-err{margin:8px 0 0;align-self:flex-start;max-width:720px;font-size:12px}
 .mx-side{width:300px;flex:none;padding:12px 14px;display:flex;flex-direction:column;gap:2px}
 .mx-side-h{display:flex;align-items:center;gap:8px}.mx-side-h b{font-size:14px;letter-spacing:1px}.mx-side-h span:nth-child(2){font-weight:600;flex:1}
-.mx-side-sub{font-family:var(--mono);font-size:10.5px;color:var(--teal);margin-top:4px;line-height:1.5}
-.mx-side-big{display:flex;align-items:baseline;gap:6px;margin:2px 0 6px}.mx-side-big .mx-num{font-size:28px;font-weight:300;letter-spacing:-.5px}.mx-side-big small{color:var(--ink3);font-size:11px}
-.mx-kvrow{display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink3);padding:3px 0;border-top:1px solid var(--line)}.mx-kvrow b{color:var(--ink);font-weight:500}
 .mx-side-sec{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;letter-spacing:.5px;color:var(--ink3);margin-top:12px;padding-top:8px;border-top:1px solid var(--line2)}
-.mx-hbars{display:flex;align-items:flex-end;gap:2px;height:64px;margin-top:8px}
-.mx-hbars i{flex:1;min-width:2px;background:var(--line2);cursor:pointer;border-radius:1px 1px 0 0}
-.mx-hbars i.hi{background:var(--ink3)}.mx-hbars i.pk{background:var(--teal);box-shadow:0 0 8px color-mix(in srgb,var(--teal) 60%,transparent)}
-.mx-hbars i:hover{background:var(--ink)}
-.mx-side-foot{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9.5px;color:var(--ink3);margin-top:4px}
+.mx-side{overflow-y:auto}
+.mx-sdesc{margin:6px 0 2px;font-size:11.5px;line-height:1.6;color:var(--ink2)}.mx-sdesc span{color:var(--ink3)}
+.mx-shead{display:flex;flex-direction:column;gap:6px;margin-top:8px;padding-top:10px;border-top:1px solid var(--line2)}
+.mx-ring{display:flex;align-items:center;gap:10px}.mx-ring div{display:flex;flex-direction:column;min-width:0}.mx-ring b{font-size:20px;font-weight:400;color:var(--ink)}.mx-ring small{font-size:10.5px;color:var(--ink3)}
+.mx-skv{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px}.mx-skv div{display:flex;flex-direction:column;min-width:0}
+.mx-skv span{font-size:10px;color:var(--ink3)}.mx-skv b{font-size:12.5px;font-weight:500;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mx-ssec{margin-top:10px;padding-top:8px;border-top:1px solid var(--line)}
+.mx-ssec-h{display:flex;justify-content:space-between;gap:8px;font-size:10.5px;color:var(--ink3);margin-bottom:4px}.mx-ssec-h b{font-weight:600}.mx-ssec-h>span:last-child:not(:first-child){flex:none;white-space:nowrap}
+.mx-ssec .mx-legend{margin-top:0;padding-top:2px}
+.mx-snote{margin:2px 0 0;font-size:11px;line-height:1.5;color:var(--ink2)}
+.mx-rank{display:flex;flex-direction:column;gap:4px}
+.mx-rank-r{display:grid;grid-template-columns:96px 1fr 52px;align-items:center;gap:6px;font-size:11px;color:var(--ink2)}
+.mx-rank-r span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mx-rank-r div{height:6px;border-radius:3px;background:var(--line)}.mx-rank-r i{display:block;height:100%;border-radius:3px}
+.mx-rank-r b{text-align:right;font-weight:500;color:var(--ink)}
+.mx-spath{display:flex;gap:6px;align-items:center}.mx-spath span{flex:1;min-width:0;font-family:var(--mono);font-size:10.5px;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:rtl;text-align:left}
+.mx-slist{margin:2px 0 0;padding-left:16px;font-size:11px;line-height:1.7;color:var(--ink2)}
+.mx-saction{margin-top:12px;align-self:stretch;justify-content:center}
 .mx-ticks{display:flex;gap:2px;height:13px;margin-top:5px}
 .mx-ticks i{flex:1;max-width:3px;background:var(--line2);border-radius:.5px}
 .mx-ticks i.on{background:var(--ink2)}.mx-ticks.hot i.on{background:var(--teal)}
@@ -521,7 +530,7 @@ window.__ModuleLoader__.load({
               h('div', {}, h('i', { className: 'sw hot' }), '运行中／待复核'), h('div', {}, h('i', { className: 'sw clay' }), '已完成'),
               h('div', {}, h('i', { className: 'sw box' }), '箱子＝一个分片'), h('div', {}, h('i', { className: 'sw red' }), '红色＝验收门未过'),
               h('div', {}, h('i', { className: 'sw vio' }), '青灯＝模型补抽（旁路）'), h('div', {}, h('i', { className: 'sw flow' }), '紫色流线＝字段规格下发'))),
-          h(StationPanel, { run, s: stations[k] })),
+          h(StationPanel, { run, s: stations[k], goto })),
         h('div', { className: 'mx-grid4' }, h(GatesPanel, { run }), h(FieldsPanel, { run }), h(VerifyPanel, { run }), h(AlertsPanel, { run, goto })))
     }
 
@@ -834,36 +843,136 @@ window.__ModuleLoader__.load({
       return h('svg', { className: 'mx-scene', tabIndex: 0, role: 'group', 'aria-label': `处理流程，当前 ${stations[sel].no} ${stations[sel].nm}（←／→ 切换工序）`, onKeyDown, viewBox: `${x0} ${y0} ${x1 - x0} ${y1 - y0}`, preserveAspectRatio: 'xMidYMin meet', style: { maxHeight: 620, overflow: 'hidden' } }, h('defs', {}, defs), els)
     }
 
-    function StationPanel({ run, s }) {
-      const [P, C] = useClay()
-      const hotTone = s.state === 'run' || s.state === 'hold' ? P.teal : null
-      const model = []
-      model.push(...isoBox('pd', -8, -8, -4, 116, 96, 4, { top: C.pad, left: C.padL, right: C.padR }))
-      model.push(...isoBox('m', 0, 0, 0, 100, 80, 42, { top: C.top, left: C.left, right: C.right, edge: C.edge }))
-      for (let w = 0; w < 4; w++) model.push(leftPatch(`w${w}`, 10 + w * 22, 24 + w * 22, 80, 16, 30, { fill: hotTone ?? C.win, opacity: hotTone ? 0.85 : 0.6 }))
-      const roof = []
-      for (let a = 0; a < 2; a++) for (let b = 0; b < 3; b++) roof.push([b, a])
-      roof.sort((p, q) => depthOf(p[0] * 30, p[1] * 32) - depthOf(q[0] * 30, q[1] * 32)).forEach(([b, a], q) => {
-        const lit = hotTone && q < Math.max(1, Math.round((s.frac ?? 0) * 6))
-        model.push(...isoBox(`u${a}${b}`, 10 + b * 30, 12 + a * 32, 42, 22, 22, 9, lit ? { top: shade(hotTone, 0.25), left: hotTone, right: shade(hotTone, -0.3) } : { top: C.top2, left: C.left2, right: C.right2, edge: C.edge }))
-        const f = iso(21 + b * 30, 23 + a * 32, 51)
-        model.push(h('ellipse', { key: `f${a}${b}`, cx: f[0], cy: f[1], rx: 8, ry: 4.6, fill: lit ? shade(hotTone, -0.45) : C.hole }))
-      })
-      // 每个字段的取值数（或核验一致率）柱
-      const fields = Object.entries(run.byField ?? {}).sort((a, b) => a[0].localeCompare(b[0], 'en', { numeric: true }))
-      const max = Math.max(1, ...fields.map(([, v]) => v.values))
-      const peak = fields.find(([, v]) => v.values === max)
-      const stateCls = s.state === 'hold' || s.state === 'run' ? 'w' : s.state === 'done' ? 'ok' : ''
+    /* 每道工序：做什么 → 产出什么（引擎的通用工序说明，不含病种内容） */
+    const STEP_HELP = {
+      E0: ['载入抽取模板并校验：字段、取值类型、选项、召回词与规则', '字段规格，下发给后面每道工序'],
+      E1: ['识别输入格式，切成分片并行处理；每份文书按栏目切开，截至时刻以后写成的文书跳过', '文书与栏目'],
+      E2: ['按字段限定的文书类型、栏目过滤，再用召回词和正则找出可能有值的句子', '候选：字段 × 文书'],
+      E3: ['规则能定的直接取值；定不了的片段送抽取模型，模型给的引语回原文逐字核对，对不上就丢弃', '值：每个都带原文引语、起止位置和出处（规则编号或模型）'],
+      E4: ['统一单位、日期和选项写法；判断否认、既往、家族史、计划；类型、选项或值域不对的标为不合规', '规范值与断言'],
+      E5: ['按字段粒度（文书／就诊／病人／时间点）和汇总规则合并成格，计算派生字段；同一格互斥取值登记为冲突，不自动选边', '宽表、时间点长表、冲突表'],
+      E6: ['核验模型按字段抽样，背靠背重抽后与已取的值比对；不一致的进人工复核，裁定后重跑沿用', '一致率与复核单'],
+      E7: ['写出宽表、证据长表、冲突表和报告，再只读核对源文件没有被改动', '交付目录'],
+    }
+
+    /** 小进度环 */
+    function Ring({ v, label, sub, hot }) {
+      const r = 22; const c = 2 * Math.PI * r; const x = Math.max(0, Math.min(1, v ?? 0))
+      return h('div', { className: 'mx-ring' },
+        h('svg', { width: 56, height: 56, viewBox: '0 0 56 56', 'aria-hidden': 'true' },
+          h('circle', { cx: 28, cy: 28, r, fill: 'none', stroke: 'var(--line2)', strokeWidth: 4 }),
+          h('circle', { cx: 28, cy: 28, r, fill: 'none', stroke: hot ? 'var(--warn)' : 'var(--teal)', strokeWidth: 4, strokeLinecap: 'round', strokeDasharray: `${c * x} ${c}`, transform: 'rotate(-90 28 28)' })),
+        h('div', {}, h('b', { className: 'mx-num' }, label), sub ? h('small', {}, sub) : null))
+    }
+
+    /** 带名字的横条：rows = [[名称, 数, 显示文本?, 颜色?, 提示?]] */
+    function RankBars({ rows, max }) {
+      const m = max ?? Math.max(1, ...rows.map((r) => r[1]))
+      return h('div', { className: 'mx-rank' }, rows.map(([name, n, txt, color, tip], i) => h('div', { key: `${name}${i}`, className: 'mx-rank-r', title: tip ?? `${name}：${txt ?? fmt(n)}` },
+        h('span', {}, name), h('div', {}, h('i', { style: { width: `${Math.max(2, (n / m) * 100)}%`, background: color ?? 'var(--teal)' } })), h('b', { className: 'mx-num' }, txt ?? big(n)))))
+    }
+
+    /** 分段条＋图例：parts = [[名称, 数, 颜色]] */
+    function Split({ parts }) {
+      const sum = parts.reduce((s, p) => s + p[1], 0)
+      return h(React.Fragment, {},
+        h('div', { className: 'mx-stack' }, sum ? parts.map(([k, n, c]) => (n ? h('span', { key: k, style: { width: `${(n / sum) * 100}%`, background: c } }) : null)) : null),
+        h('div', { className: 'mx-legend' }, parts.map(([k, n, c]) => h('span', { key: k }, h('i', { style: { background: c } }), `${k} ${big(n)}`))))
+    }
+
+    function StationPanel({ run, s, goto }) {
+      const t = run.totals
+      const tpl = useAsync(() => call('template', { id: run.template.id }).catch(() => null), [run.template.id])
+      const fields = tpl.value?.template?.fields ?? []
+      const nameOf = (id) => fields.find((f) => f.id === id)?.name ?? id
+      const [copied, setCopied] = useState(false)
+      const id = s.no
+      const [what, out] = STEP_HELP[id] ?? ['', '']
+      const hot = s.state === 'run' || s.state === 'hold'
+      const stateCls = hot ? 'w' : s.state === 'done' ? 'ok' : ''
+      const gate = (g) => run.gates?.find((x) => x.id === g)
+      const sec = (title, body, aside) => h('div', { key: title, className: 'mx-ssec' }, h('div', { className: 'mx-ssec-h' }, h('span', {}, title), aside ? h('span', {}, aside) : null), body)
+      const note = (text) => h('p', { className: 'mx-snote' }, text)
+      const gateLine = (g, label) => {
+        const x = gate(g)
+        const txt = !x ? '—' : x.skipped ? '跳过' : x.pass ? '通过' : '未过'
+        return sec(`验收${g} · ${x?.label ?? label}`, x?.detail ? note(x.detail) : null, h('b', { className: x && !x.skipped ? (x.pass ? 'mx-ok' : 'mx-warn') : '' }, txt))
+      }
+      const kv = (pairs) => h('div', { className: 'mx-skv' }, pairs.filter(Boolean).map(([l, v, cls]) => h('div', { key: l }, h('span', {}, l), h('b', { className: `mx-num ${cls === 'ok' ? 'mx-ok' : cls === 'warn' ? 'mx-warn' : ''}` }, v))))
+      const shards = `${fmt(run.shards.done)} / ${fmt(run.shards.total)} 分片`
+      const methods = t.byMethod ?? {}
+      const mdl = (methods.model ?? 0) + (methods['model+rule'] ?? 0)
+      const verify = Object.entries(run.verify ?? {})
+      const vn = verify.reduce((a, [, x]) => a + x.n, 0); const va = verify.reduce((a, [, x]) => a + x.agree, 0)
+      const top = (entries, key, n = 8) => entries.sort((a, b) => b[1][key] - a[1][key]).slice(0, n)
+
+      let ring = null; let stats = []; const parts = []; let action = null
+      if (id === 'E0') {
+        ring = h(Ring, { v: 1, label: `${run.template.fields}`, sub: '个字段' })
+        stats = [['模板', run.template.name], ['版本', `v${run.template.version}`], ['模式', MODE_LABEL[run.mode] ?? run.mode], ['优先级', run.priorities?.length ? run.priorities.join('／') : '全部']]
+        const groups = tpl.value?.template?.groups ?? []
+        const byGroup = groups.map((g) => [g.name, fields.filter((f) => f.group === g.id).length]).filter((r) => r[1])
+        if (byGroup.length) parts.push(sec('各组字段数', h(RankBars, { rows: byGroup.map(([n, c]) => [n, c, String(c)]) })))
+        action = ['模板', 'template']
+      } else if (id === 'E1') {
+        ring = h(Ring, { v: s.frac, label: `${Math.round((s.frac ?? 0) * 100)}%`, sub: shards, hot })
+        stats = [['文书', big(t.documents)], ['速率', run.rate ? `${fmt(run.rate)} 份/秒` : '—'], ['跳过（截至时刻）', fmt(t.skipped)], ['输入格式', run.plan?.format ?? '—']]
+        if (run.format) {
+          parts.push(sec('格式识别', h(Split, { parts: [['采用', run.format.adopted ?? 0, 'var(--teal)'], ['待确认', run.format.held ?? 0, 'var(--warn)'], ['跳过', run.format.ignored ?? 0, 'var(--line2)']] }), `${fmt((run.format.adopted ?? 0) + (run.format.held ?? 0) + (run.format.ignored ?? 0))} 张表`))
+          if (run.format.held) action = [`去确认 ${run.format.held} 张表`, 'formats']
+        }
+      } else if (id === 'E2') {
+        ring = h(Ring, { v: s.frac, label: `${Math.round((s.frac ?? 0) * 100)}%`, sub: shards, hot })
+        stats = [['候选', big(t.recalled)], ['文书', big(t.documents)]]
+        parts.push(sec('数量对照', h(React.Fragment, {}, h(RankBars, { rows: [['文书', t.documents], ['候选', t.recalled], ['取到的值', t.values]] }), note('候选按「字段 × 文书」计；一个候选里可能取出多个值，也可能一个都取不到'))))
+      } else if (id === 'E3') {
+        ring = h(Ring, { v: s.frac, label: `${Math.round((s.frac ?? 0) * 100)}%`, sub: shards, hot })
+        stats = [['值', big(t.values)], ['模型调用', big(t.calls)], ['命中缓存', big(t.cached)], ['调用失败', fmt(t.failed), t.failed ? 'warn' : '']]
+        parts.push(sec('取值途径', h(Split, { parts: [['规则', methods.rule ?? 0, 'var(--fact)'], ['模型', methods.model ?? 0, 'var(--vio)'], ['模型＋规则', methods['model+rule'] ?? 0, 'var(--decide)']] })))
+        parts.push(gateLine('①', '引语与原文逐字一致'))
+        if (!gate('①')) parts.push(note(`模型回答 ${fmt(mdl + t.quoteFail)} 条，引语对不上丢弃 ${fmt(t.quoteFail)} 条`))
+        const rows = top(Object.entries(run.byField ?? {}), 'values').map(([f, v]) => [nameOf(f), v.values, null, null, `${nameOf(f)}（${f}）：${fmt(v.values)} 个值，${fmt(v.docs)} 份文书`])
+        parts.push(sec('取值最多的字段', rows.length ? h(RankBars, { rows }) : note('还没有值'), `${Object.keys(run.byField ?? {}).length} / ${run.template.fields} 个字段有值`))
+        if (run.model) action = ['模型调用', 'calls']
+      } else if (id === 'E4') {
+        const bad = t.invalid + t.outOfRange
+        ring = h(Ring, { v: t.values ? 1 - bad / t.values : 0, label: t.values ? pct(1 - bad / t.values) : '—', sub: '合规', hot: bad > 0 })
+        stats = [['不合规', fmt(bad), bad ? 'warn' : ''], ['类型或选项不对', fmt(t.invalid)], ['超出值域', fmt(t.outOfRange)]]
+        parts.push(sec('值的合规情况', h(Split, { parts: [['合规', Math.max(0, t.values - bad), 'var(--teal)'], ['类型或选项不对', t.invalid, 'var(--warn)'], ['超出值域', t.outOfRange, 'var(--bad)']] })))
+        parts.push(gateLine('②', '值在类型、选项、值域之内'))
+        action = ['报告', 'report']
+      } else if (id === 'E5') {
+        ring = h(Ring, { v: s.frac, label: `${Math.round((s.frac ?? 0) * 100)}%`, sub: s.state === 'done' ? '已汇总' : '汇总', hot })
+        stats = [['病人', big(t.patients)], ['就诊', big(t.encounters)], ['冲突', fmt(t.conflicts), t.conflicts ? 'warn' : '']]
+        const filled = Object.entries(run.rollup?.filled ?? {}).filter(([, x]) => x.rows > 0).map(([f, x]) => [f, x.filled / x.rows, x])
+        const best = filled.filter(([, r]) => r > 0).sort((a, b) => b[1] - a[1]).slice(0, 6)
+        const empty = filled.filter(([, r]) => r === 0).length
+        parts.push(sec('填充率最高的字段', best.length ? h(RankBars, { max: 1, rows: best.map(([f, r, x]) => [nameOf(f), r, pct(r), null, `${nameOf(f)}（${f}）：${fmt(x.filled)} / ${fmt(x.rows)} 格有值`]) }) : note(run.status === 'running' ? '汇总后显示' : '没有字段取到值'),
+          filled.length ? `${filled.length - empty} / ${filled.length} 个字段有值` : null))
+        parts.push(gateLine('③', '可回溯原文'))
+        action = ['宽表', 'wide']
+      } else if (id === 'E6') {
+        ring = h(Ring, { v: vn ? va / vn : 0, label: vn ? pct(va / vn) : '—', sub: '核验一致率', hot: vn > 0 && va / vn < 0.9 })
+        stats = [['核验模型', run.model?.verifyModel ?? '未配置'], ['抽样', vn ? `${fmt(vn)} 次` : '—'], ['待复核', fmt(t.review), t.review ? 'warn' : '']]
+        const weak = verify.filter(([, x]) => x.n >= 3).map(([f, x]) => [f, x.agree / x.n, x]).sort((a, b) => a[1] - b[1]).slice(0, 5)
+        parts.push(sec('一致率最低的字段', weak.length ? h(RankBars, { max: 1, rows: weak.map(([f, r, x]) => [nameOf(f), r, r.toFixed(2), r < 0.9 ? 'var(--warn)' : 'var(--teal)', `${nameOf(f)}（${f}）：${x.agree} / ${x.n} 次一致`]) }) : note(run.model?.verifyModel ? '抽样不足（每个字段至少 3 次）' : '在设置里配置核验模型后才会抽样核验')))
+        parts.push(gateLine('④', '抽样核验一致率'))
+        action = [t.review ? `去复核 ${fmt(t.review)} 项` : '复核', 'review']
+      } else if (id === 'E7') {
+        ring = h(Ring, { v: run.output ? 1 : 0, label: run.output ? '已交付' : '—', sub: run.output ? null : '未交付' })
+        stats = [['源文件核对', run.sourceCheck ? (run.sourceCheck.changed ? `${run.sourceCheck.changed} 个变化` : '一致') : '—', run.sourceCheck ? (run.sourceCheck.changed ? 'warn' : 'ok') : '']]
+        if (run.output) parts.push(sec('输出位置', h('div', { className: 'mx-spath' }, h('span', { title: run.output }, run.output),
+          h('button', { className: 'mx-btn sm', onClick: () => { navigator.clipboard?.writeText(run.output).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500) }).catch(() => {}) } }, copied ? '已复制' : '复制'))))
+        parts.push(sec('交付内容', h('ul', { className: 'mx-slist' }, ['宽表（病人／就诊／文书）', '时间点长表', '证据长表（每个值的原文引语与位置）', '冲突表', '报告'].map((x) => h('li', { key: x }, x)))))
+        action = ['报告', 'report']
+      }
+
       return h('div', { className: 'mx-frame mx-side' },
         h('div', { className: 'mx-side-h' }, h('b', { className: 'mx-num' }, s.no), h('span', {}, s.nm), h('span', { className: `mx-chip ${stateCls}` }, STATE_LABEL[s.state])),
-        h('div', { className: 'mx-side-sub' }, s.sub),
-        h('svg', { className: 'mx-scene', viewBox: '-74 -74 186 158', style: { maxHeight: 150, margin: '6px 0' } }, model),
-        h('div', { className: 'mx-side-big' }, h('span', { className: 'mx-num' }, s.big), h('small', {}, s.unit)),
-        s.rows.map(([l, v, cls]) => h('div', { key: l, className: 'mx-kvrow' }, h('span', {}, l), h('b', { className: `mx-num ${cls === 'ok' ? 'mx-ok' : cls === 'warn' ? 'mx-warn' : ''}` }, v))),
-        h('div', { className: 'mx-kvrow' }, h('span', {}, '完成'), h('b', { className: 'mx-num' }, `${Math.round((s.frac ?? 0) * 100)}%`)),
-        h('div', { className: 'mx-side-sec' }, h('span', {}, `每个字段 · 取到的值`), h('span', { className: 'mx-tl' }, peak ? `峰值 ${peak[0]}` : '')),
-        h('div', { className: 'mx-hbars' }, fields.map(([id, v]) => h('i', { key: id, title: `${id}：${fmt(v.values)} 个值，${fmt(v.docs)} 份文书`, className: v.values === max ? 'pk' : v.values > max / 3 ? 'hi' : '', style: { height: `${Math.max(4, v.values / max * 100)}%` } }))),
-        h('div', { className: 'mx-side-foot' }, h('span', {}, `${fields.length} / ${run.template.fields} 个字段有值`), h('span', {}, '')))
+        h('p', { className: 'mx-sdesc' }, what, h('br'), h('span', {}, `→ ${out}`)),
+        h('div', { className: 'mx-shead' }, ring, kv(stats)),
+        ...parts,
+        action ? h('button', { className: `mx-btn mx-saction${id === 'E6' && t.review ? ' mx-new' : ''}`, onClick: () => goto(action[1]) }, `${action[0]} →`) : null)
     }
 
     function Ticks({ v, n = 46, hot }) {
