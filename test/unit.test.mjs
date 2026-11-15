@@ -180,13 +180,17 @@ test('读入·清洗：图片与二进制丢掉、HTML／RTF 转文字（图片�
 })
 
 test('全局模型并发：多个限流器共用一个计数，不超过上限', async () => {
-  const { sharedLimiter } = await import('../lib/engine/shard.js')
-  const sab = new SharedArrayBuffer(4)
-  const a = sharedLimiter(sab, 3); const b = sharedLimiter(sab, 3)
+  const { sharedLimiter, readGate, GATE_BYTES } = await import('../lib/engine/shard.js')
+  const sab = new SharedArrayBuffer(GATE_BYTES)
+  const a = sharedLimiter(sab, 3, 0); const b = sharedLimiter(sab, 3, 1)
   let now = 0; let peak = 0
   const job = (lim) => lim(async () => { now++; peak = Math.max(peak, now); await new Promise((r) => setTimeout(r, 5)); now-- })
   await Promise.all([...Array(10)].flatMap(() => [job(a), job(b)]))
   assert.equal(peak, 3); assert.equal(new Int32Array(sab)[0], 0)
+  // 计数：在途、排队归零；完成调用与 token 按角色累计
+  a.tally(10); a.tally(5); b.tally(7)
+  const g = readGate(sab)
+  assert.deepEqual(g.inflight, [0, 0]); assert.deepEqual(g.waiting, [0, 0]); assert.deepEqual(g.done, [2, 1]); assert.deepEqual(g.tokens, [15, 7])
 })
 
 test('读入·清洗：base64 的文字解出来；编码串、哈希不当二进制；压缩文书计数不解', async () => {

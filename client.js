@@ -241,6 +241,25 @@ window.__ModuleLoader__.load({
 .mx-side-h{display:flex;align-items:center;gap:8px}.mx-side-h b{font-size:14px;font-weight:600;flex:1}
 .mx-side-sec{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;letter-spacing:.5px;color:var(--ink3);margin-top:12px;padding-top:8px;border-top:1px solid var(--line2)}
 .mx-side{overflow-y:auto;contain:size}.mx-side>*{flex:none}
+.mx-back{font-size:11px;margin-left:4px;white-space:nowrap}
+.mx-ov{gap:8px}.mx-ov .mx-side-h .mx-cap{flex:1}
+.mx-ob{border:1px solid var(--line2);border-radius:6px;overflow:hidden;flex:none}
+.mx-ob-h{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--panel2);border-bottom:1px solid var(--line);border-left:3px solid var(--teal)}.mx-ob-h b{font-size:12.5px}
+.mx-ob-b{padding:8px 10px;display:flex;flex-direction:column;gap:6px}.mx-ob-b .mx-legend{margin-top:0;padding-top:0}
+.mx-ob-kv{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.mx-ob-kv div{display:flex;justify-content:space-between;align-items:baseline;gap:6px;background:var(--panel2);border-radius:4px;padding:4px 8px;min-width:0}
+.mx-ob-kv span{font-size:10.5px;color:var(--ink3)}.mx-ob-kv b{font-family:var(--mono);font-size:13px}
+.mx-ob-models{display:grid;gap:5px 10px;align-items:center;font-size:11px}.mx-ob-models>span{color:var(--ink3)}.mx-ob-models>b{font-family:var(--mono);font-weight:600;text-align:right;font-size:12px}
+.mx-ob-models b small{font-weight:400;color:var(--warn)}
+.mx-ob-mh{display:flex;flex-direction:column;align-items:flex-end;min-width:0;border-bottom:1px solid var(--line);padding-bottom:3px}.mx-ob-mh small{font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.mx-ob-mh small i{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ok);margin-right:4px}.mx-ob-mh small i.bad{background:var(--bad)}
+.mx-lat .bars{display:flex;align-items:flex-end;gap:2px;height:30px}.mx-lat .bars i{flex:1;background:color-mix(in srgb,var(--teal) 55%,transparent);border-radius:1px 1px 0 0}.mx-lat .bars i.slow{background:var(--bad)}
+.mx-lat .lbl{display:flex;gap:2px;font-family:var(--mono);font-size:8.5px;color:var(--ink3)}.mx-lat .lbl span{flex:1;text-align:center}
+.mx-ob-conc{display:flex;flex-direction:column;gap:2px}.mx-ob-ch{display:flex;gap:10px;align-items:baseline;font-size:11px;color:var(--ink3)}.mx-ob-ch>b{color:var(--ink);font-size:12px}.mx-ob-ch b{font-family:var(--mono)}.mx-ob-ch .tp{color:var(--vio)}
+.mx-conc{width:100%;height:74px;display:block}.mx-conc path,.mx-conc polyline{fill:none;vector-effect:non-scaling-stroke}
+.mx-conc .in{stroke:var(--teal);stroke-width:2}.mx-conc .lim{stroke:var(--ink3);stroke-dasharray:4 3;stroke-width:1}.mx-conc .zero{stroke:var(--line2);stroke-width:1}
+.mx-conc .tp{stroke:color-mix(in srgb,var(--vio) 70%,transparent);stroke-width:1.2}.mx-conc .q{fill:color-mix(in srgb,var(--warn) 30%,transparent);stroke:none}
+.mx-legend i.ln{width:12px;height:2px;border-radius:0}.mx-legend i.ln.in{background:var(--teal)}.mx-legend i.ln.lim{background:repeating-linear-gradient(90deg,var(--ink3) 0 3px,transparent 3px 5px)}.mx-legend i.ln.tp{background:var(--vio)}.mx-legend i.ln.q{background:color-mix(in srgb,var(--warn) 50%,transparent);height:6px}
+.mx-ob .mx-link{align-self:flex-end;font-size:11px}
 .mx-slegacy{margin:6px 0 0;font-size:11px;line-height:1.55;padding:6px 8px}
 .mx-sdesc{margin:6px 0 2px;font-size:11.5px;line-height:1.6;color:var(--ink2)}.mx-sdesc span{color:var(--ink3)}
 .mx-shead{display:flex;flex-direction:column;gap:6px;margin-top:8px;padding-top:10px;border-top:1px solid var(--line2)}
@@ -592,9 +611,9 @@ window.__ModuleLoader__.load({
     function Pipeline({ run, goto, openPatient }) {
       const stations = stationsOf(run)
       const hot = stations.filter((s) => s.state === 'run' || s.state === 'hold')
-      const defSel = Math.max(0, stations.findIndex((s) => s.state === 'run' || s.state === 'hold'))
+      // 没选工序时右列是批次概览（同匿名化插件）；点楼、标签或底部验收门进工序详情
       const [selK, setSelK] = useState(null)
-      const k = selK ?? (defSel >= 0 ? defSel : 2)
+      const k = selK ?? -1
       // 布局同匿名化插件：左列＝2.5D 产线（撑满）＋底部「进展｜结果｜监控」；右列＝所选工序的详情，拉到底
       return h('div', { className: 'mx-scroll', style: { flex: 1, display: 'flex' } },
         h('div', { className: 'mx-line' },
@@ -614,7 +633,7 @@ window.__ModuleLoader__.load({
             h(ProgressPanel, { run }),
             h(ResultsPanel, { run, stations, onSel: setSelK, goto }),
             h(ResourcesPanel, { run }))),
-          h(StationPanel, { run, s: stations[k], goto })))
+          k >= 0 ? h(StationPanel, { run, s: stations[k], goto, onBack: () => setSelK(null) }) : h(Overview, { run, goto, onSel: setSelK, stations })))
     }
 
     /* 等轴测投影（与病历事件还原一致） */
@@ -681,6 +700,7 @@ window.__ModuleLoader__.load({
       // 站序号 → 在场景里的位置：0=E1 楼，1–5=E2–E6，6=E7 堆场，7=E0 模板塔
       const footprint = (k) => (k === 0 ? [0, 8, 84, 100] : k === 6 ? [yard, 6, 150, 130] : k === 7 ? [TW.i, TW.j, TW.a, TW.b] : [bay0(k), 0, bw, D])
       {
+        if (sel < 0) { /* 没选工序：不画选中框 */ } else {
         const [fi, fj, fa, fb] = footprint(sel); const m = 10
         const corners = [[fi - m, fj - m], [fi + fa + m, fj - m], [fi + fa + m, fj + fb + m], [fi - m, fj + fb + m]]
         els.push(h('polygon', { key: 'selfloor', points: pts(corners.map(([a, b]) => iso(a, b))), fill: A, opacity: 0.07 }))
@@ -688,6 +708,7 @@ window.__ModuleLoader__.load({
           const di = q === 0 || q === 3 ? 1 : -1; const dj = q < 2 ? 1 : -1
           els.push(h('polyline', { key: `br${q}`, points: pts([iso(ci + di * 16, cj), iso(ci, cj), iso(ci, cj + dj * 16)]), fill: 'none', stroke: A, strokeWidth: 1.6, opacity: 0.9 }))
         })
+        }
       }
       // E0 模板塔：窗户＝字段（点亮＝本批抽到值的字段）
       {
@@ -919,12 +940,13 @@ window.__ModuleLoader__.load({
       // 键盘：场景本身是一个 Tab 停靠点，←／→ 按工序顺序（模板塔在前）切换
       const ORDER = [7, 0, 1, 2, 3, 4, 5, 6]
       const onKeyDown = (e) => {
+        if (e.key === 'Escape') { onSel(null); return }
         const d = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0
         if (!d) return
         e.preventDefault()
-        onSel(ORDER[(ORDER.indexOf(sel) + d + ORDER.length) % ORDER.length])
+        onSel(sel < 0 ? ORDER[d > 0 ? 0 : ORDER.length - 1] : ORDER[(ORDER.indexOf(sel) + d + ORDER.length) % ORDER.length])
       }
-      return h('svg', { className: 'mx-scene', tabIndex: 0, role: 'group', 'aria-label': `处理流程，当前 ${stations[sel].nm}（←／→ 切换工序）`, onKeyDown, viewBox: `${x0} ${y0} ${x1 - x0} ${y1 - y0}`, preserveAspectRatio: 'xMidYMin meet', style: { maxHeight: 620, overflow: 'hidden' } }, h('defs', {}, defs), els)
+      return h('svg', { className: 'mx-scene', tabIndex: 0, role: 'group', 'aria-label': `处理流程，当前 ${sel >= 0 ? stations[sel].nm : '批次概览'}（←／→ 切换工序）`, onKeyDown, viewBox: `${x0} ${y0} ${x1 - x0} ${y1 - y0}`, preserveAspectRatio: 'xMidYMin meet', style: { maxHeight: 620, overflow: 'hidden' } }, h('defs', {}, defs), els)
     }
 
     /* 每道工序：做什么 → 产出什么（引擎的通用工序说明，不含病种内容） */
@@ -966,7 +988,87 @@ window.__ModuleLoader__.load({
         h('div', { className: 'mx-legend' }, parts.map(([k, n, c]) => h('span', { key: k }, h('i', { style: { background: c } }), `${k} ${big(n)}`))))
     }
 
-    function StationPanel({ run, s, goto }) {
+    /* ------------------------------------------------------------ overview */
+    const kfmt = (n) => (n == null ? '—' : n >= 1e9 ? `${(n / 1e9).toFixed(1)}G` : n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1e3 ? `${(n / 1e3).toFixed(1)}k` : fmt(Math.round(n)))
+    const ROLE_NM = { extract: '抽取', verify: '核验' }
+    const LAT_LABELS = ['<.5', '.5', '1', '2', '4', '8', '16+']
+
+    /** 一个角色的并发曲线：在途（阶梯线）、上限（虚线）、吞吐（token/秒，自身峰值归一）、排队（零线以下） */
+    function ConcChart({ series, role, limit }) {
+      const W = 280; const H = 74; const Q = 16; const top = 6; const base = H - Q
+      const i = role === 'extract' ? 0 : 1
+      const pts0 = (series ?? []).filter((p) => p.length >= 10)
+      if (pts0.length < 3) return h('p', { className: 'mx-snote' }, '采样点不够，画不出曲线（批次太短，或是旧版本跑的）')
+      const t1 = pts0[pts0.length - 1][0] || 1
+      const X = (ms) => (ms / t1) * W
+      const inflight = pts0.map((p) => p[2 + i]); const waiting = pts0.map((p) => p[4 + i])
+      const tput = pts0.map((p, j) => (j ? Math.max(0, (p[8 + i] - pts0[j - 1][8 + i]) / Math.max(0.001, (p[0] - pts0[j - 1][0]) / 1000)) : 0))
+      const lim = Math.max(1, limit ?? Math.max(...inflight))
+      const maxQ = Math.max(1, ...waiting); const maxT = Math.max(1, ...tput)
+      const Y = (v) => base - (v / lim) * (base - top)
+      const step = pts0.map((p, j) => `${j ? `L${X(p[0]).toFixed(1)} ${Y(inflight[j - 1]).toFixed(1)} ` : 'M0 ' + Y(inflight[0]).toFixed(1) + ' '}L${X(p[0]).toFixed(1)} ${Y(inflight[j]).toFixed(1)}`).join(' ')
+      const tp = pts0.map((p, j) => `${X(p[0]).toFixed(1)},${(base - (tput[j] / maxT) * (base - top)).toFixed(1)}`).join(' ')
+      const qa = `M0 ${base} ${pts0.map((p, j) => `L${X(p[0]).toFixed(1)} ${(base + (waiting[j] / maxQ) * (Q - 2)).toFixed(1)}`).join(' ')} L${W} ${base} Z`
+      return h('svg', { className: 'mx-conc', viewBox: `0 0 ${W} ${H}`, preserveAspectRatio: 'none' },
+        h('path', { className: 'lim', d: `M0 ${Y(lim)}H${W}` }),
+        h('path', { className: 'zero', d: `M0 ${base}H${W}` }),
+        h('path', { className: 'q', d: qa }),
+        h('polyline', { className: 'tp', points: tp }),
+        h('path', { className: 'in', d: step }))
+    }
+
+    function Overview({ run, goto, onSel, stations }) {
+      const t = run.totals
+      const legacy = run.flow !== 'read'
+      const calls = useAsync(() => (run.models ? null : call('calls', { runId: run.id }).catch(() => null)), [run.id, run.models ? 1 : t.calls])
+      const fromDb = (role) => { const m = calls.value?.byModel?.find((x) => x.role === role); return m ? { model: m.model, calls: m.calls, cached: m.cached, failed: m.failed, ms: m.ms, pt: m.prompt_tokens, ct: m.completion_tokens } : null }
+      const M = { extract: run.models?.extract ?? fromDb('extract'), verify: run.models?.verify ?? fromDb('verify') }
+      const roles = ['extract', 'verify'].filter((r) => M[r] || (r === 'extract' ? run.model?.model : run.model?.verifyModel))
+      const nm = (r) => M[r]?.model ?? (r === 'extract' ? run.model?.model : run.model?.verifyModel) ?? '—'
+      const sum = (k) => roles.reduce((a, r) => a + (M[r]?.[k] ?? 0), 0)
+      const sent = sum('sentChars'); const reused = sum('reusedChars'); const free = t.freeChars ?? 0
+      const all = sent + reused + free
+      const block = (title, cap, body, aside) => h('div', { className: 'mx-ob' }, h('div', { className: 'mx-ob-h' }, h('b', {}, title), h('span', { className: 'mx-cap' }, cap), h('span', { className: 'mx-sp' }), aside ?? null), h('div', { className: 'mx-ob-b' }, body))
+      const pctOf = (n) => (all ? `${Math.round((n / all) * 100)}%` : '—')
+      const series = run.series ?? []
+      const peak = (r) => Math.max(0, ...series.filter((p) => p.length >= 10).map((p) => p[2 + (r === 'extract' ? 0 : 1)]))
+      const peakT = (r) => { const i = r === 'extract' ? 0 : 1; const ps = series.filter((p) => p.length >= 10); let m = 0; for (let j = 1; j < ps.length; j++) { const dt = (ps[j][0] - ps[j - 1][0]) / 1000; if (dt > 0) m = Math.max(m, (ps[j][8 + i] - ps[j - 1][8 + i]) / dt) } return m }
+      const vEntries = Object.values(run.verify ?? {}); const vn = vEntries.reduce((a, x) => a + x.n, 0); const va = vEntries.reduce((a, x) => a + x.agree, 0)
+      const rd = legacy ? 0 : t.ruleDisputes ?? 0
+      return h('div', { className: 'mx-frame mx-side mx-ov' },
+        h('div', { className: 'mx-side-h' }, h('b', {}, '批次概览'), h('span', { className: 'mx-cap' }, 'BATCH OVERVIEW')),
+        h('p', { className: 'mx-snote', style: { margin: '2px 0 4px' } }, '点产线上的楼看每道工序的详情'),
+        block('送审用量', 'WORKLOAD', all ? h(React.Fragment, {},
+          h('div', { className: 'mx-stack', style: { height: 8 } }, [[sent, 'var(--teal)'], [reused, 'var(--ok)'], [free, 'var(--line2)']].map(([n, c], i) => (n ? h('span', { key: i, style: { width: `${(n / all) * 100}%`, background: c } }) : null))),
+          h('div', { className: 'mx-legend' }, [['发送', sent, 'var(--teal)'], ['复用', reused, 'var(--ok)'], ['免送', free, 'var(--line2)']].map(([k, n, c]) => h('span', { key: k, title: k === '免送' ? '没交给模型的文书字数：空壳文书、截至时刻以后的、没派到字段的、成本开关跳过的' : k === '复用' ? '内容相同的任务直接用缓存的回复' : '实际发给模型的文书字数（一份文书分几组字段就算几次）' }, h('i', { style: { background: c } }), `${k} ${kfmt(n)} · ${pctOf(n)}`))),
+          h('div', { className: 'mx-ob-kv' },
+            h('div', {}, h('span', {}, '调用'), h('b', {}, fmt(sum('calls')))),
+            h('div', {}, h('span', {}, '复用'), h('b', {}, fmt(sum('cached')))),
+            h('div', {}, h('span', {}, 'Token'), h('b', {}, kfmt(sum('pt') + sum('ct'))))),
+          t.structured ? h('p', { className: 'mx-snote' }, `另有结构化记录 ${big(t.structured)} 条不抽取，不计在内`) : null)
+          : h('p', { className: 'mx-snote' }, legacy ? '这个批次没有记录送审字数（旧版本跑的）' : '还没有送审')),
+        block('模型表现', 'MODELS', roles.length ? h('div', { className: 'mx-ob-models', style: { gridTemplateColumns: `76px repeat(${roles.length}, minmax(0,1fr))` } },
+          h('span', {}), ...roles.map((r) => h('div', { key: r, className: 'mx-ob-mh' }, h('b', {}, ROLE_NM[r]), h('small', { title: nm(r) }, h('i', { className: M[r]?.failed && M[r].calls && M[r].failed / M[r].calls > 0.05 ? 'bad' : '' }), nm(r)))),
+          h('span', {}, '调用'), ...roles.map((r) => h('b', { key: r }, fmt(M[r]?.calls ?? 0))),
+          h('span', {}, '失败率'), ...roles.map((r) => { const m = M[r] ?? {}; const fr = m.calls ? m.failed / m.calls : 0; return h('b', { key: r, className: fr > 0.02 ? 'mx-bad' : '' }, m.calls ? `${(fr * 100).toFixed(fr && fr < 0.1 ? 1 : 0)}%` : '—', m.retries ? h('small', { title: '断线、超时、429／5xx 自动重试的次数' }, ` ↻${fmt(m.retries)}`) : null) }),
+          h('span', {}, '耗时分布'), ...roles.map((r) => { const hs = M[r]?.hist; if (!hs) return h('small', { key: r, className: 'mx-faint' }, '—'); const mx = Math.max(1, ...hs); return h('div', { key: r, className: 'mx-lat', title: hs.map((n, i) => `${LAT_LABELS[i]}s：${n}`).join('\n') }, h('div', { className: 'bars' }, hs.map((n, i) => h('i', { key: i, className: i >= 5 && n ? 'slow' : '', style: { height: `${Math.max(n ? 6 : 2, (n / mx) * 100)}%` } }))), h('div', { className: 'lbl' }, LAT_LABELS.map((x) => h('span', { key: x }, x)))) }),
+          h('span', {}, '上下文 均/最大'), ...roles.map((r) => { const m = M[r] ?? {}; return h('b', { key: r }, m.calls ? `${kfmt(m.pt / m.calls)} / ${m.ptMax ? kfmt(m.ptMax) : '—'}` : '—') }),
+          h('span', {}, '每次 输出/耗时'), ...roles.map((r) => { const m = M[r] ?? {}; return h('b', { key: r }, m.calls ? `${fmt(Math.round(m.ct / m.calls))} / ${(m.ms / m.calls / 1000).toFixed(1)}s` : '—') }))
+          : h('p', { className: 'mx-snote' }, '还没有模型调用'), h('button', { className: 'mx-link', onClick: () => goto('calls') }, '明细 →')),
+        block('并发调度', 'CONCURRENCY', h(React.Fragment, {},
+          h('div', { className: 'mx-legend' }, h('span', {}, h('i', { className: 'ln in' }), '在途'), h('span', {}, h('i', { className: 'ln lim' }), '上限'), h('span', {}, h('i', { className: 'ln tp' }), '吞吐'), h('span', {}, h('i', { className: 'ln q' }), '排队')),
+          roles.map((r) => h('div', { key: r, className: 'mx-ob-conc' },
+            h('div', { className: 'mx-ob-ch' }, h('b', {}, ROLE_NM[r]), h('span', {}, '并发峰值 ', h('b', {}, fmt(peak(r)))), h('span', { className: 'tp' }, '吞吐峰值 ', h('b', {}, `${kfmt(peakT(r))}`), ' token/秒')),
+            h(ConcChart, { series, role: r, limit: run.modelConcurrency }))),
+          h('p', { className: 'mx-snote' }, `上限 ${fmt(run.modelConcurrency ?? 0) || '—'}：抽取和核验共用一个并发上限（设置里的「全局同时进行的模型请求数」），各工作线程共用`))),
+        block('核验与复核', 'CROSS-CHECK', h(React.Fragment, {},
+          h('p', { className: 'mx-snote' }, run.model?.verifyModel ? `抽样核验 ${fmt(vn)} 次（字段 × 文书）· 一致 ${vn ? pct(va / vn) : '—'} · 核验分歧 ${fmt(Math.max(0, t.review - rd))}` : '未配置核验模型，不做抽样核验'),
+          !legacy && run.mode !== 'model' ? h('p', { className: 'mx-snote' }, `规则票 ${fmt(t.votes ?? 0)} · 与模型一致 ${fmt(t.agree ?? 0)} · 不一致 ${fmt(rd)}`) : null,
+          h('p', { className: 'mx-snote' }, `待复核合计 ${fmt(t.review)} 项`)),
+          h('button', { className: 'mx-link', onClick: () => goto('review') }, '明细 →')))
+    }
+
+    function StationPanel({ run, s, goto, onBack }) {
       const t = run.totals
       const tpl = useAsync(() => call('template', { id: run.template.id }).catch(() => null), [run.template.id])
       const fields = tpl.value?.template?.fields ?? []
@@ -1103,7 +1205,7 @@ window.__ModuleLoader__.load({
       }
 
       return h('div', { className: 'mx-frame mx-side' },
-        h('div', { className: 'mx-side-h' }, h('b', {}, s.nm), h('span', { className: `mx-chip ${stateCls}` }, STATE_LABEL[s.state])),
+        h('div', { className: 'mx-side-h' }, h('b', {}, s.nm), h('span', { className: `mx-chip ${stateCls}` }, STATE_LABEL[s.state]), onBack ? h('button', { className: 'mx-link mx-back', onClick: onBack }, '← 概览') : null),
         legacy ? h('div', { className: 'mx-err mx-slegacy' }, `旧版本跑的批次：${t.structured == null ? '那时检验、医嘱、收费等结构化记录也当文书读、没有清洗，' : ''}取值走关键词定位${run.mode === 'rules' ? '＋规则' : '＋模型补抽'}，这些做法已停用。数字是当时的口径，重跑一次看新流程的结果`) : null,
         h('p', { className: 'mx-sdesc' }, what, h('br'), h('span', {}, `→ ${out}`)),
         h('div', { className: 'mx-shead' }, ring, kv(stats)),
