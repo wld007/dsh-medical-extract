@@ -627,7 +627,7 @@ window.__ModuleLoader__.load({
         for (let r = 1; r < 4; r++) { const p1 = iso(i + 6, j + 6 + r * 11, z0); const p2 = iso(i + a - 6 - r * 6, j + 6 + r * 11, z0); g.push(h('line', { key: `hl${r}`, x1: p1[0], y1: p1[1], x2: p2[0], y2: p2[1], stroke: A, strokeWidth: 1, opacity: 0.8 })) }
         const lp = iso(i + a / 2, j + b / 2, z0 + 2)
         g.push(h('text', { key: 'tl', x: lp[0], y: lp[1] - 4, textAnchor: 'middle', fill: A, fontSize: 10, fontWeight: 700, fontFamily: MONO, ...halo }, `${run.template.id} v${run.template.version}`))
-        els.push(h('g', { key: 'tower', onClick: () => goto('template'), style: { cursor: 'pointer' } }, h('title', {}, '模板：点击查看字段清单'), g))
+        els.push(h('g', { key: 'tower', ...click(7) }, h('title', {}, `${stations[7].nm}：${stations[7].sub}`), g))
         bb.push(iso(i - 10, j - 10, 0), iso(i + a, j, z0 + 30), iso(i - 10, j + b + 10, 0))
       }
       // 规格总线
@@ -760,7 +760,7 @@ window.__ModuleLoader__.load({
           }
           const top = iso(pi + 19, pj + 11, Math.ceil(shown / 6) * 9 + 10)
           const shownN = k === 5 ? run.totals.review : n
-          els.push(h('g', { key: `q${k}`, ...(k === 5 ? { onClick: () => goto('review'), style: { cursor: 'pointer' } } : click(k)) }, g,
+          els.push(h('g', { key: `q${k}`, ...click(k) }, g,
             h('text', { x: top[0], y: top[1], textAnchor: 'middle', fill: A, fontSize: 17, fontWeight: 700, fontFamily: MONO, stroke: C.card, strokeWidth: 3.5, paintOrder: 'stroke' }, fmt(shownN)),
             h('text', { x: top[0], y: top[1] + 13, textAnchor: 'middle', fill: P.ink, fontSize: 10, stroke: C.card, strokeWidth: 3, paintOrder: 'stroke' }, `排队 · ${label[k]}`)))
         })
@@ -794,7 +794,7 @@ window.__ModuleLoader__.load({
         const lt = iso(mi - 10, mj + mb + 10)
         g.push(h('text', { key: 't1', x: lt[0], y: lt[1] + 6, textAnchor: 'end', fill: on ? V : P.ink3, fontSize: 11, fontWeight: 600, ...halo }, '模型补抽（旁路）'),
           h('text', { key: 't2', x: lt[0], y: lt[1] + 20, textAnchor: 'end', fill: P.ink2, fontSize: 9.5, ...halo }, on ? `调用 ${big(t.calls)} · 缓存 ${big(t.cached)} · 引语回原文核对` : '未配置模型 · 只跑规则'))
-        els.push(h('g', { key: 'model', onClick: () => goto('calls'), style: { cursor: 'pointer' } }, h('title', {}, on ? `抽取模型 ${run.model.model}${run.model.verifyModel ? `；核验模型 ${run.model.verifyModel}` : ''}` : '未配置模型'), g))
+        els.push(h('g', { key: 'model', ...click(2) }, h('title', {}, on ? `抽取模型 ${run.model.model}${run.model.verifyModel ? `；核验模型 ${run.model.verifyModel}` : ''}` : '未配置模型'), g))
         bb.push(iso(mi - 6, mj + mb + 6), iso(mi - 160, mj + mb + 40), iso(mi + ma, mj + mb + 6))
       }
       // 裁定回流
