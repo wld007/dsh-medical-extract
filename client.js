@@ -466,8 +466,8 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
 .mx-dc-swatch i.rej{border-bottom:2px dotted var(--bad);height:4px}
 .mx-dc-swatch i.hit{border-bottom:2px dotted var(--warn);height:4px}
 .mx-dc-banner{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:7px 12px;background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--warn);font-size:12px;font-weight:600;border-bottom:1px solid color-mix(in srgb,var(--warn) 40%,transparent)}
-.mx-dc-text{flex:1;position:relative;background:var(--bg);padding:14px}
-.mx-dc-paper{max-width:860px;margin:0 auto;background:var(--panel);border:1px solid var(--line);border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:20px 26px 16px}
+.mx-dc-text{flex:1;position:relative;background:var(--panel);padding:0}
+.mx-dc-paper{padding:14px 20px 12px}
 .mx-dc-ttl{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:12px}
 .mx-dc-ttl b{font-size:16px}.mx-dc-ttl span{color:var(--ink2);font-size:12px}.mx-dc-ttl small{margin-left:auto;color:var(--ink3);font-size:10px}
 .mx-dc-body{font-size:13.5px;line-height:2.1}
