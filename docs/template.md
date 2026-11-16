@@ -70,7 +70,7 @@
 | `accept` | 否 | 哪些断言算"有该值"，默认 `["阳性"]`。既往史类字段写 `["阳性","既往"]`，家族史字段写 `["家族"]` |
 | `granularity` | 否 | `document`／`encounter`（默认）／`patient`／`timepoint` |
 | `pick` | 否 | 汇总规则，见 §6；默认按类型 |
-| `range` | 否 | 数值类 `{min, max}`；越界的值验收门②不过 |
+| `range` | 否 | 数值类 `{min, max}`；越界的值质检②不过 |
 | `model` | 否 | `auto`（默认：交给模型通读）／`always`（同 auto）／`never`（只走规则路径） |
 | `derive` | 派生字段必填 | 见 §7 |
 

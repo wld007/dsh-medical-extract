@@ -111,7 +111,7 @@ test('模型抽取：引语核对丢弃编造、缓存复用、核验一致率',
   const ev = await readEvidence(join(root, 'out', 'output', 'in', 'evidence'))
   assert.ok(!ev.some((v) => v.quote === '这句话原文里没有'))
   assert.ok(ev.some((v) => v.method === 'model' || v.method === 'model+rule'))
-  assert.equal(run.gates.find((g) => g.id === '④').skipped, undefined)
+  assert.equal(run.gates.find((g) => g.id === '③').skipped, undefined)
   assert.ok(Object.keys(run.verify).length > 0)
   // 第二次：全部命中缓存，不再调用
   const n = extract.calls + verify.calls
@@ -224,7 +224,7 @@ test('通用 json：数据元编码列名、病人按目录、多列正文、文
   assert.deepEqual(Object.keys(P).sort(), ['证件-AAA', '证件-BBB'])
 })
 
-test('复判：核验分歧两个模型轮流复判，一致的自动解决（不进复核单，可筛出抽查）；验收门④按复判前', async () => {
+test('复判：核验分歧两个模型轮流复判，一致的自动解决（不进复核单，可筛出抽查）；质检③按复判前', async () => {
   const root = await tmp()
   const input = await writeMddPatients(join(root, 'in'))
   const extract = fakeModel('fake-a')
@@ -236,7 +236,7 @@ test('复判：核验分歧两个模型轮流复判，一致的自动解决（�
   // 提取模型复判时（fakeModel 对复判提示回空）改口成"原文没写"，和核验模型一致 → 第 1 轮解决
   assert.ok(run.totals.adjResolved > 0)
   assert.ok(run.totals.adjByRound[0] > 0)
-  const g4 = run.gates.find((g) => g.id === '④')
+  const g4 = run.gates.find((g) => g.id === '③')
   assert.match(g4.label, /复查前/); assert.match(g4.detail, /复查后自动一致/)
   assert.equal(g4.pass, false) // 复判前处处不一致
   assert.ok(Array.isArray(run.needsDefinition))

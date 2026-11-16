@@ -831,8 +831,8 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
           : st('E2', '分配', '按文书类型、栏目把字段派给文书，切成提取任务', big(t.tasks), '任务', [['字段 × 文书', big(t.assigned), '']], stShard('E2'), shardF('E2')),
         st('E3', '提取', legacy ? '旧批次：规则定值，定不了的片段送模型' : '提取模型通读每个任务，模型给的原文引用逐字回原文核对；有规则的字段再用规则对照', big(t.values), '值', [gateRow('①', '质检①', `${fmt(t.quoteFail)} 丢弃`), ['模型调用', `${big(t.calls)}（缓存 ${big(t.cached)}）`, ''], ...(legacy ? [] : [['规则与模型不符', fmt(t.ruleDisputes ?? 0), t.ruleDisputes ? 'warn' : '']])], stShard('E3'), shardF('E3')),
         st('E4', '归一', '单位、日期、选项写法统一；类型、选项、值域校验', fmt(t.invalid + t.outOfRange), '不合规', [gateRow('②', '质检②')], stShard('E4'), shardF('E4')),
-        st('E6', '核验·复查', hasVerify ? `核验模型 ${run.model.verifyModel}；有分歧时复查，至多 ${run.maxRounds ?? 3} 轮` : '未配置核验模型：不做抽样核验', fmt(t.review), '待复核', [gateRow('④', '质检④'), ...(t.adjResolved ? [['复查后一致', fmt(t.adjResolved), 'ok']] : [])], t.review && !running ? 'hold' : stShard('E6'), hasVerify ? shardF('E6') : 0),
-        st('E5', '汇总·计算', '所有数据块做完后：按汇总层级与取值规则填进结果表；计算字段；冲突登记', fmt(t.conflicts), '冲突', [['病人', big(t.patients), ''], gateRow('③', '质检③')], stLate('rollup'), phase === 'rollup' ? 0.5 : past('rollup') || !running ? (broken ? 0 : 1) : 0),
+        st('E6', '核验·复查', hasVerify ? `核验模型 ${run.model.verifyModel}；有分歧时复查，至多 ${run.maxRounds ?? 3} 轮` : '未配置核验模型：不做抽样核验', fmt(t.review), '待复核', [gateRow('③', '质检③'), ...(t.adjResolved ? [['复查后一致', fmt(t.adjResolved), 'ok']] : [])], t.review && !running ? 'hold' : stShard('E6'), hasVerify ? shardF('E6') : 0),
+        st('E5', '汇总·计算', '所有数据块做完后：按汇总层级与取值规则填进结果表；计算字段；冲突登记', fmt(t.conflicts), '冲突', [['病人', big(t.patients), ''], gateRow('④', '质检④')], stLate('rollup'), phase === 'rollup' ? 0.5 : past('rollup') || !running ? (broken ? 0 : 1) : 0),
         st('E7', '交付', '结果表 → 证据长表 → 冲突表 → 只读核对', run.output ? '已写出' : '—', '', [['输出', run.output ? '已写出' : '未交付', run.output ? 'ok' : '']], run.output ? 'done' : stLate('deliver'), run.output ? 1 : 0),
         st('E0', '模板', `${run.template.name} v${run.template.version}`, String(run.template.fields), '字段', [['模式', modeLabel(run.mode), '']], 'done', 1),
       ]
@@ -1039,9 +1039,9 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         wins.forEach(([i, z], q) => { const lit = q < litN; g.push(leftPatch(`w${z}-${i}`, i, i + 7, 108, z, z + 6, { fill: lit ? (s.state === 'run' ? A : C.lamp) : C.win, opacity: lit ? 0.95 : 0.55, filter: lit && s.state === 'run' ? 'url(#mx-glow)' : undefined })) })
         els.push(h('g', { key: 'e1', ...click(0) }, h('title', {}, s.nm), g))
       }
-      // 走廊与质检：①在提取出口，②在归一出口，④在核验出口，③在汇总出口（楼的顺序：分配、提取、归一、核验、汇总）
+      // 走廊与质检：①在提取出口，②在归一出口，③在核验出口，④在汇总出口（楼的顺序：分配、提取、归一、核验、汇总）
       const gateOf = (id) => run.gates?.find((x) => x.id === id)
-      const GATE_AFTER = { 3: '①', 4: '②', 5: '④', 6: '③' }
+      const GATE_AFTER = { 3: '①', 4: '②', 5: '③', 6: '④' }
       const corridor = (key, i0, i1, k) => {
         const cj = D - 30
         const a = iso(i0, cj + 24, 24); const b = iso(i1, cj + 24, 24)
@@ -1244,7 +1244,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       stations.forEach((s, k) => {
         const [x, y] = anchor(k)
         const on = k === sel; const hotS = s.state === 'hold' || s.state === 'run'
-        const g = s.rows.find((r) => /^验收/.test(r[0]))
+        const g = s.rows.find((r) => /^(验收|质检)/.test(r[0]))
         const w = 9 + textW(s.ab, 10.5) + 6 + textW(s.big, 12.5, true) + (s.unit ? textW(s.unit, 9.5) + 3 : 0) + (g ? 13 : 0) + 9
         const hh = 21; const x0 = x - w / 2; const y0 = y - hh - 5
         const bg = on ? A : C.card; const line = hotS || on ? A : C.cardLine
@@ -1343,7 +1343,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       const mem = run.memory
       const memR = running && mem?.heapLimit ? mem.heapUsed / mem.heapLimit : null
       if (memR != null && memR >= 0.7) a.push({ tone: memR >= 0.85 ? 'crit' : 'warn', tag: '内存', title: `堆内存用了 ${Math.round(memR * 100)}%`, sub: '可在设置里减少工作线程数' })
-      if (!running) for (const g of run.gates ?? []) if (!g.pass && !g.skipped) a.push({ tone: 'warn', tag: `质检${g.id}`, title: `质检${g.id}未过`, sub: g.detail, onClick: at({ '①': 'E3', '②': 'E4', '③': 'E5', '④': 'E6' }[g.id]) })
+      if (!running) for (const g of run.gates ?? []) if (!g.pass && !g.skipped) a.push({ tone: 'warn', tag: `质检${g.id}`, title: `质检${g.id}未过`, sub: g.detail, onClick: at({ '①': 'E3', '②': 'E4', '④': 'E5', '③': 'E6' }[g.id]) })
       const rd = run.flow === 'read' ? t.ruleDisputes ?? 0 : 0
       if (t.review) a.push({ tone: 'warn', tag: '复核', title: `待复核 ${fmt(t.review)} 项`, sub: rd ? `核验分歧 ${fmt(Math.max(0, t.review - rd))} · 规则与模型不符 ${fmt(rd)}` : '核验分歧', onClick: () => goto('source') })
       if (run.format?.held) a.push({ tone: 'warn', tag: '格式', title: `${fmt(run.format.held)} 张表的格式待确认`, sub: run.format.heldPolicy === 'skip' ? '这些表先跳过了' : '先按通用读法读了，确认后重跑更准', onClick: () => goto('formats') })
@@ -1358,7 +1358,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       if (t.hollow && docsAll && t.hollow / docsAll >= 0.3) a.push({ tone: 'info', tag: '读入', title: `空白文书 ${fmt(t.hollow)} 份（${Math.round((t.hollow / docsAll) * 100)}%）`, sub: '清洗后没有内容，没有交给模型', onClick: at('E1') })
       const zipped = t.mediaKinds?.['压缩文书（未解）']
       if (zipped) a.push({ tone: 'info', tag: '读入', title: `${fmt(zipped)} 份压缩文书没有解开`, sub: '内容没有读到', onClick: at('E1') })
-      if (!run.model?.verifyModel && run.flow === 'read') a.push({ tone: 'info', tag: '核验', title: '未配置核验模型', sub: '不做抽样核验，质检④跳过' })
+      if (!run.model?.verifyModel && run.flow === 'read') a.push({ tone: 'info', tag: '核验', title: '未配置核验模型', sub: '不做抽样核验，质检③跳过' })
       if (run.warnings?.length) a.push({ tone: 'info', tag: '提示', title: `${fmt(run.warnings.length)} 条提示`, sub: run.warnings[0].slice(0, 60), onClick: () => goto('report') })
       if (run.status === 'cancelled') a.push({ tone: 'info', tag: '续跑', title: '批次已取消', sub: '点「＋ 新批次」里的「↻ 继续」接着跑，已完成的数据块直接复用' })
       const RANK = { crit: 0, warn: 1, info: 2 }
@@ -1728,14 +1728,14 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
           filled.length ? `${filled.length - empty} / ${filled.length} 个字段有值` : null))
         const cf = Object.entries(run.rollup?.filled ?? {}).filter(([, x]) => x.conflicts).sort((a, b) => b[1].conflicts - a[1].conflicts).slice(0, 5)
         if (cf.length) parts.push(sec('冲突的字段', fieldList(cf.map(([f, x]) => [f, `${fmt(x.conflicts)} 格`, null, `${nameOf(f)}（${f}）：${fmt(x.conflicts)} 个单元格里有互斥的值，没有自动选边，见冲突表`]), true)))
-        parts.push(gateLine('③', '可回溯原文'))
+        parts.push(gateLine('④', '可回溯原文'))
       } else if (id === 'E6') {
         ring = h(Ring, { v: vn ? va / vn : 0, label: vn ? pct(va / vn) : '—', sub: '核验一致率', hot: vn > 0 && va / vn < 0.9 })
         const rd = legacy ? 0 : t.ruleDisputes ?? 0
         stats = [['核验模型', run.model?.verifyModel || '未配置'], ['抽样（字段 × 文书）', vn ? `${fmt(vn)} 次` : '—'], ['待复核', fmt(t.review), t.review ? 'warn' : ''], ...(legacy ? [] : [['其中核验分歧', fmt(Math.max(0, t.review - rd))], ['其中规则与模型不符', fmt(rd)]])]
         const weak = verify.filter(([, x]) => x.n >= 3).map(([f, x]) => [f, x.agree / x.n, x]).sort((a, b) => a[1] - b[1]).slice(0, 5)
         parts.push(sec('一致率最低的字段', weak.length ? h(RankBars, { max: 1, rows: weak.map(([f, r, x]) => [nameOf(f), r, r.toFixed(2), r < 0.9 ? 'var(--warn)' : 'var(--teal)', `${nameOf(f)}（${f}）：${x.agree} / ${x.n} 次一致`]) }) : note(run.model?.verifyModel ? '抽样不足（每个字段至少 3 次）' : '在设置里配置核验模型后才会抽样核验')))
-        // 复查：分歧两个模型轮流复查，一致即采用；质检④按复查前算
+        // 复查：分歧两个模型轮流复查，一致即采用；质检③按复查前算
         const adjN = verify.reduce((a2, [, x]) => a2 + (x.adj ?? 0), 0); const adjOk = verify.reduce((a2, [, x]) => a2 + (x.resolved ?? 0), 0)
         if (!legacy && (adjN || t.ruleDisputes)) {
           const byR = (t.adjByRound ?? []).map((n, i) => [i + 1, n]).filter(([, n]) => n)
@@ -1748,7 +1748,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         if (nd.length) parts.push(sec('需要改字段定义', h('div', { title: '复查前就对不上：没被抽到的文书只有第一遍的结果，重跑不会变（同样的提示命中缓存）。看复核里的分歧，改模板里这个字段的定义、算／不算的写法或例子' },
           h('div', { className: 'mx-rank' }, nd.slice(0, 8).map((x) => h('button', { key: x.field, type: 'button', className: 'mx-nd', title: `${x.why}；抽样 ${x.n} 次，一致 ${x.agree}`, onClick: () => { focusField.id = x.field; goto('template') } },
             h('span', {}, nameOf(x.field)), h('small', {}, x.why), h('b', { className: 'mx-num mx-warn' }, pct(x.agree / x.n)), h('i', {}, '改 →')))))))
-        parts.push(gateLine('④', '抽样核验一致率'))
+        parts.push(gateLine('③', '抽样核验一致率'))
         action = [t.review ? `去复核 ${fmt(t.review)} 项` : '复核', 'source']
       } else if (id === 'E7') {
         // 交付没有比例可看：圈改成值的总数，源文件核对结果写在下面
@@ -1848,7 +1848,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       const way = run.flow !== 'read' ? [['规则', m.rule ?? 0, 'var(--fact)'], ['模型', m.model ?? 0, 'var(--vio)'], ['模型＋规则', m['model+rule'] ?? 0, 'var(--decide)']]
         : [['模型', m.model ?? 0, 'var(--vio)'], ['与规则一致', m['model+rule'] ?? 0, 'var(--decide)'], ['只用规则', m.rule ?? 0, 'var(--fact)']]
       const sum = way.reduce((a, x) => a + x[1], 0)
-      const GATE_AT = { '①': 'E3', '②': 'E4', '③': 'E5', '④': 'E6' }
+      const GATE_AT = { '①': 'E3', '②': 'E4', '④': 'E5', '③': 'E6' }
       const tag = run.status === 'review' ? h('span', { className: 'mx-chip w' }, '待复核') : run.status === 'failed' ? h('span', { className: 'mx-chip b' }, '失败') : run.status === 'cancelled' ? h('span', { className: 'mx-chip b' }, '已取消') : null
       return h('div', { className: 'mx-ro' },
         roHead('处理结果', 'RESULTS', tag),
@@ -1860,10 +1860,10 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         h('div', { className: 'mx-ro-line' },
           h('button', { className: `mx-link${t.review ? ' mx-warn' : ''}`, onClick: () => goto('source') }, '待判断 ', h('b', {}, fmt(t.review))),
           h('span', { className: t.conflicts ? 'mx-warn' : 'mx-faint', title: '同一单元格互斥的值，见交付目录的 conflicts.csv' }, '冲突 ', h('b', {}, fmt(t.conflicts))),
-          h('span', { className: 'mx-gdots' }, '验收', ['①', '②', '③', '④'].map((id) => {
+          h('span', { className: 'mx-gdots' }, '质检', ['①', '②', '④', '③'].map((id) => {
             const g = run.gates?.find((x) => x.id === id)
             const cls = !g || g.skipped ? '' : g.pass ? 'ok' : 'bad'
-            return h('button', { key: id, className: `mx-gdot ${cls}`, title: g ? `${g.label}：${g.pass ? '通过' : g.skipped ? '跳过' : '未过'}\n${g.detail}` : '尚未验收', onClick: () => onSel(stations.findIndex((s) => s.no === GATE_AT[id])) }, id)
+            return h('button', { key: id, className: `mx-gdot ${cls}`, title: g ? `${g.label}：${g.pass ? '通过' : g.skipped ? '跳过' : '未过'}\n${g.detail}` : '尚未质检', onClick: () => onSel(stations.findIndex((s) => s.no === GATE_AT[id])) }, id)
           }))),
         h('div', { className: 'mx-ro-line mx-types' }, way.filter(([, n]) => n).map(([k, n]) => h('span', { key: k }, k, h('b', {}, sum ? `${Math.round((n / sum) * 100)}%` : '—')))),
         run.output ? h('div', { className: 'mx-spath' }, h('span', { title: run.output }, run.output),
@@ -2694,7 +2694,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
             h('div', { className: 'mx-grid2' },
               field('verifySampleRate', '核验抽样比例（0–1）', { type: 'number', step: 0.01, min: 0, max: 1 }),
               field('verifyMinPerField', '每字段每数据块至少核验几份', { type: 'number', min: 0 }),
-              field('verifyThreshold', '质检④一致率阈值（0–1）', { type: 'number', step: 0.01, min: 0, max: 1 }),
+              field('verifyThreshold', '质检③一致率阈值（0–1）', { type: 'number', step: 0.01, min: 0, max: 1 }),
               field('maxRounds', '复查轮次上限（1–6）', { type: 'number', min: 1, max: 6 }, '分歧时两个模型轮流复查，仍不一致转人工')))),
         format: () => card('格式识别（通用文件）', '按表识别类别、写成时间、病人、就诊与栏目：规则给的方案＋提取模型、核验模型各自独立起草，一致才自动采用，其余在「格式」页确认。只发字段名、统计和截短样例，不发正文。',
           check('formatRecognition', '启用格式识别'),
