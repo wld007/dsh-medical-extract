@@ -1860,7 +1860,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         h('div', { className: 'mx-ro-line' },
           h('button', { className: `mx-link${t.review ? ' mx-warn' : ''}`, onClick: () => goto('source') }, '待判断 ', h('b', {}, fmt(t.review))),
           h('span', { className: t.conflicts ? 'mx-warn' : 'mx-faint', title: '同一单元格互斥的值，见交付目录的 conflicts.csv' }, '冲突 ', h('b', {}, fmt(t.conflicts))),
-          h('span', { className: 'mx-gdots' }, '质检', ['①', '②', '④', '③'].map((id) => {
+          h('span', { className: 'mx-gdots' }, '质检', ['①', '②', '③', '④'].map((id) => {
             const g = run.gates?.find((x) => x.id === id)
             const cls = !g || g.skipped ? '' : g.pass ? 'ok' : 'bad'
             return h('button', { key: id, className: `mx-gdot ${cls}`, title: g ? `${g.label}：${g.pass ? '通过' : g.skipped ? '跳过' : '未过'}\n${g.detail}` : '尚未质检', onClick: () => onSel(stations.findIndex((s) => s.no === GATE_AT[id])) }, id)
