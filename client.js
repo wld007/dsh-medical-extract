@@ -293,6 +293,15 @@ window.__ModuleLoader__.load({
 .mx-pick{display:flex;gap:8px;align-items:center;font-size:10.5px}
 .mx-pop-act{display:flex;gap:8px;margin-top:2px}
 .mx-pop-act .mx-btn{height:32px}
+.mx-pick2{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:2px}
+.mx-pick2 .mx-btn{height:32px;justify-content:flex-start;padding:0 12px;font-size:12.5px}
+.mx-pop-more{align-self:flex-start;font-size:11.5px;color:var(--ink2)}
+.mx-pop-more span{color:var(--ink3);margin-left:2px}
+.mx-pop-warn{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;font-size:11.5px;color:var(--badink);background:color-mix(in srgb,var(--bad) 9%,transparent);border:1px solid color-mix(in srgb,var(--bad) 35%,transparent)}
+.mx-pop-warn span{flex:1}
+.mx-btn.mx-start{flex:1;height:36px;font-size:13.5px;font-weight:700;letter-spacing:2px;color:#fff;background:var(--teal);border-color:var(--teal)}
+.mx-btn.mx-start:hover:not(:disabled){filter:brightness(1.08)}
+.mx-btn.mx-start:disabled{opacity:.45;cursor:not-allowed}
 .mx-hero-cap{display:flex;align-items:center;gap:10px}
 .mx-live{font-family:var(--mono);font-size:10.5px;letter-spacing:1px;color:var(--teal);display:inline-flex;align-items:center;gap:6px}
 .mx-live i{width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 6px currentColor;animation:mx-pulse 1.6s ease-in-out infinite}
@@ -746,6 +755,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
     }
 
     /* --------------------------------------------------------------- new run */
+    /** 新批次（同匿名化插件的弹窗）：输入（选文件夹／选文件）、提取模板、输出根目录，一个大的开始按钮；模式、只提 P0、截至时刻收在「更多选项」 */
     function NewRun({ onStarted, onError, onClose, resumable, openSettings }) {
       const [inputDir, setInput] = useState('')
       const [outputRoot, setOut] = useState('')
@@ -753,16 +763,17 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       const [template, setTemplate] = useState('')
       const [mode, setMode] = useState('')
       const [p0, setP0] = useState(false)
+      const [more, setMore] = useState(false)
       const [busy, setBusy] = useState(false)
-      const [picking, setPicking] = useState(false)
+      const [picking, setPicking] = useState('')
       const tpls = useAsync(() => call('templates'), [])
       const cfg = useAsync(() => call('config'), [])
       useEffect(() => { const onKey = (e) => { if (e.key === 'Escape') onClose() }; window.addEventListener('keydown', onKey); return () => window.removeEventListener('keydown', onKey) }, [])
-      const pick = async () => {
-        setPicking(true)
-        try { const v = await call('pickFolder'); if (v.path) setInput(v.path) } catch (cause) {
-          try { const ws = services.ctx?.get('uiWorkspace'); if (!ws?.pickDirectory) throw cause; const picked = await ws.pickDirectory(); if (picked) setInput(picked) } catch (e) { onError(msg(e)) }
-        } finally { setPicking(false) }
+      const pick = async (kind) => {
+        setPicking(kind)
+        try { const v = await call(kind === 'file' ? 'pickFile' : 'pickFolder'); if (v.path) setInput(v.path) } catch (cause) {
+          try { const ws = services.ctx?.get('uiWorkspace'); if (kind === 'file' || !ws?.pickDirectory) throw cause; const picked = await ws.pickDirectory(); if (picked) setInput(picked) } catch (e) { onError(msg(e)) }
+        } finally { setPicking('') }
       }
       const go = async (payload) => { setBusy(true); try { const v = await call('start', payload); onStarted(v.runId) } catch (e) { onError(msg(e)) } finally { setBusy(false) } }
       const tplList = tpls.value?.templates ?? []
@@ -770,25 +781,31 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
       const noModel = cfg.value && !cfg.value.modelConfigured
       const curMode = MODE_LABEL[mode] ? mode : MODE_LABEL[cfg.value?.mode] ? cfg.value.mode : 'hybrid'
       const resumeOk = resumable && resumable.flow === 'read'
+      const moreSet = [mode && mode !== cfg.value?.mode ? MODE_LABEL[curMode] : '', p0 ? '只提 P0' : '', asOf ? `截至 ${asOf}` : ''].filter(Boolean)
+      const why = noModel ? '先在设置里配置提取模型' : !inputDir.trim() ? '先选择病历目录或文件' : !template ? '先选择提取模板' : undefined
       return h('div', { className: 'mx-pop', role: 'dialog', 'aria-label': '新批次' },
-        h('div', { className: 'mx-pop-h' }, h('b', {}, '新批次'), h('button', { className: 'mx-btn sm', onClick: onClose, 'aria-label': '关闭' }, '✕')),
-        noModel ? h('div', { className: 'mx-err', style: { margin: 0 } }, '还没有配置提取模型。本插件只用模型从文书里提取：先在设置里填写模型端点和模型名称。',
-          openSettings ? h('button', { className: 'mx-btn sm', style: { marginLeft: 8 }, onClick: openSettings }, '去设置') : null) : null,
+        h('div', { className: 'mx-pop-h' }, h('b', {}, '新批次'), h('button', { className: 'mx-link', onClick: onClose, 'aria-label': '关闭', title: '关闭（Esc）' }, '✕')),
+        noModel ? h('div', { className: 'mx-pop-warn' }, h('span', {}, '还没有配置提取模型，先在设置里填写模型端点和模型名称。'),
+          openSettings ? h('button', { className: 'mx-btn sm', onClick: openSettings }, '去设置') : null) : null,
         h('label', { className: 'mx-field' }, '病历目录或文件',
-          h('input', { className: 'mx-input', value: inputDir, onChange: (e) => setInput(e.target.value), placeholder: '/path/to/_medical-anonymizer/… 或 notes.ndjson', autoFocus: true }),
-          h('div', { className: 'mx-pick' }, h('button', { className: 'mx-btn sm', onClick: pick, disabled: picking }, picking ? '请在弹出的窗口里选择…' : '选择文件夹…'), h('span', { className: 'mx-faint' }, 'p_doc 导出，或 json／ndjson／csv／txt 文书'))),
-        h('div', { className: 'mx-grid2 tm' },
-          h('label', { className: 'mx-field' }, '提取模板',
-            h('select', { className: 'mx-input', value: template, title: tplList.find((t) => t.id === template)?.name ?? '', onChange: (e) => setTemplate(e.target.value) },
-              h('option', { value: '', disabled: true }, '请选择模板…'), tplList.map((t) => h('option', { key: t.id, value: t.id }, `${t.domain ? `${t.domain} · ` : ''}${t.name} · ${t.fields} 字段${t.origin === 'builtin' ? '' : '（我的）'}`)))),
+          h('input', { className: 'mx-input', value: inputDir, onChange: (e) => setInput(e.target.value), placeholder: '/path/to/records 或 /path/to/notes.ndjson', title: inputDir, autoFocus: true }),
+          h('div', { className: 'mx-pick2' },
+            h('button', { className: 'mx-btn', onClick: () => pick('folder'), disabled: Boolean(picking) }, picking === 'folder' ? '请在弹出的窗口里选择…' : '选文件夹…'),
+            h('button', { className: 'mx-btn', onClick: () => pick('file'), disabled: Boolean(picking), title: 'json／ndjson／csv／tsv／txt／md／xlsx' }, picking === 'file' ? '请在弹出的窗口里选择…' : '选文件…'))),
+        h('label', { className: 'mx-field' }, '提取模板',
+          h('select', { className: 'mx-input', value: template, title: tplList.find((t) => t.id === template)?.name ?? '', onChange: (e) => setTemplate(e.target.value) },
+            h('option', { value: '', disabled: true }, '请选择模板…'), tplList.map((t) => h('option', { key: t.id, value: t.id }, `${t.domain ? `${t.domain} · ` : ''}${t.name} · ${t.fields} 字段${t.origin === 'builtin' ? '' : '（我的）'}`)))),
+        h('label', { className: 'mx-field' }, '输出根目录', h('input', { className: 'mx-input', value: outputRoot, onChange: (e) => setOut(e.target.value), placeholder: '留空：输入目录旁的 _medical-extract' })),
+        h('button', { type: 'button', className: 'mx-link mx-pop-more', 'aria-expanded': more ? 'true' : 'false', onClick: () => setMore(!more) },
+          `${more ? '▾' : '▸'} 更多选项`, !more && moreSet.length ? h('span', {}, `（${moreSet.join('，')}）`) : null),
+        more ? h(React.Fragment, {},
           h('label', { className: 'mx-field' }, '模式',
             h('select', { className: 'mx-input', value: curMode, onChange: (e) => setMode(e.target.value) },
-              Object.entries(MODE_LABEL).map(([k, l]) => h('option', { key: k, value: k }, l))))),
-        h('label', { className: 'mx-pick', style: { fontSize: 11.5 } }, h('input', { type: 'checkbox', checked: p0, onChange: (e) => setP0(e.target.checked) }), '只提取 P0 字段'),
-        h('label', { className: 'mx-field' }, '输出根目录', h('input', { className: 'mx-input', value: outputRoot, onChange: (e) => setOut(e.target.value), placeholder: '空＝设置里的默认值，再缺省为输入旁的 _medical-extract' })),
-        h('label', { className: 'mx-field' }, '截至时刻（可空）', h('input', { className: 'mx-input', value: asOf, onChange: (e) => setAsOf(e.target.value), placeholder: 'YYYY-MM-DD HH:mm · 只用此刻以前写成的文书' })),
+              Object.entries(MODE_LABEL).map(([k, l]) => h('option', { key: k, value: k }, l)))),
+          h('label', { className: 'mx-pick', style: { fontSize: 11.5 } }, h('input', { type: 'checkbox', checked: p0, onChange: (e) => setP0(e.target.checked) }), '只提取 P0 字段'),
+          h('label', { className: 'mx-field' }, '截至时刻', h('input', { className: 'mx-input', value: asOf, onChange: (e) => setAsOf(e.target.value), placeholder: 'YYYY-MM-DD HH:mm · 只用此刻以前写成的文书；留空不截断' }))) : null,
         h('div', { className: 'mx-pop-act' },
-          h('button', { className: 'mx-btn mx-new', style: { flex: 1 }, disabled: !inputDir || !template || busy || noModel, title: noModel ? '先在设置里配置提取模型' : !template ? '先选择提取模板' : undefined, onClick: () => go({ inputDir, outputRoot, template, mode: curMode, asOf, priorities: p0 ? ['P0'] : undefined }) }, busy ? '启动中…' : '▶ 开始'),
+          h('button', { className: 'mx-btn mx-start', disabled: Boolean(why) || busy, title: why, onClick: () => go({ inputDir: inputDir.trim(), outputRoot, template, mode: curMode, asOf, priorities: p0 ? ['P0'] : undefined }) }, busy ? '启动中…' : '▶ 开始提取'),
           resumeOk ? h('button', { className: 'mx-btn', disabled: busy || noModel, title: `继续批次 ${resumable.id}：已完成的数据块和模型调用直接复用`, onClick: () => go({ resumeFrom: resumable.id }) }, '↻ 继续') : null))
     }
 

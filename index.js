@@ -254,6 +254,7 @@ export function apply(ctx, config = {}) {
           case 'addValue': return service.addValue(r.runId, r)
           case 'calls': return service.calls(r.runId)
           case 'pickFolder': return { path: await pickFolder() }
+          case 'pickFile': return { path: await pickFolder('file') }
           case 'saveDefaults': return saveDefaults(r)
           // 设置页的模型下拉（只在页面上用，不是 Agent 工具）
           case 'models': return service.models({ baseURL: r.baseURL, apiKey: r.apiKey })
@@ -269,9 +270,12 @@ export function apply(ctx, config = {}) {
   }
 }
 
-function pickFolder() {
-  if (process.platform !== 'darwin') return Promise.reject(Object.assign(new Error('系统文件夹对话框目前只支持 macOS；请直接在输入框里填写完整路径'), { code: 'unsupported' }))
-  const script = 'POSIX path of (choose folder with prompt "选择要提取的病历目录")'
+/** macOS 系统对话框选文件夹或文件（kind＝'file'：只列本插件能读的文书格式） */
+function pickFolder(kind = 'folder') {
+  if (process.platform !== 'darwin') return Promise.reject(Object.assign(new Error('系统对话框目前只支持 macOS；请直接在输入框里填写完整路径'), { code: 'unsupported' }))
+  const script = kind === 'file'
+    ? 'POSIX path of (choose file with prompt "选择要提取的病历文件" of type {"json", "ndjson", "jsonl", "csv", "tsv", "txt", "md", "xlsx", "xls", "public.json", "public.comma-separated-values-text", "public.plain-text"})'
+    : 'POSIX path of (choose folder with prompt "选择要提取的病历目录")'
   return new Promise((resolve, reject) => {
     execFile('osascript', ['-e', script], { timeout: 10 * 60 * 1000 }, (error, stdout, stderr) => {
       if (error) {
