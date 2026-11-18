@@ -1,13 +1,18 @@
 {
   "name": "dsh-medical-extract",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "病历文书提取：按抽取模板（字段清单）从病历文书里抽取内容，每个值带逐字原文出处；面向千万级文书（分片、并行、断点续跑、模型去重缓存）。DeepSeek Harness 插件。",
   "type": "module",
   "license": "MIT",
   "author": "wld007",
-  "repository": { "type": "git", "url": "git+https://github.com/wld007/dsh-medical-extract.git" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wld007/dsh-medical-extract.git"
+  },
   "homepage": "https://github.com/wld007/dsh-medical-extract#readme",
-  "bugs": { "url": "https://github.com/wld007/dsh-medical-extract/issues" },
+  "bugs": {
+    "url": "https://github.com/wld007/dsh-medical-extract/issues"
+  },
   "engines": {
     "node": ">=22.5",
     "dsh": ">=0.2.1-0"
@@ -23,10 +28,37 @@
     "./icon": "./icon.svg",
     "./package.json": "./package.json"
   },
-  "keywords": ["dsh", "deepseek-harness", "cordis", "plugin", "medical", "information-extraction", "chart-abstraction"],
-  "files": ["index.js", "client.js", "lib/**/*.js", "templates/*.json", "vendor/xlsx.mjs", "vendor/SheetJS-LICENSE.txt", "cordis.patch.yml", "icon.svg", "README.md", "LICENSE"],
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "cordis",
+    "plugin",
+    "medical",
+    "information-extraction",
+    "chart-abstraction"
+  ],
+  "files": [
+    "index.js",
+    "client.js",
+    "lib/**/*.js",
+    "templates/*.json",
+    "vendor/xlsx.mjs",
+    "vendor/SheetJS-LICENSE.txt",
+    "cordis.patch.yml",
+    "icon.svg",
+    "README.md",
+    "LICENSE"
+  ],
   "dsh": {
-    "bundle": { "patch": "./cordis.patch.yml" },
-    "client": { "platform": "web", "immediately": true, "inject": ["@deepseek-ai/dsh-client-ui-settings"] }
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-settings"
+      ]
+    }
   }
 }
