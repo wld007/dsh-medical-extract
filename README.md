@@ -1,8 +1,10 @@
 <div align="center">
 
-# 病历文书提取 · dsh-medical-extract
+# 病历文书提取流水线 · dsh-medical-extract
 
 **按模板从病历文书里提取字段（chart abstraction），每个值都能回到原文那一句。**
+
+简体中文 · [English](https://github.com/wld007/dsh-medical-extract/blob/main/README.en.md)
 
 DeepSeek Harness 插件 · 双模型交叉核验 · 面向千万级文书 · 病历只发往你自己的模型端点
 
@@ -10,7 +12,7 @@ DeepSeek Harness 插件 · 双模型交叉核验 · 面向千万级文书 · 病
 ![license](https://img.shields.io/badge/license-MIT-blue)
 ![node](https://img.shields.io/badge/node-%E2%89%A522.5-339933)
 
-![病历文书提取：一个批次从读入到交付](https://raw.githubusercontent.com/wld007/dsh-medical-extract/main/assets/demo.webp)
+![病历文书提取流水线：一个批次从读入到交付](https://raw.githubusercontent.com/wld007/dsh-medical-extract/main/assets/demo.webp)
 
 <sub>动画用虚构数据（`test/fixtures`）和本机假模型端点录制：1,200 份文书、12 个数据块，依次看流水线、模板、复核、报告。用 `scripts/readme-demo.mjs` 可重录。</sub>
 
@@ -107,7 +109,7 @@ DeepSeek Harness 插件 · 双模型交叉核验 · 面向千万级文书 · 病
 
 ## 用法
 
-- **左侧栏「病历文书提取」**：流水线、模板、格式、文件、复核、模型调用、报告几页。
+- **左侧栏「病历文书提取」**：打开「病历文书提取流水线」页面，有流水线、模板、格式、文件、复核、模型调用、报告几页。
 - **聊天框**：`/extract <输入目录或文件> [--template mdd] [--mode hybrid|model] [--out 输出根目录] [--as-of "YYYY-MM-DD HH:mm"]`
 - **Agent 工具**：`extract_start`、`extract_status`、`extract_report`、`extract_runs`、`extract_cancel`、`extract_templates`、`extract_save_template`、`extract_formats`、`extract_template_excel`。在对话里可以直接让 Agent 启动批次、查进度、读报告。
 
