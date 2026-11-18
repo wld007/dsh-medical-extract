@@ -1,0 +1,1659 @@
+{
+  "format": "extract-template/1",
+  "id": "thyroid",
+  "name": "甲状腺疾病（甲亢／甲减／结节）",
+  "version": "0.1.0",
+  "domain": "内分泌",
+  "description": "甲状腺疾病研究与随访常用字段：甲亢（Graves 病、毒性结节）、甲减与亚临床甲减、桥本甲状腺炎、亚急性甲状腺炎、甲状腺结节 C-TIRADS 与细针穿刺 Bethesda 分类、甲状腺功能与抗体、抗甲状腺药物／左甲状腺素／放射性碘／手术、甲状腺眼病、妊娠期甲状腺疾病与不良反应。",
+  "references": [
+    {
+      "title": "中国甲状腺功能亢进症和其他原因所致甲状腺毒症诊治指南，中华内分泌代谢杂志 2022;38(8)"
+    },
+    {
+      "title": "成人甲状腺功能减退症诊治指南，中华内分泌代谢杂志 2017;33(2)"
+    },
+    {
+      "title": "甲状腺结节和分化型甲状腺癌诊治指南（第二版），中华内分泌代谢杂志 2023;39(3)"
+    },
+    {
+      "title": "2020 甲状腺结节超声恶性危险分层中国指南：C-TIRADS，中华超声影像学杂志 2021;30(3)"
+    },
+    {
+      "title": "妊娠和产后甲状腺疾病诊治指南（第 2 版），中华内分泌代谢杂志 2019;35(8)"
+    },
+    {
+      "title": "The Bethesda System for Reporting Thyroid Cytopathology (3rd ed., 2023)"
+    },
+    {
+      "title": "古脉 G-MPAS 数据目录：甲状腺疾病专病（字段范围参考）",
+      "url": "https://www.g-mpas.com/data.html"
+    }
+  ],
+  "groups": [
+    {
+      "id": "A",
+      "name": "诊断与分型"
+    },
+    {
+      "id": "B",
+      "name": "症状体征"
+    },
+    {
+      "id": "C",
+      "name": "甲状腺功能与抗体"
+    },
+    {
+      "id": "D",
+      "name": "超声与穿刺"
+    },
+    {
+      "id": "E",
+      "name": "治疗"
+    },
+    {
+      "id": "F",
+      "name": "并发症与特殊人群"
+    },
+    {
+      "id": "G",
+      "name": "危险因素与基线"
+    }
+  ],
+  "fields": [
+    {
+      "id": "A1",
+      "name": "甲状腺相关诊断",
+      "group": "A",
+      "priority": "P0",
+      "type": "list",
+      "granularity": "encounter",
+      "definition": "诊断栏写明的甲状腺疾病诊断（原文写法）。",
+      "sources": {
+        "sections": [
+          "诊断",
+          "初步诊断",
+          "出院诊断",
+          "入院诊断",
+          "ICD-10 名称",
+          "ICD-10"
+        ]
+      },
+      "rules": [
+        {
+          "id": "dx",
+          "regex": "(?<v>[^\\n，,。；;：:]{0,14}(?:甲状腺|甲亢|甲减|桥本|Graves|格雷夫斯)[^\\n，,。；;：:]{0,16})"
+        }
+      ],
+      "recall": {
+        "terms": [
+          "甲状腺",
+          "甲亢",
+          "甲减",
+          "桥本",
+          "Graves"
+        ]
+      }
+    },
+    {
+      "id": "A1c",
+      "name": "ICD-10 编码（E00–E07）",
+      "group": "A",
+      "priority": "P0",
+      "type": "list",
+      "granularity": "encounter",
+      "definition": "甲状腺疾病编码。",
+      "rules": [
+        {
+          "id": "icd",
+          "regex": "(?<![A-Za-z0-9])(?<v>(?:E0[0-7])(?:\\.\\d{1,3})?)(?![0-9A-Za-z])"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:E0[0-7])(?:\\.\\d{1,3})?(?![0-9A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "A2",
+      "name": "甲状腺功能状态",
+      "group": "A",
+      "priority": "P0",
+      "type": "enum",
+      "definition": "本次诊断的甲状腺功能状态。",
+      "options": [
+        {
+          "value": "甲亢",
+          "terms": [
+            "甲亢",
+            "甲状腺功能亢进",
+            "甲状腺功能亢进症",
+            "甲状腺毒症"
+          ]
+        },
+        {
+          "value": "亚临床甲亢",
+          "terms": [
+            "亚临床甲亢",
+            "亚临床甲状腺功能亢进"
+          ]
+        },
+        {
+          "value": "甲减",
+          "terms": [
+            "甲减",
+            "甲状腺功能减退",
+            "甲状腺功能减退症"
+          ]
+        },
+        {
+          "value": "亚临床甲减",
+          "terms": [
+            "亚临床甲减",
+            "亚临床甲状腺功能减退"
+          ]
+        },
+        {
+          "value": "甲功正常",
+          "terms": [
+            "甲功正常",
+            "甲状腺功能正常",
+            "甲功未见异常",
+            "甲功基本正常"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "pick": "last",
+      "sources": {
+        "sections": [
+          "诊断",
+          "初步诊断",
+          "出院诊断",
+          "入院诊断",
+          "ICD-10 名称",
+          "ICD-10",
+          "辅助检查",
+          "现病史",
+          "诊疗经过"
+        ]
+      }
+    },
+    {
+      "id": "A3",
+      "name": "病因诊断",
+      "group": "A",
+      "priority": "P0",
+      "type": "enum",
+      "definition": "甲状腺疾病病因类型。",
+      "options": [
+        {
+          "value": "Graves病",
+          "terms": [
+            "Graves病",
+            "Graves",
+            "格雷夫斯病",
+            "毒性弥漫性甲状腺肿",
+            "弥漫性毒性甲状腺肿"
+          ]
+        },
+        {
+          "value": "毒性结节性甲状腺肿",
+          "terms": [
+            "毒性结节性甲状腺肿",
+            "毒性多结节性甲状腺肿",
+            "高功能腺瘤",
+            "毒性腺瘤",
+            "Plummer病"
+          ]
+        },
+        {
+          "value": "桥本甲状腺炎",
+          "terms": [
+            "桥本甲状腺炎",
+            "桥本",
+            "慢性淋巴细胞性甲状腺炎",
+            "自身免疫性甲状腺炎"
+          ]
+        },
+        {
+          "value": "亚急性甲状腺炎",
+          "terms": [
+            "亚急性甲状腺炎",
+            "亚甲炎",
+            "亚急性肉芽肿性甲状腺炎"
+          ]
+        },
+        {
+          "value": "无痛性甲状腺炎",
+          "terms": [
+            "无痛性甲状腺炎",
+            "产后甲状腺炎"
+          ]
+        },
+        {
+          "value": "甲状腺术后甲减",
+          "terms": [
+            "甲状腺术后甲减",
+            "术后甲减",
+            "甲状腺切除术后"
+          ]
+        },
+        {
+          "value": "碘131治疗后甲减",
+          "terms": [
+            "碘131治疗后甲减",
+            "放射性碘治疗后甲减",
+            "131I治疗后甲减"
+          ]
+        },
+        {
+          "value": "中枢性甲减",
+          "terms": [
+            "中枢性甲减",
+            "继发性甲减"
+          ]
+        },
+        {
+          "value": "药物性甲状腺功能异常",
+          "terms": [
+            "药物性甲状腺功能异常",
+            "胺碘酮所致",
+            "免疫检查点抑制剂相关甲状腺炎"
+          ]
+        }
+      ],
+      "granularity": "patient",
+      "pick": "mode",
+      "sources": {
+        "sections": [
+          "诊断",
+          "初步诊断",
+          "出院诊断",
+          "入院诊断",
+          "ICD-10 名称",
+          "ICD-10",
+          "既往史",
+          "现病史",
+          "病例特点"
+        ]
+      }
+    },
+    {
+      "id": "A4",
+      "name": "甲状腺结节",
+      "group": "A",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "甲状腺结节（含结节性甲状腺肿）。",
+      "recall": {
+        "terms": [
+          "甲状腺结节",
+          "结节性甲状腺肿",
+          "甲状腺多发结节",
+          "甲状腺占位",
+          "甲状腺腺瘤"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "A5",
+      "name": "甲状腺癌",
+      "group": "A",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "甲状腺癌（乳头状癌等）。",
+      "recall": {
+        "terms": [
+          "甲状腺癌",
+          "甲状腺乳头状癌",
+          "甲状腺滤泡癌",
+          "甲状腺髓样癌",
+          "甲状腺未分化癌",
+          "甲状腺微小乳头状癌",
+          "PTC",
+          "PTMC"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "A6",
+      "name": "甲状腺肿",
+      "group": "A",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "弥漫性或结节性甲状腺肿大。",
+      "recall": {
+        "terms": [
+          "甲状腺肿大",
+          "甲状腺肿",
+          "甲状腺弥漫性肿大",
+          "甲状腺Ⅱ度肿大",
+          "甲状腺Ⅲ度肿大"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "B1",
+      "name": "心悸",
+      "group": "B",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "心悸、心慌、心动过速。",
+      "recall": {
+        "terms": [
+          "心悸",
+          "心慌",
+          "心动过速"
+        ]
+      }
+    },
+    {
+      "id": "B2",
+      "name": "怕热多汗",
+      "group": "B",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "怕热、多汗。",
+      "recall": {
+        "terms": [
+          "怕热",
+          "多汗",
+          "怕热多汗",
+          "易出汗"
+        ]
+      }
+    },
+    {
+      "id": "B3",
+      "name": "手抖",
+      "group": "B",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "手颤、手抖、震颤。",
+      "recall": {
+        "terms": [
+          "手抖",
+          "手颤",
+          "双手细颤",
+          "手指震颤",
+          "震颤"
+        ]
+      }
+    },
+    {
+      "id": "B4",
+      "name": "体重下降",
+      "group": "B",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "近期体重下降（甲亢线索）。",
+      "recall": {
+        "terms": [
+          "体重下降",
+          "消瘦",
+          "体重减轻"
+        ]
+      }
+    },
+    {
+      "id": "B5",
+      "name": "怕冷乏力",
+      "group": "B",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "怕冷、乏力、嗜睡（甲减线索）。",
+      "recall": {
+        "terms": [
+          "怕冷",
+          "畏寒",
+          "乏力",
+          "嗜睡",
+          "少汗"
+        ]
+      }
+    },
+    {
+      "id": "B6",
+      "name": "颈部肿大或压迫感",
+      "group": "B",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "颈部肿物、肿大、压迫感、吞咽或呼吸受压。",
+      "recall": {
+        "terms": [
+          "颈部肿物",
+          "颈部肿大",
+          "颈前肿物",
+          "颈部压迫感",
+          "颈部包块",
+          "吞咽异物感"
+        ]
+      }
+    },
+    {
+      "id": "B7",
+      "name": "突眼",
+      "group": "B",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "突眼或眼征。",
+      "recall": {
+        "terms": [
+          "突眼",
+          "眼球突出",
+          "眼突",
+          "眼睑退缩",
+          "眼征阳性"
+        ]
+      }
+    },
+    {
+      "id": "B8",
+      "name": "颈部疼痛",
+      "group": "B",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "甲状腺区疼痛（亚甲炎线索）。",
+      "recall": {
+        "terms": [
+          "颈部疼痛",
+          "颈前疼痛",
+          "甲状腺区疼痛",
+          "甲状腺疼痛",
+          "甲状腺触痛"
+        ]
+      }
+    },
+    {
+      "id": "B9",
+      "name": "心率",
+      "group": "B",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "次/分",
+      "range": {
+        "min": 20,
+        "max": 300
+      },
+      "definition": "心率（次/分）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "b9-v",
+          "regex": "(?<![A-Za-z0-9])(?:心率|HR|脉搏)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d{2,3}(?=\\s*次))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:心率|HR|脉搏)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C1",
+      "name": "TSH",
+      "group": "C",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mIU/L",
+      "range": {
+        "min": 0,
+        "max": 200
+      },
+      "definition": "TSH（mIU/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c1-v",
+          "regex": "(?<![A-Za-z0-9])(?:TSH|促甲状腺(?:激)?素)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:TSH|促甲状腺(?:激)?素)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C2",
+      "name": "FT4",
+      "group": "C",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "pmol/L",
+      "range": {
+        "min": 0.1,
+        "max": 150
+      },
+      "definition": "FT4（pmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c2-v",
+          "regex": "(?<![A-Za-z0-9])(?:FT4|游离甲状腺素|游离T4)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:FT4|游离甲状腺素|游离T4)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C3",
+      "name": "FT3",
+      "group": "C",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "pmol/L",
+      "range": {
+        "min": 0.1,
+        "max": 80
+      },
+      "definition": "FT3（pmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c3-v",
+          "regex": "(?<![A-Za-z0-9])(?:FT3|游离三碘甲状腺原氨酸|游离T3)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:FT3|游离三碘甲状腺原氨酸|游离T3)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C4",
+      "name": "TT4",
+      "group": "C",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "nmol/L",
+      "range": {
+        "min": 1,
+        "max": 600
+      },
+      "definition": "TT4（nmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c4-v",
+          "regex": "(?<![A-Za-z0-9])(?:TT4|总甲状腺素|(?<![FfRr])T4(?![0-9]))(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:TT4|总甲状腺素|(?<![FfRr])T4(?![0-9]))(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C5",
+      "name": "TT3",
+      "group": "C",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "nmol/L",
+      "range": {
+        "min": 0.1,
+        "max": 20
+      },
+      "definition": "TT3（nmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c5-v",
+          "regex": "(?<![A-Za-z0-9])(?:TT3|总三碘甲状腺原氨酸|(?<![FfRr])T3(?![0-9]))(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:TT3|总三碘甲状腺原氨酸|(?<![FfRr])T3(?![0-9]))(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C6",
+      "name": "TPOAb",
+      "group": "C",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "IU/mL",
+      "range": {
+        "min": 0,
+        "max": 100000
+      },
+      "definition": "TPOAb（IU/mL）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c6-v",
+          "regex": "(?<![A-Za-z0-9])(?:TPO-?Ab|A-?TPO|抗甲状腺过氧化物酶抗体|甲状腺过氧化物酶抗体)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:TPO-?Ab|A-?TPO|抗甲状腺过氧化物酶抗体|甲状腺过氧化物酶抗体)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C7",
+      "name": "TgAb",
+      "group": "C",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "IU/mL",
+      "range": {
+        "min": 0,
+        "max": 100000
+      },
+      "definition": "TgAb（IU/mL）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c7-v",
+          "regex": "(?<![A-Za-z0-9])(?:TG-?Ab|Tg-?Ab|A-?TG|抗甲状腺球蛋白抗体|甲状腺球蛋白抗体)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:TG-?Ab|Tg-?Ab|A-?TG|抗甲状腺球蛋白抗体|甲状腺球蛋白抗体)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C8",
+      "name": "TRAb",
+      "group": "C",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "IU/L",
+      "range": {
+        "min": 0,
+        "max": 1000
+      },
+      "definition": "TRAb（IU/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c8-v",
+          "regex": "(?<![A-Za-z0-9])(?:TRAb|TR-?Ab|促甲状腺(?:激)?素受体抗体|TSH受体抗体)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:TRAb|TR-?Ab|促甲状腺(?:激)?素受体抗体|TSH受体抗体)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C9",
+      "name": "甲状腺球蛋白（Tg）",
+      "group": "C",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "ng/mL",
+      "range": {
+        "min": 0,
+        "max": 100000
+      },
+      "definition": "甲状腺球蛋白（Tg）（ng/mL）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c9-v",
+          "regex": "(?<![A-Za-z0-9])(?:(?<!抗)甲状腺球蛋白(?!抗体)|(?<![A-Za-z])Tg(?!-?Ab|[A-Za-z]))(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:(?<!抗)甲状腺球蛋白(?!抗体)|(?<![A-Za-z])Tg(?!-?Ab|[A-Za-z]))(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C10",
+      "name": "降钙素",
+      "group": "C",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "pg/mL",
+      "range": {
+        "min": 0,
+        "max": 100000
+      },
+      "definition": "降钙素（pg/mL）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c10-v",
+          "regex": "(?<![A-Za-z0-9])(?:降钙素(?!原)|Calcitonin|CT(?=\\s*[:：]))(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:降钙素(?!原)|Calcitonin|CT(?=\\s*[:：]))(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C11",
+      "name": "甲状腺摄碘率升高",
+      "group": "C",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "甲状腺摄碘率升高（低摄碘率记无）。",
+      "recall": {
+        "terms": [
+          "摄碘率升高",
+          "摄碘率增高",
+          "吸碘率升高",
+          "摄131I率升高"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "D1",
+      "name": "C-TIRADS 分类",
+      "group": "D",
+      "priority": "P0",
+      "type": "enum",
+      "granularity": "encounter",
+      "pick": "last",
+      "definition": "甲状腺结节超声 C-TIRADS（或 ACR/Kwak TI-RADS）分类，取最高。",
+      "options": [
+        {
+          "value": "1类"
+        },
+        {
+          "value": "2类"
+        },
+        {
+          "value": "3类"
+        },
+        {
+          "value": "4A类"
+        },
+        {
+          "value": "4B类"
+        },
+        {
+          "value": "4C类"
+        },
+        {
+          "value": "5类"
+        },
+        {
+          "value": "6类"
+        }
+      ],
+      "sources": {
+        "sections": [
+          "所见",
+          "结论",
+          "超声",
+          "辅助检查",
+          "现病史",
+          "正文",
+          "诊断",
+          "病理诊断"
+        ]
+      },
+      "rules": [
+        {
+          "id": "tirads",
+          "regex": "(?:C-?TI-?RADS|TI-?RADS)\\s*[:：]?\\s*(?<v>[1-6][abcABC]?)\\s*类?",
+          "map": {
+            "1": "1类",
+            "2": "2类",
+            "3": "3类",
+            "5": "5类",
+            "6": "6类",
+            "4A": "4A类",
+            "4a": "4A类",
+            "4B": "4B类",
+            "4b": "4B类",
+            "4C": "4C类",
+            "4c": "4C类"
+          }
+        }
+      ]
+    },
+    {
+      "id": "D2",
+      "name": "最大结节直径",
+      "group": "D",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "encounter",
+      "unit": "mm",
+      "range": {
+        "min": 1,
+        "max": 120
+      },
+      "pick": "max",
+      "definition": "最大结节直径（mm）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "d2-v",
+          "regex": "(?<![A-Za-z0-9])(?:(?:最大|较大)(?:者)?(?:结节)?(?:约|大小)?|结节(?:最大径|大小))(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d{1,3}(?:\\.\\d)?(?=\\s*(?:mm|毫米|×|x|X|\\*)))"
+        },
+        {
+          "id": "nod-cm",
+          "regex": "(?:最大|较大)(?:者)?(?:结节)?(?:约|大小)?[^。；;\\n\\d]{0,8}?(?<v>\\d(?:\\.\\d{1,2})?)\\s*(?:cm|厘米)",
+          "factor": 10
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:(?:最大|较大)(?:者)?(?:结节)?(?:约|大小)?|结节(?:最大径|大小))(?![A-Za-z])"
+        ]
+      },
+      "sources": {
+        "sections": [
+          "所见",
+          "结论",
+          "超声",
+          "辅助检查",
+          "现病史",
+          "正文",
+          "诊断",
+          "病理诊断"
+        ]
+      }
+    },
+    {
+      "id": "D3",
+      "name": "可疑恶性超声特征",
+      "group": "D",
+      "priority": "P1",
+      "type": "list",
+      "definition": "结节超声可疑恶性特征。",
+      "options": [
+        {
+          "value": "微钙化",
+          "terms": [
+            "微钙化",
+            "点状强回声",
+            "砂砾样钙化"
+          ]
+        },
+        {
+          "value": "纵横比>1",
+          "terms": [
+            "纵横比>1",
+            "纵横比大于1",
+            "垂直位",
+            "A/T>1"
+          ]
+        },
+        {
+          "value": "极低回声",
+          "terms": [
+            "极低回声"
+          ]
+        },
+        {
+          "value": "边缘不规则",
+          "terms": [
+            "边缘不规则",
+            "边界不清",
+            "边缘模糊",
+            "分叶状"
+          ]
+        },
+        {
+          "value": "腺体外侵犯",
+          "terms": [
+            "腺体外侵犯",
+            "包膜外侵犯",
+            "甲状腺外侵犯"
+          ]
+        },
+        {
+          "value": "颈部淋巴结可疑转移",
+          "terms": [
+            "颈部淋巴结可疑转移",
+            "淋巴结可疑转移",
+            "异常淋巴结"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "sources": {
+        "sections": [
+          "所见",
+          "结论",
+          "超声",
+          "辅助检查",
+          "现病史",
+          "正文",
+          "诊断",
+          "病理诊断"
+        ]
+      }
+    },
+    {
+      "id": "D4",
+      "name": "细针穿刺 Bethesda 分类",
+      "group": "D",
+      "priority": "P0",
+      "type": "enum",
+      "granularity": "patient",
+      "pick": "last",
+      "definition": "甲状腺细针穿刺细胞学 Bethesda I–VI 类。",
+      "options": [
+        {
+          "value": "I类"
+        },
+        {
+          "value": "II类"
+        },
+        {
+          "value": "III类"
+        },
+        {
+          "value": "IV类"
+        },
+        {
+          "value": "V类"
+        },
+        {
+          "value": "VI类"
+        }
+      ],
+      "rules": [
+        {
+          "id": "bethesda",
+          "regex": "Bethesda\\s*(?:分类|系统)?\\s*[:：]?\\s*(?<v>Ⅵ|Ⅴ|Ⅳ|Ⅲ|Ⅱ|Ⅰ|VI|V|IV|III|II|I|[1-6])\\s*类?",
+          "map": {
+            "1": "I类",
+            "2": "II类",
+            "3": "III类",
+            "4": "IV类",
+            "5": "V类",
+            "6": "VI类",
+            "Ⅰ": "I类",
+            "Ⅱ": "II类",
+            "Ⅲ": "III类",
+            "Ⅳ": "IV类",
+            "Ⅴ": "V类",
+            "Ⅵ": "VI类",
+            "I": "I类",
+            "II": "II类",
+            "III": "III类",
+            "IV": "IV类",
+            "V": "V类",
+            "VI": "VI类"
+          }
+        }
+      ]
+    },
+    {
+      "id": "D5",
+      "name": "BRAF V600E 突变",
+      "group": "D",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "穿刺或术后标本 BRAF V600E 突变阳性。",
+      "recall": {
+        "terms": [
+          "BRAF V600E突变",
+          "BRAF突变",
+          "BRAF V600E阳性",
+          "BRAFV600E突变"
+        ]
+      },
+      "granularity": "patient",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "D6",
+      "name": "甲状腺血流丰富",
+      "group": "D",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "超声示甲状腺血流丰富、\"火海征\"。",
+      "recall": {
+        "terms": [
+          "血流丰富",
+          "火海征",
+          "血流信号丰富",
+          "血流明显增多"
+        ]
+      },
+      "granularity": "encounter",
+      "sources": {
+        "sections": [
+          "所见",
+          "结论",
+          "超声",
+          "辅助检查",
+          "现病史",
+          "正文",
+          "诊断",
+          "病理诊断"
+        ]
+      }
+    },
+    {
+      "id": "E1",
+      "name": "抗甲状腺药物",
+      "group": "E",
+      "priority": "P0",
+      "type": "list",
+      "definition": "在用的抗甲状腺药物。",
+      "options": [
+        {
+          "value": "甲巯咪唑",
+          "terms": [
+            "甲巯咪唑",
+            "赛治",
+            "他巴唑",
+            "MMI"
+          ]
+        },
+        {
+          "value": "丙硫氧嘧啶",
+          "terms": [
+            "丙硫氧嘧啶",
+            "PTU"
+          ]
+        },
+        {
+          "value": "卡比马唑",
+          "terms": [
+            "卡比马唑"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "E2",
+      "name": "甲状腺激素替代",
+      "group": "E",
+      "priority": "P0",
+      "type": "list",
+      "definition": "在用的甲状腺激素。",
+      "options": [
+        {
+          "value": "左甲状腺素",
+          "terms": [
+            "左甲状腺素",
+            "左甲状腺素钠",
+            "优甲乐",
+            "雷替斯",
+            "加衡",
+            "L-T4"
+          ]
+        },
+        {
+          "value": "甲状腺片",
+          "terms": [
+            "甲状腺片"
+          ]
+        },
+        {
+          "value": "碘塞罗宁",
+          "terms": [
+            "碘塞罗宁",
+            "L-T3"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "E3",
+      "name": "左甲状腺素日剂量",
+      "group": "E",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "encounter",
+      "unit": "μg/d",
+      "range": {
+        "min": 6,
+        "max": 400
+      },
+      "pick": "last",
+      "definition": "左甲状腺素日剂量（μg/d）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "e3-v",
+          "regex": "(?<![A-Za-z0-9])(?:左甲状腺素(?:钠)?(?:片)?|优甲乐|雷替斯|加衡|L-?T4)(?![A-Za-z])[^。；;\\n\\d]{0,10}?(?<v>\\d{1,3}(?:\\.\\d{1,2})?(?=\\s*(?:μg|ug|mcg|微克)))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:左甲状腺素(?:钠)?(?:片)?|优甲乐|雷替斯|加衡|L-?T4)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "E4",
+      "name": "放射性碘治疗",
+      "group": "E",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "放射性碘（¹³¹I）治疗甲亢或甲状腺癌清甲／清灶。",
+      "recall": {
+        "terms": [
+          "放射性碘",
+          "碘131",
+          "131I",
+          "¹³¹I",
+          "I-131",
+          "碘-131",
+          "同位素治疗",
+          "清甲治疗"
+        ]
+      },
+      "granularity": "patient",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "E5",
+      "name": "甲状腺手术",
+      "group": "E",
+      "priority": "P0",
+      "type": "enum",
+      "definition": "甲状腺手术方式。",
+      "options": [
+        {
+          "value": "全甲状腺切除",
+          "terms": [
+            "全甲状腺切除",
+            "甲状腺全切",
+            "双侧甲状腺全切",
+            "全甲状腺切除术"
+          ]
+        },
+        {
+          "value": "近全甲状腺切除",
+          "terms": [
+            "近全甲状腺切除",
+            "甲状腺近全切"
+          ]
+        },
+        {
+          "value": "甲状腺腺叶切除",
+          "terms": [
+            "甲状腺腺叶切除",
+            "腺叶切除",
+            "一侧腺叶切除",
+            "腺叶加峡部切除",
+            "甲状腺单侧叶切除"
+          ]
+        },
+        {
+          "value": "甲状腺次全切除",
+          "terms": [
+            "甲状腺次全切除",
+            "次全切除"
+          ]
+        },
+        {
+          "value": "热消融",
+          "terms": [
+            "热消融",
+            "射频消融",
+            "微波消融",
+            "激光消融"
+          ]
+        }
+      ],
+      "granularity": "patient",
+      "pick": "all",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "E6",
+      "name": "β 受体阻滞剂（对症）",
+      "group": "E",
+      "priority": "P2",
+      "type": "list",
+      "definition": "甲亢对症用 β 受体阻滞剂。",
+      "options": [
+        {
+          "value": "普萘洛尔",
+          "terms": [
+            "普萘洛尔",
+            "心得安"
+          ]
+        },
+        {
+          "value": "美托洛尔",
+          "terms": [
+            "美托洛尔",
+            "倍他乐克"
+          ]
+        },
+        {
+          "value": "比索洛尔",
+          "terms": [
+            "比索洛尔"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "E7",
+      "name": "糖皮质激素／镇痛",
+      "group": "E",
+      "priority": "P2",
+      "type": "list",
+      "definition": "亚甲炎或甲状腺眼病用糖皮质激素、非甾体抗炎药。",
+      "options": [
+        {
+          "value": "泼尼松",
+          "terms": [
+            "泼尼松",
+            "强的松"
+          ]
+        },
+        {
+          "value": "甲泼尼龙",
+          "terms": [
+            "甲泼尼龙",
+            "甲强龙"
+          ]
+        },
+        {
+          "value": "塞来昔布",
+          "terms": [
+            "塞来昔布"
+          ]
+        },
+        {
+          "value": "布洛芬",
+          "terms": [
+            "布洛芬"
+          ]
+        },
+        {
+          "value": "双氯芬酸",
+          "terms": [
+            "双氯芬酸"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "E8",
+      "name": "甲功控制情况",
+      "group": "E",
+      "priority": "P1",
+      "type": "enum",
+      "definition": "医生对甲状腺功能控制的评价。",
+      "options": [
+        {
+          "value": "达标",
+          "terms": [
+            "甲功正常",
+            "甲状腺功能恢复正常",
+            "TSH达标",
+            "甲功控制良好",
+            "病情控制可"
+          ]
+        },
+        {
+          "value": "未达标",
+          "terms": [
+            "TSH未达标",
+            "甲功未恢复",
+            "甲功控制不佳",
+            "甲亢复发",
+            "甲亢未控制"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "pick": "last"
+    },
+    {
+      "id": "F1",
+      "name": "甲状腺相关眼病",
+      "group": "F",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "Graves 眼病／甲状腺相关眼病（TAO）。",
+      "recall": {
+        "terms": [
+          "甲状腺相关眼病",
+          "Graves眼病",
+          "甲状腺眼病",
+          "TAO",
+          "浸润性突眼"
+        ]
+      },
+      "granularity": "patient",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "F2",
+      "name": "甲亢性心脏病／房颤",
+      "group": "F",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "甲亢性心脏病或甲亢伴房颤。",
+      "recall": {
+        "terms": [
+          "甲亢性心脏病",
+          "甲状腺功能亢进性心脏病",
+          "甲亢心",
+          "心房颤动",
+          "房颤"
+        ]
+      },
+      "granularity": "patient",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "F3",
+      "name": "甲状腺危象",
+      "group": "F",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "甲状腺危象。",
+      "recall": {
+        "terms": [
+          "甲状腺危象",
+          "甲亢危象"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "F4",
+      "name": "粒细胞缺乏",
+      "group": "F",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "抗甲状腺药物所致白细胞减少或粒细胞缺乏。",
+      "recall": {
+        "terms": [
+          "粒细胞缺乏",
+          "粒缺",
+          "白细胞减少",
+          "中性粒细胞减少"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "F5",
+      "name": "药物性肝损伤",
+      "group": "F",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "抗甲状腺药物所致肝功能损害。",
+      "recall": {
+        "terms": [
+          "肝功能损害",
+          "药物性肝损伤",
+          "转氨酶升高",
+          "肝功能异常"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "F6",
+      "name": "妊娠或备孕",
+      "group": "F",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "妊娠期或备孕期。",
+      "recall": {
+        "terms": [
+          "妊娠期",
+          "妊娠",
+          "早孕",
+          "中孕",
+          "晚孕",
+          "备孕",
+          "孕周"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "F7",
+      "name": "甲旁减／喉返神经损伤",
+      "group": "F",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "甲状腺术后低钙、甲状旁腺功能减退或声音嘶哑。",
+      "recall": {
+        "terms": [
+          "甲状旁腺功能减退",
+          "甲旁减",
+          "低钙血症",
+          "手足抽搐",
+          "喉返神经损伤",
+          "声音嘶哑"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "G1",
+      "name": "甲状腺疾病家族史",
+      "group": "G",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "亲属甲状腺疾病史。",
+      "recall": {
+        "terms": [
+          "甲亢",
+          "甲减",
+          "甲状腺",
+          "桥本"
+        ]
+      },
+      "accept": [
+        "家族"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G2",
+      "name": "颈部放射暴露史",
+      "group": "G",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "儿童或青少年期头颈部放射线暴露。",
+      "recall": {
+        "terms": [
+          "颈部放疗",
+          "头颈部放疗",
+          "放射线暴露",
+          "射线接触"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G3",
+      "name": "其他自身免疫病",
+      "group": "G",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "1 型糖尿病、白癜风、类风湿、SLE 等自身免疫病。",
+      "recall": {
+        "terms": [
+          "1型糖尿病",
+          "白癜风",
+          "类风湿关节炎",
+          "系统性红斑狼疮",
+          "干燥综合征",
+          "恶性贫血",
+          "重症肌无力"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G4",
+      "name": "吸烟",
+      "group": "G",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "吸烟（含已戒；Graves 眼病危险因素）。",
+      "recall": {
+        "terms": [
+          "吸烟",
+          "抽烟"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G5",
+      "name": "ALT",
+      "group": "G",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "U/L",
+      "range": {
+        "min": 1,
+        "max": 10000
+      },
+      "definition": "ALT（U/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "g5-v",
+          "regex": "(?<![A-Za-z0-9])(?:ALT|丙氨酸(?:氨基)?转移酶|谷丙转氨酶)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:ALT|丙氨酸(?:氨基)?转移酶|谷丙转氨酶)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "G6",
+      "name": "中性粒细胞计数",
+      "group": "G",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "×10⁹/L",
+      "range": {
+        "min": 0,
+        "max": 50
+      },
+      "definition": "中性粒细胞计数（×10⁹/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "g6-v",
+          "regex": "(?<![A-Za-z0-9])(?:中性粒细胞(?:计数|绝对值)|NEUT#|NE#|ANC)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d{1,2}(?:\\.\\d{1,2})?(?!\\s*%))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:中性粒细胞(?:计数|绝对值)|NEUT#|NE#|ANC)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "G7",
+      "name": "就诊年龄",
+      "group": "G",
+      "priority": "P0",
+      "type": "derived",
+      "definition": "本次就诊时年龄。",
+      "derive": {
+        "op": "ageAt",
+        "at": "$encounter.start"
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "G8",
+      "name": "主诉",
+      "group": "G",
+      "priority": "P1",
+      "type": "text",
+      "definition": "本次就诊主诉原文。",
+      "granularity": "encounter",
+      "pick": "first",
+      "sources": {
+        "sections": [
+          "主诉"
+        ]
+      },
+      "rules": [
+        {
+          "id": "chief",
+          "regex": "(?<v>[^\\n]{2,100})"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "[^\\s]{2,}"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,1581 @@
+{
+  "format": "extract-template/1",
+  "id": "dlp",
+  "name": "血脂异常（DLP）",
+  "version": "0.1.0",
+  "domain": "心血管",
+  "description": "血脂管理与 ASCVD 预防常用字段：血脂异常类型、家族性高胆固醇血症、ASCVD 风险分层与 LDL-C 目标、血脂谱（TC/TG/LDL-C/HDL-C/非 HDL-C/ApoB/Lp(a)）、ASCVD 与危险因素、他汀／依折麦布／PCSK9 抑制剂／英克司兰／贝特类等调脂药物、强度与达标、不良反应（肌病、肝酶、新发糖尿病）与继发因素。",
+  "references": [
+    {
+      "title": "中国血脂管理指南（2023 年），中华心血管病杂志 2023;51(3)"
+    },
+    {
+      "title": "2019 ESC/EAS Guidelines for the management of dyslipidaemias"
+    },
+    {
+      "title": "2018 AHA/ACC Guideline on the Management of Blood Cholesterol"
+    },
+    {
+      "title": "家族性高胆固醇血症筛查与诊治中国专家共识，中华心血管病杂志 2018;46(2)"
+    },
+    {
+      "title": "古脉 G-MPAS 数据目录：血脂异常专病（字段范围参考）",
+      "url": "https://www.g-mpas.com/data.html"
+    }
+  ],
+  "groups": [
+    {
+      "id": "A",
+      "name": "诊断与分型"
+    },
+    {
+      "id": "B",
+      "name": "风险分层与目标"
+    },
+    {
+      "id": "C",
+      "name": "血脂谱"
+    },
+    {
+      "id": "D",
+      "name": "ASCVD 与危险因素"
+    },
+    {
+      "id": "E",
+      "name": "调脂治疗"
+    },
+    {
+      "id": "F",
+      "name": "安全性与继发因素"
+    },
+    {
+      "id": "K",
+      "name": "其他检验"
+    }
+  ],
+  "fields": [
+    {
+      "id": "A1",
+      "name": "血脂异常相关诊断",
+      "group": "A",
+      "priority": "P0",
+      "type": "list",
+      "granularity": "encounter",
+      "definition": "诊断栏写明的血脂异常诊断（原文写法）。",
+      "sources": {
+        "sections": [
+          "诊断",
+          "初步诊断",
+          "出院诊断",
+          "入院诊断",
+          "ICD-10 名称",
+          "ICD-10"
+        ]
+      },
+      "rules": [
+        {
+          "id": "dx",
+          "regex": "(?<v>[^\\n，,。；;：:]{0,14}(?:血脂|高脂血症|高胆固醇|高甘油三酯|脂蛋白)[^\\n，,。；;：:]{0,16})"
+        }
+      ],
+      "recall": {
+        "terms": [
+          "血脂异常",
+          "高脂血症",
+          "高胆固醇血症",
+          "高甘油三酯血症",
+          "混合型高脂血症",
+          "低高密度脂蛋白血症"
+        ]
+      }
+    },
+    {
+      "id": "A1c",
+      "name": "ICD-10 编码（E78）",
+      "group": "A",
+      "priority": "P0",
+      "type": "list",
+      "granularity": "encounter",
+      "definition": "脂蛋白代谢紊乱编码。",
+      "rules": [
+        {
+          "id": "icd",
+          "regex": "(?<![A-Za-z0-9])(?<v>(?:E78)(?:\\.\\d{1,3})?)(?![0-9A-Za-z])"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:E78)(?:\\.\\d{1,3})?(?![0-9A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "A2",
+      "name": "血脂异常类型",
+      "group": "A",
+      "priority": "P0",
+      "type": "enum",
+      "definition": "临床分类：高胆固醇血症、高甘油三酯血症、混合型、低 HDL-C 血症。",
+      "options": [
+        {
+          "value": "混合型高脂血症",
+          "terms": [
+            "混合型高脂血症",
+            "混合性高脂血症",
+            "混合型血脂异常"
+          ]
+        },
+        {
+          "value": "高胆固醇血症",
+          "terms": [
+            "高胆固醇血症",
+            "单纯高胆固醇血症",
+            "高LDL-C血症"
+          ]
+        },
+        {
+          "value": "高甘油三酯血症",
+          "terms": [
+            "高甘油三酯血症",
+            "单纯高甘油三酯血症",
+            "高TG血症"
+          ]
+        },
+        {
+          "value": "低高密度脂蛋白血症",
+          "terms": [
+            "低高密度脂蛋白血症",
+            "低HDL-C血症",
+            "低HDL血症"
+          ]
+        }
+      ],
+      "granularity": "patient",
+      "pick": "mode",
+      "sources": {
+        "sections": [
+          "诊断",
+          "初步诊断",
+          "出院诊断",
+          "入院诊断",
+          "ICD-10 名称",
+          "ICD-10",
+          "既往史",
+          "现病史"
+        ]
+      }
+    },
+    {
+      "id": "A3",
+      "name": "家族性高胆固醇血症",
+      "group": "A",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "确诊或疑诊家族性高胆固醇血症（FH）。",
+      "recall": {
+        "terms": [
+          "家族性高胆固醇血症",
+          "FH",
+          "杂合子家族性高胆固醇血症",
+          "纯合子家族性高胆固醇血症",
+          "HeFH",
+          "HoFH"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "A4",
+      "name": "黄色瘤／角膜弓",
+      "group": "A",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "腱黄色瘤、皮肤黄色瘤或早发角膜弓。",
+      "recall": {
+        "terms": [
+          "黄色瘤",
+          "腱黄瘤",
+          "睑黄瘤",
+          "角膜弓",
+          "角膜环"
+        ]
+      },
+      "granularity": "patient",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "A5",
+      "name": "高甘油三酯血症性胰腺炎",
+      "group": "A",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "高脂血症性急性胰腺炎。",
+      "recall": {
+        "terms": [
+          "高脂血症性胰腺炎",
+          "高甘油三酯血症性胰腺炎",
+          "高脂性胰腺炎",
+          "高脂血症性急性胰腺炎"
+        ]
+      },
+      "granularity": "patient",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "B1",
+      "name": "ASCVD 风险分层",
+      "group": "B",
+      "priority": "P0",
+      "type": "enum",
+      "definition": "中国血脂管理指南（2023）ASCVD 风险分层。",
+      "options": [
+        {
+          "value": "超高危",
+          "terms": [
+            "超高危",
+            "超高危组"
+          ]
+        },
+        {
+          "value": "极高危",
+          "terms": [
+            "极高危",
+            "极高危组",
+            "很高危"
+          ]
+        },
+        {
+          "value": "高危",
+          "terms": [
+            "高危",
+            "高危组"
+          ]
+        },
+        {
+          "value": "中危",
+          "terms": [
+            "中危",
+            "中危组"
+          ]
+        },
+        {
+          "value": "低危",
+          "terms": [
+            "低危",
+            "低危组"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "pick": "last",
+      "recall": {
+        "terms": [
+          "超高危",
+          "极高危",
+          "很高危",
+          "高危",
+          "中危",
+          "低危"
+        ]
+      },
+      "rules": [
+        {
+          "id": "risk",
+          "regex": "(?:ASCVD|心血管|动脉粥样硬化性心血管疾病)?\\s*(?:风险|危险)?\\s*(?:分层|评估)?\\s*[:：为属]?\\s*(?<v>超高危|极高危|很高危|高危|中危|低危)(?!因素|人群|患者|组人群)",
+          "map": {
+            "很高危": "极高危"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B2",
+      "name": "LDL-C 目标值",
+      "group": "B",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "encounter",
+      "unit": "mmol/L",
+      "range": {
+        "min": 0.5,
+        "max": 5
+      },
+      "pick": "last",
+      "definition": "LDL-C 目标值（mmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "b2-v",
+          "regex": "(?<![A-Za-z0-9])(?:LDL-?C\\s*(?:控制)?(?:目标|靶目标|目标值)(?:值)?|(?:目标|降至|控制在)\\s*LDL-?C)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>[0-4]\\.\\d{1,2})"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:LDL-?C\\s*(?:控制)?(?:目标|靶目标|目标值)(?:值)?|(?:目标|降至|控制在)\\s*LDL-?C)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "B3",
+      "name": "LDL-C 达标",
+      "group": "B",
+      "priority": "P0",
+      "type": "enum",
+      "definition": "医生对 LDL-C 是否达标的评价。",
+      "options": [
+        {
+          "value": "达标",
+          "terms": [
+            "LDL-C达标",
+            "血脂达标",
+            "血脂控制达标",
+            "血脂控制良好",
+            "低密度脂蛋白达标"
+          ]
+        },
+        {
+          "value": "未达标",
+          "terms": [
+            "未达标",
+            "LDL-C未达标",
+            "血脂未达标",
+            "血脂控制不佳",
+            "血脂控制欠佳",
+            "低密度脂蛋白未达标"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "pick": "last"
+    },
+    {
+      "id": "B4",
+      "name": "10 年 ASCVD 风险",
+      "group": "B",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "encounter",
+      "unit": "%",
+      "range": {
+        "min": 0,
+        "max": 100
+      },
+      "pick": "last",
+      "definition": "10 年 ASCVD 风险（%）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "b4-v",
+          "regex": "(?<![A-Za-z0-9])(?:10\\s*年\\s*(?:ASCVD|心血管病?|动脉粥样硬化性心血管疾病)?\\s*(?:发病)?(?:风险|危险))(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d{1,2}(?:\\.\\d{1,2})?(?=\\s*%))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:10\\s*年\\s*(?:ASCVD|心血管病?|动脉粥样硬化性心血管疾病)?\\s*(?:发病)?(?:风险|危险))(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C1",
+      "name": "LDL-C",
+      "group": "C",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mmol/L",
+      "range": {
+        "min": 0.1,
+        "max": 15
+      },
+      "definition": "LDL-C（mmol/L）测定值，每次测定一条；不取目标值。",
+      "rules": [
+        {
+          "id": "c1-v",
+          "regex": "(?<![A-Za-z0-9])(?:(?:LDL-C|LDL|低密度脂蛋白(?:胆固醇)?)(?![^。；;\\n\\d]{0,8}(?:目标|<|＜|降至|控制在|以下)))(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:(?:LDL-C|LDL|低密度脂蛋白(?:胆固醇)?)(?![^。；;\\n\\d]{0,8}(?:目标|<|＜|降至|控制在|以下)))(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C2",
+      "name": "总胆固醇",
+      "group": "C",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mmol/L",
+      "range": {
+        "min": 0.5,
+        "max": 25
+      },
+      "definition": "总胆固醇（mmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c2-v",
+          "regex": "(?<![A-Za-z0-9])(?:TC|总胆固醇|血清总胆固醇)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:TC|总胆固醇|血清总胆固醇)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C3",
+      "name": "甘油三酯",
+      "group": "C",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mmol/L",
+      "range": {
+        "min": 0.1,
+        "max": 60
+      },
+      "definition": "甘油三酯（mmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c3-v",
+          "regex": "(?<![A-Za-z0-9])(?:TG|甘油三酯|三酰甘油)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:TG|甘油三酯|三酰甘油)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C4",
+      "name": "HDL-C",
+      "group": "C",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mmol/L",
+      "range": {
+        "min": 0.1,
+        "max": 5
+      },
+      "definition": "HDL-C（mmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c4-v",
+          "regex": "(?<![A-Za-z0-9])(?:HDL-C|HDL|高密度脂蛋白(?:胆固醇)?)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:HDL-C|HDL|高密度脂蛋白(?:胆固醇)?)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C5",
+      "name": "非 HDL-C",
+      "group": "C",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mmol/L",
+      "range": {
+        "min": 0.3,
+        "max": 25
+      },
+      "definition": "非 HDL-C（mmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c5-v",
+          "regex": "(?<![A-Za-z0-9])(?:非\\s*-?HDL-?C|non-?HDL-?C|非高密度脂蛋白胆固醇)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:非\\s*-?HDL-?C|non-?HDL-?C|非高密度脂蛋白胆固醇)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C6",
+      "name": "ApoB",
+      "group": "C",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "g/L",
+      "range": {
+        "min": 0.1,
+        "max": 5
+      },
+      "definition": "ApoB（g/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c6-v",
+          "regex": "(?<![A-Za-z0-9])(?:ApoB|APOB|Apo\\s*B|载脂蛋白B)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:ApoB|APOB|Apo\\s*B|载脂蛋白B)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C7",
+      "name": "ApoA1",
+      "group": "C",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "g/L",
+      "range": {
+        "min": 0.1,
+        "max": 5
+      },
+      "definition": "ApoA1（g/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c7-v",
+          "regex": "(?<![A-Za-z0-9])(?:ApoA-?1|APOA1|Apo\\s*A-?Ⅰ|Apo\\s*A1|载脂蛋白A-?[1Ⅰ])(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:ApoA-?1|APOA1|Apo\\s*A-?Ⅰ|Apo\\s*A1|载脂蛋白A-?[1Ⅰ])(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C8",
+      "name": "脂蛋白(a)",
+      "group": "C",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "range": {
+        "min": 0,
+        "max": 3000
+      },
+      "definition": "脂蛋白(a) 测定值；单位随原文（mg/dL 或 nmol/L）。",
+      "rules": [
+        {
+          "id": "c8-v",
+          "regex": "(?<![A-Za-z0-9])(?:Lp\\s*[（(]\\s*a\\s*[)）]|LPa|LP\\(a\\)|脂蛋白\\s*[（(]?\\s*a\\s*[)）]?)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:Lp\\s*[（(]\\s*a\\s*[)）]|LPa|LP\\(a\\)|脂蛋白\\s*[（(]?\\s*a\\s*[)）]?)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C9",
+      "name": "LDL-C ≥4.9 mmol/L（末次）",
+      "group": "C",
+      "priority": "P2",
+      "type": "derived",
+      "definition": "末次 LDL-C ≥4.9 mmol/L（严重高胆固醇，FH 线索）。",
+      "derive": {
+        "op": "threshold",
+        "field": "C1",
+        "cmp": ">=",
+        "value": 4.9
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "D1",
+      "name": "冠心病",
+      "group": "D",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "冠心病、心肌梗死、冠脉血运重建。",
+      "recall": {
+        "terms": [
+          "冠心病",
+          "冠状动脉粥样硬化性心脏病",
+          "心肌梗死",
+          "心绞痛",
+          "PCI",
+          "冠脉支架",
+          "CABG",
+          "急性冠脉综合征"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "D2",
+      "name": "缺血性卒中／TIA",
+      "group": "D",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "缺血性卒中或 TIA。",
+      "recall": {
+        "terms": [
+          "脑梗死",
+          "脑梗塞",
+          "缺血性卒中",
+          "TIA",
+          "短暂性脑缺血发作"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "D3",
+      "name": "外周动脉疾病",
+      "group": "D",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "外周动脉粥样硬化疾病。",
+      "recall": {
+        "terms": [
+          "外周动脉疾病",
+          "下肢动脉硬化闭塞",
+          "下肢动脉狭窄",
+          "PAD",
+          "间歇性跛行"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "D4",
+      "name": "颈动脉斑块／狭窄",
+      "group": "D",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "颈动脉斑块或狭窄。",
+      "recall": {
+        "terms": [
+          "颈动脉斑块",
+          "颈动脉狭窄",
+          "颈动脉粥样硬化"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "D5",
+      "name": "高血压",
+      "group": "D",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "高血压病史。",
+      "recall": {
+        "terms": [
+          "高血压"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "D6",
+      "name": "糖尿病",
+      "group": "D",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "糖尿病病史。",
+      "recall": {
+        "terms": [
+          "糖尿病"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "D7",
+      "name": "慢性肾脏病",
+      "group": "D",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "慢性肾脏病或肾功能不全。",
+      "recall": {
+        "terms": [
+          "慢性肾脏病",
+          "CKD",
+          "肾功能不全"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "D8",
+      "name": "吸烟",
+      "group": "D",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "吸烟（含已戒）。",
+      "recall": {
+        "terms": [
+          "吸烟",
+          "抽烟"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "D9",
+      "name": "早发心血管病家族史",
+      "group": "D",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "一级亲属早发冠心病或卒中（男 <55 岁、女 <65 岁）。",
+      "recall": {
+        "terms": [
+          "冠心病",
+          "心肌梗死",
+          "脑卒中",
+          "脑梗死",
+          "猝死"
+        ]
+      },
+      "accept": [
+        "家族"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "D10",
+      "name": "高胆固醇血症家族史",
+      "group": "D",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "亲属高胆固醇血症或 FH。",
+      "recall": {
+        "terms": [
+          "高胆固醇血症",
+          "高脂血症",
+          "血脂异常",
+          "家族性高胆固醇血症"
+        ]
+      },
+      "accept": [
+        "家族"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "D11",
+      "name": "体重指数（BMI）",
+      "group": "D",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "kg/m²",
+      "range": {
+        "min": 10,
+        "max": 70
+      },
+      "definition": "体重指数（BMI）（kg/m²）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "d11-v",
+          "regex": "(?<![A-Za-z0-9])(?:BMI|体重指数)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:BMI|体重指数)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "D12",
+      "name": "收缩压",
+      "group": "D",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mmHg",
+      "range": {
+        "min": 50,
+        "max": 300
+      },
+      "definition": "血压记录中的收缩压（每次测量一条）。",
+      "rules": [
+        {
+          "id": "d12-v",
+          "regex": "(?<![A-Za-z0-9])(?:(?:BP|血压)\\s*[:：]?)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d{2,3}(?=\\s*/\\s*\\d{2,3}))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:(?:BP|血压)\\s*[:：]?)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "E1",
+      "name": "他汀类",
+      "group": "E",
+      "priority": "P0",
+      "type": "list",
+      "definition": "在用或出院带的他汀类。",
+      "options": [
+        {
+          "value": "阿托伐他汀",
+          "terms": [
+            "阿托伐他汀",
+            "立普妥",
+            "阿乐"
+          ]
+        },
+        {
+          "value": "瑞舒伐他汀",
+          "terms": [
+            "瑞舒伐他汀",
+            "可定"
+          ]
+        },
+        {
+          "value": "辛伐他汀",
+          "terms": [
+            "辛伐他汀"
+          ]
+        },
+        {
+          "value": "普伐他汀",
+          "terms": [
+            "普伐他汀"
+          ]
+        },
+        {
+          "value": "匹伐他汀",
+          "terms": [
+            "匹伐他汀"
+          ]
+        },
+        {
+          "value": "氟伐他汀",
+          "terms": [
+            "氟伐他汀"
+          ]
+        },
+        {
+          "value": "洛伐他汀",
+          "terms": [
+            "洛伐他汀"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "E2",
+      "name": "他汀强度",
+      "group": "E",
+      "priority": "P1",
+      "type": "enum",
+      "definition": "医生写明的他汀强度。",
+      "options": [
+        {
+          "value": "高强度",
+          "terms": [
+            "高强度他汀"
+          ]
+        },
+        {
+          "value": "中等强度",
+          "terms": [
+            "中强度",
+            "中等强度他汀"
+          ]
+        },
+        {
+          "value": "低强度",
+          "terms": [
+            "低强度他汀"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "pick": "last"
+    },
+    {
+      "id": "E3",
+      "name": "他汀日剂量",
+      "group": "E",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "encounter",
+      "unit": "mg",
+      "range": {
+        "min": 0.5,
+        "max": 80
+      },
+      "pick": "last",
+      "definition": "他汀日剂量（mg）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "e3-v",
+          "regex": "(?<![A-Za-z0-9])(?:(?:阿托伐他汀|瑞舒伐他汀|辛伐他汀|普伐他汀|匹伐他汀|氟伐他汀|洛伐他汀)(?:钙|钠)?(?:片|胶囊)?)(?![A-Za-z])[^。；;\\n\\d]{0,8}?(?<v>\\d{1,2}(?:\\.\\d{1,2})?(?=\\s*mg))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:(?:阿托伐他汀|瑞舒伐他汀|辛伐他汀|普伐他汀|匹伐他汀|氟伐他汀|洛伐他汀)(?:钙|钠)?(?:片|胶囊)?)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "E4",
+      "name": "胆固醇吸收抑制剂",
+      "group": "E",
+      "priority": "P0",
+      "type": "list",
+      "definition": "依折麦布、海博麦布。",
+      "options": [
+        {
+          "value": "依折麦布",
+          "terms": [
+            "依折麦布",
+            "益适纯"
+          ]
+        },
+        {
+          "value": "海博麦布",
+          "terms": [
+            "海博麦布",
+            "赫舒"
+          ]
+        },
+        {
+          "value": "依折麦布辛伐他汀",
+          "terms": [
+            "依折麦布辛伐他汀",
+            "葆至能"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "E5",
+      "name": "PCSK9 抑制剂／siRNA",
+      "group": "E",
+      "priority": "P0",
+      "type": "list",
+      "definition": "PCSK9 单抗及小干扰 RNA。",
+      "options": [
+        {
+          "value": "依洛尤单抗",
+          "terms": [
+            "依洛尤单抗",
+            "瑞百安"
+          ]
+        },
+        {
+          "value": "阿利西尤单抗",
+          "terms": [
+            "阿利西尤单抗",
+            "波立达"
+          ]
+        },
+        {
+          "value": "托莱西单抗",
+          "terms": [
+            "托莱西单抗",
+            "君适达"
+          ]
+        },
+        {
+          "value": "英克司兰",
+          "terms": [
+            "英克司兰",
+            "乐可为"
+          ]
+        },
+        {
+          "value": "昂戈瑞西单抗",
+          "terms": [
+            "昂戈瑞西单抗"
+          ]
+        },
+        {
+          "value": "伊努西单抗",
+          "terms": [
+            "伊努西单抗"
+          ]
+        },
+        {
+          "value": "瑞卡西单抗",
+          "terms": [
+            "瑞卡西单抗"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "E6",
+      "name": "降甘油三酯药物",
+      "group": "E",
+      "priority": "P1",
+      "type": "list",
+      "definition": "贝特类、高纯度鱼油、烟酸类。",
+      "options": [
+        {
+          "value": "非诺贝特",
+          "terms": [
+            "非诺贝特",
+            "力平之"
+          ]
+        },
+        {
+          "value": "苯扎贝特",
+          "terms": [
+            "苯扎贝特"
+          ]
+        },
+        {
+          "value": "吉非罗齐",
+          "terms": [
+            "吉非罗齐",
+            "吉非贝齐"
+          ]
+        },
+        {
+          "value": "二十碳五烯酸乙酯",
+          "terms": [
+            "二十碳五烯酸乙酯",
+            "IPE",
+            "高纯度鱼油"
+          ]
+        },
+        {
+          "value": "ω-3脂肪酸",
+          "terms": [
+            "ω-3脂肪酸",
+            "鱼油",
+            "Omega-3"
+          ]
+        },
+        {
+          "value": "烟酸",
+          "terms": [
+            "烟酸",
+            "阿昔莫司"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "E7",
+      "name": "其他调脂药",
+      "group": "E",
+      "priority": "P2",
+      "type": "list",
+      "definition": "血脂康、普罗布考、贝派地酸等。",
+      "options": [
+        {
+          "value": "血脂康",
+          "terms": [
+            "血脂康"
+          ]
+        },
+        {
+          "value": "普罗布考",
+          "terms": [
+            "普罗布考"
+          ]
+        },
+        {
+          "value": "贝派地酸",
+          "terms": [
+            "贝派地酸"
+          ]
+        },
+        {
+          "value": "多廿烷醇",
+          "terms": [
+            "多廿烷醇"
+          ]
+        },
+        {
+          "value": "洛美他派",
+          "terms": [
+            "洛美他派"
+          ]
+        },
+        {
+          "value": "依维苏单抗",
+          "terms": [
+            "依维苏单抗"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "E8",
+      "name": "治疗性生活方式改变",
+      "group": "E",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "低脂饮食、限酒、运动、减重等医嘱。",
+      "recall": {
+        "terms": [
+          "低脂饮食",
+          "低盐低脂饮食",
+          "控制饮食",
+          "适当运动",
+          "减重",
+          "生活方式干预"
+        ]
+      },
+      "granularity": "encounter",
+      "accept": [
+        "阳性",
+        "计划"
+      ]
+    },
+    {
+      "id": "E9",
+      "name": "血脂单采",
+      "group": "E",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "脂蛋白单采（纯合子 FH 等）。",
+      "recall": {
+        "terms": [
+          "血脂单采",
+          "脂蛋白单采",
+          "血浆置换",
+          "DALI"
+        ]
+      },
+      "granularity": "patient",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "F1",
+      "name": "调脂药不良反应",
+      "group": "F",
+      "priority": "P0",
+      "type": "list",
+      "definition": "调脂药物不良反应。",
+      "options": [
+        {
+          "value": "肌痛",
+          "terms": [
+            "肌痛",
+            "肌肉疼痛",
+            "肌肉酸痛",
+            "他汀相关肌肉症状",
+            "SAMS"
+          ]
+        },
+        {
+          "value": "横纹肌溶解",
+          "terms": [
+            "横纹肌溶解"
+          ]
+        },
+        {
+          "value": "肝酶升高",
+          "terms": [
+            "肝酶升高",
+            "转氨酶升高",
+            "肝功能异常",
+            "肝功能损害"
+          ]
+        },
+        {
+          "value": "新发糖尿病",
+          "terms": [
+            "新发糖尿病",
+            "血糖升高"
+          ]
+        },
+        {
+          "value": "注射部位反应",
+          "terms": [
+            "注射部位反应"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "model": "always",
+      "recall": {
+        "terms": [
+          "不良反应",
+          "肌痛",
+          "肌肉",
+          "横纹肌",
+          "转氨酶",
+          "肝功能",
+          "血糖升高",
+          "注射部位"
+        ]
+      }
+    },
+    {
+      "id": "F2",
+      "name": "他汀不耐受",
+      "group": "F",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "医生写明他汀不耐受。",
+      "recall": {
+        "terms": [
+          "他汀不耐受",
+          "不能耐受他汀",
+          "他汀类不耐受"
+        ]
+      },
+      "granularity": "patient",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "F3",
+      "name": "肌酸激酶（CK）",
+      "group": "F",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "U/L",
+      "range": {
+        "min": 1,
+        "max": 100000
+      },
+      "definition": "肌酸激酶（CK）（U/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "f3-v",
+          "regex": "(?<![A-Za-z0-9])(?:(?<!-)CK(?!-?MB)|CPK|肌酸激酶(?!同工酶))(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:(?<!-)CK(?!-?MB)|CPK|肌酸激酶(?!同工酶))(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "F4",
+      "name": "继发性血脂异常病因",
+      "group": "F",
+      "priority": "P2",
+      "type": "list",
+      "definition": "可致继发性血脂异常的疾病或药物。",
+      "options": [
+        {
+          "value": "甲状腺功能减退",
+          "terms": [
+            "甲状腺功能减退",
+            "甲减"
+          ]
+        },
+        {
+          "value": "肾病综合征",
+          "terms": [
+            "肾病综合征"
+          ]
+        },
+        {
+          "value": "胆汁淤积",
+          "terms": [
+            "胆汁淤积",
+            "原发性胆汁性胆管炎"
+          ]
+        },
+        {
+          "value": "库欣综合征",
+          "terms": [
+            "库欣综合征"
+          ]
+        },
+        {
+          "value": "长期糖皮质激素",
+          "terms": [
+            "长期糖皮质激素",
+            "激素治疗"
+          ]
+        },
+        {
+          "value": "抗逆转录病毒治疗",
+          "terms": [
+            "抗逆转录病毒治疗",
+            "蛋白酶抑制剂"
+          ]
+        },
+        {
+          "value": "长期大量饮酒",
+          "terms": [
+            "长期大量饮酒",
+            "酗酒"
+          ]
+        }
+      ],
+      "granularity": "patient",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "K1",
+      "name": "ALT",
+      "group": "K",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "U/L",
+      "range": {
+        "min": 1,
+        "max": 10000
+      },
+      "definition": "ALT（U/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k1-v",
+          "regex": "(?<![A-Za-z0-9])(?:ALT|丙氨酸(?:氨基)?转移酶|谷丙转氨酶)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:ALT|丙氨酸(?:氨基)?转移酶|谷丙转氨酶)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K2",
+      "name": "空腹血糖",
+      "group": "K",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mmol/L",
+      "range": {
+        "min": 1,
+        "max": 40
+      },
+      "definition": "空腹血糖（mmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k2-v",
+          "regex": "(?<![A-Za-z0-9])(?:空腹血糖|FPG|FBG|空腹葡萄糖)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:空腹血糖|FPG|FBG|空腹葡萄糖)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K3",
+      "name": "糖化血红蛋白",
+      "group": "K",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "%",
+      "range": {
+        "min": 3,
+        "max": 20
+      },
+      "definition": "糖化血红蛋白（%）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k3-v",
+          "regex": "(?<![A-Za-z0-9])(?:HbA1c|HBA1C|糖化血红蛋白)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:HbA1c|HBA1C|糖化血红蛋白)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K4",
+      "name": "肌酐",
+      "group": "K",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "μmol/L",
+      "range": {
+        "min": 10,
+        "max": 2500
+      },
+      "definition": "肌酐（μmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k4-v",
+          "regex": "(?<![A-Za-z0-9])(?:(?<!尿)肌酐|Scr|SCr|Cr(?![a-z]))(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:(?<!尿)肌酐|Scr|SCr|Cr(?![a-z]))(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K5",
+      "name": "TSH",
+      "group": "K",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mIU/L",
+      "range": {
+        "min": 0,
+        "max": 200
+      },
+      "definition": "TSH（mIU/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k5-v",
+          "regex": "(?<![A-Za-z0-9])(?:TSH|促甲状腺(?:激)?素)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:TSH|促甲状腺(?:激)?素)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K6",
+      "name": "尿酸",
+      "group": "K",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "μmol/L",
+      "range": {
+        "min": 50,
+        "max": 1500
+      },
+      "definition": "尿酸（μmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k6-v",
+          "regex": "(?<![A-Za-z0-9])(?:(?<!尿)尿酸|UA(?![a-zA-Z]))(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:(?<!尿)尿酸|UA(?![a-zA-Z]))(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K7",
+      "name": "就诊年龄",
+      "group": "K",
+      "priority": "P0",
+      "type": "derived",
+      "definition": "本次就诊时年龄。",
+      "derive": {
+        "op": "ageAt",
+        "at": "$encounter.start"
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "K8",
+      "name": "主诉",
+      "group": "K",
+      "priority": "P1",
+      "type": "text",
+      "definition": "本次就诊主诉原文。",
+      "granularity": "encounter",
+      "pick": "first",
+      "sources": {
+        "sections": [
+          "主诉"
+        ]
+      },
+      "rules": [
+        {
+          "id": "chief",
+          "regex": "(?<v>[^\\n]{2,100})"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "[^\\s]{2,}"
+        ]
+      }
+    }
+  ]
+}

@@ -31,7 +31,7 @@ De-identification → [Chart abstraction] → wide tables / time-point table / e
 - **Every value is traceable**: each value carries a verbatim quote and its character offsets. The plugin locates the quote in the source text itself; positions reported by the model are never used. A value whose quote cannot be found in the source is discarded.
 - **Assertion-aware**: present, negated, possible, historical, family and planned mentions are kept apart, so "denies suicidal ideation" is never counted as "has suicidal ideation".
 - **Two-model cross-checking**: an extraction model and a verification model read independently; disagreements are re-examined by both, and only unresolved ones go to a human (see [below](#two-model-cross-checking)).
-- **No disease knowledge in the engine**: all disease content lives in templates. Seven templates are built in; you can write your own, also in Excel.
+- **No disease knowledge in the engine**: all disease content lives in templates. Twenty templates are built in; you can write your own, also in Excel.
 - **Scale**: parallel data blocks, resumable batches, content-addressed model-response cache; designed for tens of millions of documents.
 
 ## Two-model cross-checking
@@ -95,6 +95,19 @@ Each follows Chinese and international guidelines (the template's `references` l
 | `t2dm` | Type 2 diabetes | 51 |
 | `ckd-hd` | Chronic kidney disease and hemodialysis | 57 |
 | `nsclc` | Non-small cell lung cancer | 49 |
+| `htn` | Hypertension | 61 |
+| `cad` | Coronary artery disease (incl. ACS/PCI) | 67 |
+| `af` | Atrial fibrillation | 56 |
+| `copd` | Chronic obstructive pulmonary disease | 73 |
+| `bc` | Breast cancer | 61 |
+| `crc` | Colorectal cancer | 67 |
+| `hcc` | Primary liver cancer | 64 |
+| `thyroid` | Thyroid disease (hyper/hypothyroidism, nodules) | 56 |
+| `op` | Osteoporosis | 46 |
+| `gout` | Hyperuricemia and gout | 56 |
+| `dlp` | Dyslipidemia | 52 |
+| `asthma` | Asthma | 61 |
+| `chb` | Chronic hepatitis B and cirrhosis | 71 |
 
 Custom templates: copy a template as your own in the page and edit it, or download it as Excel (or a blank template), edit in Excel, and import it back (format: [docs/template.md](docs/template.md) §9).
 

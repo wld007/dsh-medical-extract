@@ -11,7 +11,7 @@ import { tmp } from './helpers.mjs'
 const dir = new URL('../templates/', import.meta.url)
 const builtins = await Promise.all((await readdir(dir)).filter((n) => n.endsWith('.json')).map(async (n) => JSON.parse(await readFile(new URL(n, dir), 'utf8'))))
 
-test('Excel 往返：7 个内置模板导出再导入，一字不差', () => {
+test('Excel 往返：全部内置模板导出再导入，一字不差', () => {
   for (const t of builtins) {
     const { template, problems } = xlsxToTemplate(templateToXlsx(t))
     assert.deepEqual(problems, [], t.id)

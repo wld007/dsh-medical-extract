@@ -1,0 +1,1892 @@
+{
+  "format": "extract-template/1",
+  "id": "htn",
+  "name": "高血压（HTN）",
+  "version": "0.1.0",
+  "domain": "心血管",
+  "description": "高血压研究与慢病管理常用字段：诊断与分级、心血管风险分层、诊室／动态／家庭血压、危险因素、靶器官损害、临床并存疾病、降压药物（含单片复方）、继发性高血压排查、控制达标与关键检验。",
+  "references": [
+    {
+      "title": "中国高血压防治指南（2024 年修订版），中华高血压杂志 2024;32(7)"
+    },
+    {
+      "title": "2023 ESH Guidelines for the management of arterial hypertension, J Hypertens 2023;41(12)"
+    },
+    {
+      "title": "2024 ESC Guidelines for the management of elevated blood pressure and hypertension"
+    },
+    {
+      "title": "国家基层高血压防治管理指南 2020 版"
+    },
+    {
+      "title": "古脉 G-MPAS 数据目录：高血压专病（字段范围参考）",
+      "url": "https://www.g-mpas.com/data.html"
+    }
+  ],
+  "groups": [
+    {
+      "id": "A",
+      "name": "诊断与分级"
+    },
+    {
+      "id": "B",
+      "name": "血压测量"
+    },
+    {
+      "id": "C",
+      "name": "危险因素"
+    },
+    {
+      "id": "D",
+      "name": "靶器官损害"
+    },
+    {
+      "id": "E",
+      "name": "临床并存疾病"
+    },
+    {
+      "id": "F",
+      "name": "降压治疗"
+    },
+    {
+      "id": "G",
+      "name": "继发性高血压与随访"
+    },
+    {
+      "id": "K",
+      "name": "检验"
+    }
+  ],
+  "fields": [
+    {
+      "id": "A1",
+      "name": "高血压相关诊断",
+      "group": "A",
+      "priority": "P0",
+      "type": "list",
+      "granularity": "encounter",
+      "definition": "诊断栏写明的高血压诊断（原文写法，含分级、分层）。",
+      "sources": {
+        "sections": [
+          "诊断",
+          "初步诊断",
+          "出院诊断",
+          "入院诊断",
+          "ICD-10 名称",
+          "ICD-10"
+        ]
+      },
+      "rules": [
+        {
+          "id": "dx",
+          "regex": "(?<v>[^\\n，,。；;：:]{0,14}(?:高血压)[^\\n，,。；;：:]{0,16})"
+        }
+      ],
+      "recall": {
+        "terms": [
+          "高血压"
+        ]
+      }
+    },
+    {
+      "id": "A1c",
+      "name": "ICD-10 编码（I10–I15）",
+      "group": "A",
+      "priority": "P0",
+      "type": "list",
+      "granularity": "encounter",
+      "definition": "高血压编码。",
+      "rules": [
+        {
+          "id": "icd",
+          "regex": "(?<![A-Za-z0-9])(?<v>(?:I1[0-5])(?:\\.\\d{1,3})?)(?![0-9A-Za-z])"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:I1[0-5])(?:\\.\\d{1,3})?(?![0-9A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "A2",
+      "name": "血压分级",
+      "group": "A",
+      "priority": "P0",
+      "type": "enum",
+      "granularity": "encounter",
+      "pick": "last",
+      "definition": "高血压 1 级、2 级、3 级（按诊断写明的分级）。",
+      "options": [
+        {
+          "value": "1级"
+        },
+        {
+          "value": "2级"
+        },
+        {
+          "value": "3级"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "高血压(?:病)?\\s*(?:[1-3一二三ⅠⅡⅢ]|I{1,3})\\s*级"
+        ]
+      },
+      "rules": [
+        {
+          "id": "grade",
+          "regex": "高血压(?:病)?\\s*(?<v>Ⅲ|Ⅱ|Ⅰ|III|II|I|[1-3一二三])\\s*级",
+          "map": {
+            "1": "1级",
+            "2": "2级",
+            "3": "3级",
+            "Ⅰ": "1级",
+            "Ⅱ": "2级",
+            "Ⅲ": "3级",
+            "I": "1级",
+            "II": "2级",
+            "III": "3级",
+            "一": "1级",
+            "二": "2级",
+            "三": "3级"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A3",
+      "name": "心血管风险分层",
+      "group": "A",
+      "priority": "P0",
+      "type": "enum",
+      "definition": "高血压心血管风险分层：低危、中危、高危、很高危（极高危同很高危）。",
+      "options": [
+        {
+          "value": "低危",
+          "terms": [
+            "低危"
+          ]
+        },
+        {
+          "value": "中危",
+          "terms": [
+            "中危"
+          ]
+        },
+        {
+          "value": "高危",
+          "terms": [
+            "高危"
+          ]
+        },
+        {
+          "value": "很高危",
+          "terms": [
+            "很高危",
+            "极高危",
+            "极高危组",
+            "很高危组"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "pick": "last",
+      "sources": {
+        "sections": [
+          "诊断",
+          "初步诊断",
+          "出院诊断",
+          "入院诊断",
+          "ICD-10 名称",
+          "ICD-10"
+        ]
+      }
+    },
+    {
+      "id": "A4",
+      "name": "高血压诊断时间",
+      "group": "A",
+      "priority": "P0",
+      "type": "date",
+      "definition": "首次诊断（或发现）高血压的时间；\"高血压病史10年\"取 10 年前。",
+      "granularity": "patient",
+      "pick": "earliest",
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "model": "always",
+      "sources": {
+        "sections": [
+          "主诉",
+          "现病史",
+          "既往史"
+        ]
+      },
+      "recall": {
+        "terms": [
+          "高血压",
+          "血压升高",
+          "血压高"
+        ],
+        "regex": [
+          "[\\d一二两三四五六七八九十半]+\\s*个?\\s*(?:年|月|周|星期|天|日|小时|h)\\s*(?:余|多|左右|许)?"
+        ]
+      }
+    },
+    {
+      "id": "A5",
+      "name": "高血压病程（月）",
+      "group": "A",
+      "priority": "P1",
+      "type": "derived",
+      "definition": "诊断至本次就诊的月数。",
+      "derive": {
+        "op": "monthsBetween",
+        "from": "A4",
+        "to": "$encounter.start"
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "A6",
+      "name": "单纯收缩期高血压",
+      "group": "A",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "收缩压 ≥140 mmHg 且舒张压 <90 mmHg，医生写明。",
+      "recall": {
+        "terms": [
+          "单纯收缩期高血压",
+          "ISH"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "A7",
+      "name": "难治性高血压",
+      "group": "A",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "使用包括利尿剂在内的 ≥3 种足量降压药仍未达标（医生写明）。",
+      "recall": {
+        "terms": [
+          "难治性高血压",
+          "顽固性高血压"
+        ]
+      },
+      "granularity": "patient",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "A8",
+      "name": "高血压急症／亚急症",
+      "group": "A",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "本次高血压急症或亚急症、高血压危象。",
+      "recall": {
+        "terms": [
+          "高血压急症",
+          "高血压亚急症",
+          "高血压危象",
+          "高血压脑病",
+          "恶性高血压"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "B1",
+      "name": "诊室收缩压",
+      "group": "B",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mmHg",
+      "range": {
+        "min": 50,
+        "max": 300
+      },
+      "definition": "血压记录中的收缩压（每次测量一条）。",
+      "rules": [
+        {
+          "id": "b1-v",
+          "regex": "(?<![A-Za-z0-9])(?:(?:BP|血压)\\s*[:：]?)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d{2,3}(?=\\s*/\\s*\\d{2,3}))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:(?:BP|血压)\\s*[:：]?)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "B2",
+      "name": "诊室舒张压",
+      "group": "B",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mmHg",
+      "range": {
+        "min": 20,
+        "max": 200
+      },
+      "definition": "血压记录中的舒张压（每次测量一条）。",
+      "rules": [
+        {
+          "id": "b2-v",
+          "regex": "(?<![A-Za-z0-9])(?:(?:BP|血压)\\s*[:：]?)(?![A-Za-z])[^。；;\\n\\d]{0,24}?\\d{2,3}\\s*/\\s*(?<v>\\d{2,3})"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:(?:BP|血压)\\s*[:：]?)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "B3",
+      "name": "心率",
+      "group": "B",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "次/分",
+      "range": {
+        "min": 20,
+        "max": 300
+      },
+      "definition": "心率（次/分）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "b3-v",
+          "regex": "(?<![A-Za-z0-9])(?:心率|HR|脉搏)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d{2,3}(?=\\s*次))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:心率|HR|脉搏)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "B4",
+      "name": "24 小时平均收缩压",
+      "group": "B",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mmHg",
+      "range": {
+        "min": 70,
+        "max": 250
+      },
+      "definition": "动态血压监测 24 小时平均收缩压（每次监测一条）。",
+      "rules": [
+        {
+          "id": "b4-v",
+          "regex": "(?<![A-Za-z0-9])(?:24\\s*(?:h|小时)\\s*(?:动态血压)?\\s*平均(?:收缩压|血压))(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d{2,3}(?=\\s*(?:\\/|mmHg)))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:24\\s*(?:h|小时)\\s*(?:动态血压)?\\s*平均(?:收缩压|血压))(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "B5",
+      "name": "动态血压监测",
+      "group": "B",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "做过 24 小时动态血压监测（ABPM）。",
+      "recall": {
+        "terms": [
+          "动态血压",
+          "ABPM",
+          "24小时动态血压",
+          "24h动态血压"
+        ]
+      },
+      "granularity": "encounter",
+      "accept": [
+        "阳性",
+        "既往",
+        "计划"
+      ]
+    },
+    {
+      "id": "B6",
+      "name": "家庭血压监测",
+      "group": "B",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "病人在家自测血压（HBPM）。",
+      "recall": {
+        "terms": [
+          "家庭血压",
+          "家庭自测血压",
+          "自测血压",
+          "在家测血压",
+          "HBPM"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "B7",
+      "name": "白大衣高血压／隐匿性高血压",
+      "group": "B",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "医生写明白大衣高血压或隐匿性高血压。",
+      "recall": {
+        "terms": [
+          "白大衣高血压",
+          "白大衣效应",
+          "隐匿性高血压",
+          "隐蔽性高血压"
+        ]
+      },
+      "granularity": "patient",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "B8",
+      "name": "血压控制情况",
+      "group": "B",
+      "priority": "P0",
+      "type": "enum",
+      "definition": "医生对本次血压控制的评价：达标或未达标。",
+      "options": [
+        {
+          "value": "达标",
+          "terms": [
+            "血压控制良好",
+            "血压控制可",
+            "血压控制满意",
+            "血压控制理想",
+            "血压达标",
+            "血压控制平稳"
+          ]
+        },
+        {
+          "value": "未达标",
+          "terms": [
+            "血压控制不佳",
+            "血压控制欠佳",
+            "血压控制差",
+            "血压未达标",
+            "血压控制不理想",
+            "血压波动大"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "pick": "last"
+    },
+    {
+      "id": "C1",
+      "name": "吸烟",
+      "group": "C",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "吸烟（含已戒）。",
+      "recall": {
+        "terms": [
+          "吸烟",
+          "抽烟"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "C2",
+      "name": "饮酒",
+      "group": "C",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "饮酒（含已戒）。",
+      "recall": {
+        "terms": [
+          "饮酒",
+          "喝酒",
+          "酗酒"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "C3",
+      "name": "血脂异常",
+      "group": "C",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "高脂血症／血脂异常。",
+      "recall": {
+        "terms": [
+          "高脂血症",
+          "血脂异常",
+          "高胆固醇血症",
+          "高甘油三酯血症",
+          "混合型高脂血症"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "C4",
+      "name": "糖尿病",
+      "group": "C",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "糖尿病病史。",
+      "recall": {
+        "terms": [
+          "糖尿病",
+          "2型糖尿病"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "C5",
+      "name": "肥胖／超重",
+      "group": "C",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "肥胖、超重或中心性肥胖。",
+      "recall": {
+        "terms": [
+          "肥胖",
+          "超重",
+          "中心性肥胖",
+          "腹型肥胖"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "C6",
+      "name": "高血压家族史",
+      "group": "C",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "一级亲属有高血压。",
+      "recall": {
+        "terms": [
+          "高血压"
+        ]
+      },
+      "accept": [
+        "家族"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "C7",
+      "name": "早发心血管病家族史",
+      "group": "C",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "一级亲属早发冠心病、心肌梗死或卒中（男 <55 岁、女 <65 岁）。",
+      "recall": {
+        "terms": [
+          "冠心病",
+          "心肌梗死",
+          "脑卒中",
+          "脑梗死",
+          "猝死",
+          "早发心血管病"
+        ]
+      },
+      "accept": [
+        "家族"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "C8",
+      "name": "体重指数（BMI）",
+      "group": "C",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "kg/m²",
+      "range": {
+        "min": 10,
+        "max": 70
+      },
+      "definition": "体重指数（BMI）（kg/m²）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c8-v",
+          "regex": "(?<![A-Za-z0-9])(?:BMI|体重指数)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:BMI|体重指数)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C9",
+      "name": "腰围",
+      "group": "C",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "cm",
+      "range": {
+        "min": 40,
+        "max": 200
+      },
+      "definition": "腰围（cm）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c9-v",
+          "regex": "(?<![A-Za-z0-9])(?:腰围)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:腰围)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C10",
+      "name": "高盐饮食",
+      "group": "C",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "口味偏咸、高盐饮食。",
+      "recall": {
+        "terms": [
+          "高盐饮食",
+          "口味偏咸",
+          "口味重",
+          "嗜咸",
+          "喜咸食"
+        ]
+      },
+      "granularity": "patient",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "D1",
+      "name": "左心室肥厚",
+      "group": "D",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "心电图或超声心动图示左心室肥厚。",
+      "recall": {
+        "terms": [
+          "左心室肥厚",
+          "左室肥厚",
+          "左心室肥大",
+          "左室肥大",
+          "LVH",
+          "室间隔增厚",
+          "左室壁增厚",
+          "左心室壁增厚"
+        ]
+      },
+      "granularity": "patient",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "D2",
+      "name": "颈动脉斑块／内中膜增厚",
+      "group": "D",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "颈动脉超声示斑块或 IMT ≥0.9 mm。",
+      "recall": {
+        "terms": [
+          "颈动脉斑块",
+          "颈动脉硬化斑块",
+          "颈动脉内中膜增厚",
+          "IMT增厚",
+          "颈动脉粥样硬化"
+        ]
+      },
+      "granularity": "patient",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "D3",
+      "name": "尿白蛋白/肌酐比值（UACR）",
+      "group": "D",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mg/g",
+      "range": {
+        "min": 0,
+        "max": 30000
+      },
+      "definition": "尿白蛋白/肌酐比值（UACR）（mg/g）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "d3-v",
+          "regex": "(?<![A-Za-z0-9])(?:UACR|ACR|尿白蛋白(?:\\/|与)?肌酐比(?:值)?|尿微量白蛋白(?:\\/|与)?肌酐)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:UACR|ACR|尿白蛋白(?:\\/|与)?肌酐比(?:值)?|尿微量白蛋白(?:\\/|与)?肌酐)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "D4",
+      "name": "高血压视网膜病变",
+      "group": "D",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "眼底示高血压性视网膜病变或视网膜动脉硬化。",
+      "recall": {
+        "terms": [
+          "高血压视网膜病变",
+          "高血压性视网膜病变",
+          "视网膜动脉硬化",
+          "眼底动脉硬化",
+          "动静脉交叉压迹"
+        ]
+      },
+      "granularity": "patient",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "D5",
+      "name": "eGFR",
+      "group": "D",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mL/min/1.73m²",
+      "range": {
+        "min": 1,
+        "max": 200
+      },
+      "definition": "eGFR（mL/min/1.73m²）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "d5-v",
+          "regex": "(?<![A-Za-z0-9])(?:eGFR|估算肾小球滤过率|肾小球滤过率)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:eGFR|估算肾小球滤过率|肾小球滤过率)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "D6",
+      "name": "踝臂指数（ABI）",
+      "group": "D",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "range": {
+        "min": 0.1,
+        "max": 2.5
+      },
+      "definition": "踝臂指数（ABI）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "d6-v",
+          "regex": "(?<![A-Za-z0-9])(?:ABI|踝臂指数|踝肱指数)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>[0-2]\\.\\d{1,2})"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:ABI|踝臂指数|踝肱指数)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "D7",
+      "name": "肱踝脉搏波传导速度（baPWV）",
+      "group": "D",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "cm/s",
+      "range": {
+        "min": 500,
+        "max": 4000
+      },
+      "definition": "肱踝脉搏波传导速度（baPWV）（cm/s）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "d7-v",
+          "regex": "(?<![A-Za-z0-9])(?:baPWV|脉搏波传导速度|PWV)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d{3,4})"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:baPWV|脉搏波传导速度|PWV)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "E1",
+      "name": "冠心病",
+      "group": "E",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "冠心病、心肌梗死或冠脉血运重建史。",
+      "recall": {
+        "terms": [
+          "冠心病",
+          "冠状动脉粥样硬化性心脏病",
+          "心肌梗死",
+          "心绞痛",
+          "PCI",
+          "冠脉支架",
+          "CABG"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "E2",
+      "name": "脑卒中／TIA",
+      "group": "E",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "脑梗死、脑出血或 TIA。",
+      "recall": {
+        "terms": [
+          "脑梗死",
+          "脑梗塞",
+          "脑出血",
+          "脑卒中",
+          "卒中",
+          "TIA",
+          "短暂性脑缺血发作",
+          "腔隙性脑梗死"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "E3",
+      "name": "心力衰竭",
+      "group": "E",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "心力衰竭。",
+      "recall": {
+        "terms": [
+          "心力衰竭",
+          "心衰",
+          "心功能不全"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "E4",
+      "name": "慢性肾脏病",
+      "group": "E",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "慢性肾脏病或肾功能不全。",
+      "recall": {
+        "terms": [
+          "慢性肾脏病",
+          "CKD",
+          "肾功能不全",
+          "慢性肾衰竭",
+          "高血压肾病",
+          "高血压肾损害"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "E5",
+      "name": "心房颤动",
+      "group": "E",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "心房颤动（含阵发性）。",
+      "recall": {
+        "terms": [
+          "心房颤动",
+          "房颤"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "E6",
+      "name": "外周动脉疾病",
+      "group": "E",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "下肢动脉粥样硬化闭塞症等外周动脉疾病。",
+      "recall": {
+        "terms": [
+          "外周动脉疾病",
+          "下肢动脉硬化闭塞",
+          "下肢动脉狭窄",
+          "间歇性跛行",
+          "PAD"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "E7",
+      "name": "主动脉夹层／主动脉瘤",
+      "group": "E",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "主动脉夹层或主动脉瘤。",
+      "recall": {
+        "terms": [
+          "主动脉夹层",
+          "主动脉瘤",
+          "腹主动脉瘤"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "F1",
+      "name": "ACEI",
+      "group": "F",
+      "priority": "P0",
+      "type": "list",
+      "definition": "在用或出院带的 ACEI。",
+      "options": [
+        {
+          "value": "依那普利",
+          "terms": [
+            "依那普利"
+          ]
+        },
+        {
+          "value": "贝那普利",
+          "terms": [
+            "贝那普利",
+            "洛汀新"
+          ]
+        },
+        {
+          "value": "培哚普利",
+          "terms": [
+            "培哚普利",
+            "雅施达"
+          ]
+        },
+        {
+          "value": "雷米普利",
+          "terms": [
+            "雷米普利"
+          ]
+        },
+        {
+          "value": "福辛普利",
+          "terms": [
+            "福辛普利",
+            "蒙诺"
+          ]
+        },
+        {
+          "value": "卡托普利",
+          "terms": [
+            "卡托普利"
+          ]
+        },
+        {
+          "value": "赖诺普利",
+          "terms": [
+            "赖诺普利"
+          ]
+        },
+        {
+          "value": "咪达普利",
+          "terms": [
+            "咪达普利"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "F2",
+      "name": "ARB／ARNI",
+      "group": "F",
+      "priority": "P0",
+      "type": "list",
+      "definition": "在用或出院带的 ARB 或 ARNI。",
+      "options": [
+        {
+          "value": "沙库巴曲缬沙坦",
+          "terms": [
+            "沙库巴曲缬沙坦",
+            "诺欣妥",
+            "ARNI"
+          ]
+        },
+        {
+          "value": "缬沙坦",
+          "terms": [
+            "缬沙坦",
+            "代文"
+          ]
+        },
+        {
+          "value": "氯沙坦",
+          "terms": [
+            "氯沙坦",
+            "科素亚"
+          ]
+        },
+        {
+          "value": "厄贝沙坦",
+          "terms": [
+            "厄贝沙坦",
+            "安博维"
+          ]
+        },
+        {
+          "value": "坎地沙坦",
+          "terms": [
+            "坎地沙坦"
+          ]
+        },
+        {
+          "value": "替米沙坦",
+          "terms": [
+            "替米沙坦",
+            "美卡素"
+          ]
+        },
+        {
+          "value": "奥美沙坦",
+          "terms": [
+            "奥美沙坦"
+          ]
+        },
+        {
+          "value": "阿利沙坦",
+          "terms": [
+            "阿利沙坦",
+            "信立坦"
+          ]
+        },
+        {
+          "value": "阿齐沙坦",
+          "terms": [
+            "阿齐沙坦"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "F3",
+      "name": "钙通道阻滞剂（CCB）",
+      "group": "F",
+      "priority": "P0",
+      "type": "list",
+      "definition": "在用或出院带的 CCB。",
+      "options": [
+        {
+          "value": "氨氯地平",
+          "terms": [
+            "氨氯地平",
+            "络活喜",
+            "苯磺酸氨氯地平"
+          ]
+        },
+        {
+          "value": "左旋氨氯地平",
+          "terms": [
+            "左旋氨氯地平",
+            "施慧达"
+          ]
+        },
+        {
+          "value": "硝苯地平",
+          "terms": [
+            "硝苯地平",
+            "拜新同",
+            "硝苯地平控释片"
+          ]
+        },
+        {
+          "value": "非洛地平",
+          "terms": [
+            "非洛地平",
+            "波依定"
+          ]
+        },
+        {
+          "value": "贝尼地平",
+          "terms": [
+            "贝尼地平"
+          ]
+        },
+        {
+          "value": "拉西地平",
+          "terms": [
+            "拉西地平"
+          ]
+        },
+        {
+          "value": "乐卡地平",
+          "terms": [
+            "乐卡地平"
+          ]
+        },
+        {
+          "value": "西尼地平",
+          "terms": [
+            "西尼地平"
+          ]
+        },
+        {
+          "value": "尼群地平",
+          "terms": [
+            "尼群地平"
+          ]
+        },
+        {
+          "value": "地尔硫䓬",
+          "terms": [
+            "地尔硫䓬",
+            "合贝爽"
+          ]
+        },
+        {
+          "value": "维拉帕米",
+          "terms": [
+            "维拉帕米"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "F4",
+      "name": "利尿剂",
+      "group": "F",
+      "priority": "P0",
+      "type": "list",
+      "definition": "噻嗪类、袢利尿剂、醛固酮受体拮抗剂等。",
+      "options": [
+        {
+          "value": "氢氯噻嗪",
+          "terms": [
+            "氢氯噻嗪"
+          ]
+        },
+        {
+          "value": "吲达帕胺",
+          "terms": [
+            "吲达帕胺",
+            "纳催离"
+          ]
+        },
+        {
+          "value": "氯噻酮",
+          "terms": [
+            "氯噻酮"
+          ]
+        },
+        {
+          "value": "呋塞米",
+          "terms": [
+            "呋塞米",
+            "速尿"
+          ]
+        },
+        {
+          "value": "托拉塞米",
+          "terms": [
+            "托拉塞米"
+          ]
+        },
+        {
+          "value": "布美他尼",
+          "terms": [
+            "布美他尼"
+          ]
+        },
+        {
+          "value": "螺内酯",
+          "terms": [
+            "螺内酯",
+            "安体舒通"
+          ]
+        },
+        {
+          "value": "依普利酮",
+          "terms": [
+            "依普利酮"
+          ]
+        },
+        {
+          "value": "阿米洛利",
+          "terms": [
+            "阿米洛利"
+          ]
+        },
+        {
+          "value": "氨苯蝶啶",
+          "terms": [
+            "氨苯蝶啶"
+          ]
+        },
+        {
+          "value": "托伐普坦",
+          "terms": [
+            "托伐普坦",
+            "苏麦卡"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "F5",
+      "name": "β 受体阻滞剂",
+      "group": "F",
+      "priority": "P0",
+      "type": "list",
+      "definition": "在用或出院带的 β 受体阻滞剂。",
+      "options": [
+        {
+          "value": "美托洛尔",
+          "terms": [
+            "美托洛尔",
+            "倍他乐克",
+            "琥珀酸美托洛尔",
+            "酒石酸美托洛尔"
+          ]
+        },
+        {
+          "value": "比索洛尔",
+          "terms": [
+            "比索洛尔",
+            "康忻",
+            "博苏"
+          ]
+        },
+        {
+          "value": "卡维地洛",
+          "terms": [
+            "卡维地洛",
+            "络德"
+          ]
+        },
+        {
+          "value": "阿替洛尔",
+          "terms": [
+            "阿替洛尔"
+          ]
+        },
+        {
+          "value": "奈必洛尔",
+          "terms": [
+            "奈必洛尔"
+          ]
+        },
+        {
+          "value": "阿罗洛尔",
+          "terms": [
+            "阿罗洛尔"
+          ]
+        },
+        {
+          "value": "拉贝洛尔",
+          "terms": [
+            "拉贝洛尔"
+          ]
+        },
+        {
+          "value": "普萘洛尔",
+          "terms": [
+            "普萘洛尔",
+            "心得安"
+          ]
+        },
+        {
+          "value": "艾司洛尔",
+          "terms": [
+            "艾司洛尔"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "F6",
+      "name": "其他降压药",
+      "group": "F",
+      "priority": "P1",
+      "type": "list",
+      "definition": "α 受体阻滞剂、中枢性降压药、静脉降压药等。",
+      "options": [
+        {
+          "value": "特拉唑嗪",
+          "terms": [
+            "特拉唑嗪",
+            "高特灵"
+          ]
+        },
+        {
+          "value": "多沙唑嗪",
+          "terms": [
+            "多沙唑嗪",
+            "可多华"
+          ]
+        },
+        {
+          "value": "哌唑嗪",
+          "terms": [
+            "哌唑嗪"
+          ]
+        },
+        {
+          "value": "乌拉地尔",
+          "terms": [
+            "乌拉地尔",
+            "亚宁定"
+          ]
+        },
+        {
+          "value": "可乐定",
+          "terms": [
+            "可乐定"
+          ]
+        },
+        {
+          "value": "甲基多巴",
+          "terms": [
+            "甲基多巴"
+          ]
+        },
+        {
+          "value": "利血平",
+          "terms": [
+            "利血平"
+          ]
+        },
+        {
+          "value": "硝普钠",
+          "terms": [
+            "硝普钠"
+          ]
+        },
+        {
+          "value": "尼卡地平",
+          "terms": [
+            "尼卡地平"
+          ]
+        },
+        {
+          "value": "肼屈嗪",
+          "terms": [
+            "肼屈嗪"
+          ]
+        },
+        {
+          "value": "非奈利酮",
+          "terms": [
+            "非奈利酮",
+            "可申"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "F7",
+      "name": "单片复方制剂",
+      "group": "F",
+      "priority": "P1",
+      "type": "list",
+      "definition": "固定剂量单片复方降压药。",
+      "options": [
+        {
+          "value": "缬沙坦氨氯地平",
+          "terms": [
+            "缬沙坦氨氯地平",
+            "倍博特",
+            "缬沙坦/氨氯地平"
+          ]
+        },
+        {
+          "value": "氨氯地平贝那普利",
+          "terms": [
+            "氨氯地平贝那普利",
+            "贝那普利氨氯地平",
+            "地奥氨氯"
+          ]
+        },
+        {
+          "value": "厄贝沙坦氢氯噻嗪",
+          "terms": [
+            "厄贝沙坦氢氯噻嗪",
+            "安博诺"
+          ]
+        },
+        {
+          "value": "氯沙坦钾氢氯噻嗪",
+          "terms": [
+            "氯沙坦钾氢氯噻嗪",
+            "海捷亚"
+          ]
+        },
+        {
+          "value": "缬沙坦氢氯噻嗪",
+          "terms": [
+            "缬沙坦氢氯噻嗪",
+            "复代文"
+          ]
+        },
+        {
+          "value": "替米沙坦氢氯噻嗪",
+          "terms": [
+            "替米沙坦氢氯噻嗪",
+            "美卡素复方"
+          ]
+        },
+        {
+          "value": "奥美沙坦酯氢氯噻嗪",
+          "terms": [
+            "奥美沙坦酯氢氯噻嗪"
+          ]
+        },
+        {
+          "value": "培哚普利吲达帕胺",
+          "terms": [
+            "培哚普利吲达帕胺",
+            "百普乐"
+          ]
+        },
+        {
+          "value": "培哚普利氨氯地平",
+          "terms": [
+            "培哚普利氨氯地平",
+            "开素达"
+          ]
+        },
+        {
+          "value": "沙库巴曲缬沙坦",
+          "terms": [
+            "沙库巴曲缬沙坦"
+          ]
+        },
+        {
+          "value": "复方利血平氨苯蝶啶",
+          "terms": [
+            "复方利血平氨苯蝶啶",
+            "北京降压0号",
+            "降压0号"
+          ]
+        },
+        {
+          "value": "氨氯地平阿托伐他汀",
+          "terms": [
+            "氨氯地平阿托伐他汀",
+            "多达一"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "F8",
+      "name": "生活方式干预",
+      "group": "F",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "医嘱限盐、减重、运动、戒烟限酒等生活方式干预。",
+      "recall": {
+        "terms": [
+          "低盐饮食",
+          "限盐",
+          "低盐低脂饮食",
+          "减重",
+          "控制体重",
+          "适当运动",
+          "戒烟限酒",
+          "生活方式干预"
+        ]
+      },
+      "granularity": "encounter",
+      "accept": [
+        "阳性",
+        "计划"
+      ]
+    },
+    {
+      "id": "G1",
+      "name": "继发性高血压",
+      "group": "G",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "确诊或疑诊的继发性高血压（原醛、肾动脉狭窄、嗜铬细胞瘤、库欣综合征、OSA 等）。",
+      "recall": {
+        "terms": [
+          "继发性高血压",
+          "原发性醛固酮增多症",
+          "原醛",
+          "醛固酮瘤",
+          "肾动脉狭窄",
+          "肾血管性高血压",
+          "嗜铬细胞瘤",
+          "副神经节瘤",
+          "库欣综合征",
+          "皮质醇增多症"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G2",
+      "name": "醛固酮/肾素比值（ARR）",
+      "group": "G",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "range": {
+        "min": 0,
+        "max": 2000
+      },
+      "definition": "醛固酮/肾素比值（ARR）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "g2-v",
+          "regex": "(?<![A-Za-z0-9])(?:ARR|醛固酮(?:\\/|与)肾素(?:活性|浓度)?比值?)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:ARR|醛固酮(?:\\/|与)肾素(?:活性|浓度)?比值?)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "G3",
+      "name": "阻塞性睡眠呼吸暂停",
+      "group": "G",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "阻塞性睡眠呼吸暂停（OSA/OSAHS）。",
+      "recall": {
+        "terms": [
+          "睡眠呼吸暂停",
+          "OSAHS",
+          "OSA",
+          "鼾症"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G4",
+      "name": "就诊年龄",
+      "group": "G",
+      "priority": "P0",
+      "type": "derived",
+      "definition": "本次就诊时年龄。",
+      "derive": {
+        "op": "ageAt",
+        "at": "$encounter.start"
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "G5",
+      "name": "主诉",
+      "group": "G",
+      "priority": "P1",
+      "type": "text",
+      "definition": "本次就诊主诉原文。",
+      "granularity": "encounter",
+      "pick": "first",
+      "sources": {
+        "sections": [
+          "主诉"
+        ]
+      },
+      "rules": [
+        {
+          "id": "chief",
+          "regex": "(?<v>[^\\n]{2,100})"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "[^\\s]{2,}"
+        ]
+      }
+    },
+    {
+      "id": "K1",
+      "name": "血钾",
+      "group": "K",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mmol/L",
+      "range": {
+        "min": 1.5,
+        "max": 9
+      },
+      "definition": "血钾（mmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k1-v",
+          "regex": "(?<![A-Za-z0-9])(?:血钾|血清钾|(?<![\\u4e00-\\u9fff])钾(?![\\u4e00-\\u9fff]))(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d\\.\\d{1,2})"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:血钾|血清钾|(?<![\\u4e00-\\u9fff])钾(?![\\u4e00-\\u9fff]))(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K2",
+      "name": "肌酐",
+      "group": "K",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "μmol/L",
+      "range": {
+        "min": 10,
+        "max": 2500
+      },
+      "definition": "肌酐（μmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k2-v",
+          "regex": "(?<![A-Za-z0-9])(?:(?<!尿)肌酐|Scr|SCr|Cr(?![a-z]))(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:(?<!尿)肌酐|Scr|SCr|Cr(?![a-z]))(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K3",
+      "name": "尿酸",
+      "group": "K",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "μmol/L",
+      "range": {
+        "min": 50,
+        "max": 1500
+      },
+      "definition": "尿酸（μmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k3-v",
+          "regex": "(?<![A-Za-z0-9])(?:(?<!尿)尿酸|UA(?![a-zA-Z]))(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:(?<!尿)尿酸|UA(?![a-zA-Z]))(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K4",
+      "name": "LDL-C",
+      "group": "K",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mmol/L",
+      "range": {
+        "min": 0.1,
+        "max": 15
+      },
+      "definition": "LDL-C（mmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k4-v",
+          "regex": "(?<![A-Za-z0-9])(?:LDL-C|LDL|低密度脂蛋白(?:胆固醇)?)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:LDL-C|LDL|低密度脂蛋白(?:胆固醇)?)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K5",
+      "name": "空腹血糖",
+      "group": "K",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mmol/L",
+      "range": {
+        "min": 1,
+        "max": 40
+      },
+      "definition": "空腹血糖（mmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k5-v",
+          "regex": "(?<![A-Za-z0-9])(?:空腹血糖|FPG|FBG|空腹葡萄糖)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:空腹血糖|FPG|FBG|空腹葡萄糖)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K6",
+      "name": "总胆固醇",
+      "group": "K",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mmol/L",
+      "range": {
+        "min": 0.5,
+        "max": 25
+      },
+      "definition": "总胆固醇（mmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k6-v",
+          "regex": "(?<![A-Za-z0-9])(?:TC|总胆固醇|血清总胆固醇)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:TC|总胆固醇|血清总胆固醇)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K7",
+      "name": "糖化血红蛋白",
+      "group": "K",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "%",
+      "range": {
+        "min": 3,
+        "max": 20
+      },
+      "definition": "糖化血红蛋白（%）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k7-v",
+          "regex": "(?<![A-Za-z0-9])(?:HbA1c|HBA1C|糖化血红蛋白)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:HbA1c|HBA1C|糖化血红蛋白)(?![A-Za-z])"
+        ]
+      }
+    }
+  ]
+}

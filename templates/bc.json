@@ -1,0 +1,2354 @@
+{
+  "format": "extract-template/1",
+  "id": "bc",
+  "name": "乳腺癌（BC）",
+  "version": "0.1.0",
+  "domain": "肿瘤",
+  "description": "乳腺癌真实世界研究常用字段：组织学类型与分级、TNM 与分期、ER/PR/HER2/Ki-67 与分子分型、BRCA、手术与腋窝处理、新辅助与 pCR、化疗／抗 HER2／内分泌／CDK4/6 抑制剂／ADC、放疗、疗效与复发转移、心脏毒性、家族史与月经状态、肿瘤标志物。",
+  "references": [
+    {
+      "title": "中国临床肿瘤学会（CSCO）乳腺癌诊疗指南 2024（人民卫生出版社）"
+    },
+    {
+      "title": "中国抗癌协会乳腺癌诊治指南与规范（2024 年版），中国癌症杂志 2023;33(12)"
+    },
+    {
+      "title": "国家卫生健康委 乳腺癌诊疗指南（2022 年版）"
+    },
+    {
+      "title": "ASCO/CAP Guideline Update: Testing for ER and PgR (2020); HER2 Testing in Breast Cancer (2023)"
+    },
+    {
+      "title": "AJCC Cancer Staging Manual 8th ed.; RECIST 1.1; CTCAE v5.0"
+    },
+    {
+      "title": "古脉 G-MPAS 数据目录：乳腺癌专病（字段范围参考）",
+      "url": "https://www.g-mpas.com/data.html"
+    }
+  ],
+  "groups": [
+    {
+      "id": "A",
+      "name": "诊断与病理"
+    },
+    {
+      "id": "B",
+      "name": "分期与转移"
+    },
+    {
+      "id": "C",
+      "name": "受体与分子分型"
+    },
+    {
+      "id": "D",
+      "name": "手术与新辅助"
+    },
+    {
+      "id": "E",
+      "name": "系统治疗"
+    },
+    {
+      "id": "F",
+      "name": "放疗"
+    },
+    {
+      "id": "G",
+      "name": "疗效与结局"
+    },
+    {
+      "id": "H",
+      "name": "不良反应"
+    },
+    {
+      "id": "I",
+      "name": "危险因素与基线"
+    },
+    {
+      "id": "K",
+      "name": "肿瘤标志物"
+    }
+  ],
+  "fields": [
+    {
+      "id": "A1",
+      "name": "乳腺癌相关诊断",
+      "group": "A",
+      "priority": "P0",
+      "type": "list",
+      "granularity": "encounter",
+      "definition": "诊断栏写明的乳腺癌诊断（原文写法）。",
+      "sources": {
+        "sections": [
+          "诊断",
+          "初步诊断",
+          "出院诊断",
+          "入院诊断",
+          "ICD-10 名称",
+          "ICD-10"
+        ]
+      },
+      "rules": [
+        {
+          "id": "dx",
+          "regex": "(?<v>[^\\n，,。；;：:]{0,14}(?:乳腺癌|乳腺恶性肿瘤|乳腺浸润性|乳腺导管原位癌|乳腺Ca|乳房恶性肿瘤)[^\\n，,。；;：:]{0,20})"
+        }
+      ],
+      "recall": {
+        "terms": [
+          "乳腺癌",
+          "乳腺恶性肿瘤",
+          "乳腺浸润性",
+          "乳腺导管原位癌",
+          "乳房恶性肿瘤"
+        ]
+      }
+    },
+    {
+      "id": "A1c",
+      "name": "ICD-10 编码（C50/D05）",
+      "group": "A",
+      "priority": "P0",
+      "type": "list",
+      "granularity": "encounter",
+      "definition": "乳腺恶性肿瘤与原位癌编码。",
+      "rules": [
+        {
+          "id": "icd",
+          "regex": "(?<![A-Za-z0-9])(?<v>(?:C50|D05)(?:\\.\\d{1,3})?)(?![0-9A-Za-z])"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:C50|D05)(?:\\.\\d{1,3})?(?![0-9A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "A2",
+      "name": "组织学类型",
+      "group": "A",
+      "priority": "P0",
+      "type": "enum",
+      "definition": "WHO 乳腺肿瘤组织学类型。",
+      "options": [
+        {
+          "value": "浸润性导管癌",
+          "terms": [
+            "浸润性导管癌",
+            "非特殊类型浸润性癌",
+            "浸润性癌（非特殊类型）",
+            "浸润性癌，非特殊类型",
+            "IDC"
+          ]
+        },
+        {
+          "value": "浸润性小叶癌",
+          "terms": [
+            "浸润性小叶癌",
+            "ILC"
+          ]
+        },
+        {
+          "value": "导管原位癌",
+          "terms": [
+            "导管原位癌",
+            "DCIS"
+          ]
+        },
+        {
+          "value": "小叶原位癌",
+          "terms": [
+            "小叶原位癌",
+            "LCIS"
+          ]
+        },
+        {
+          "value": "黏液癌",
+          "terms": [
+            "黏液癌",
+            "粘液癌",
+            "黏液腺癌"
+          ]
+        },
+        {
+          "value": "化生性癌",
+          "terms": [
+            "化生性癌"
+          ]
+        },
+        {
+          "value": "髓样癌",
+          "terms": [
+            "髓样癌"
+          ]
+        },
+        {
+          "value": "小管癌",
+          "terms": [
+            "小管癌"
+          ]
+        },
+        {
+          "value": "浸润性微乳头状癌",
+          "terms": [
+            "浸润性微乳头状癌",
+            "微乳头状癌"
+          ]
+        },
+        {
+          "value": "炎性乳腺癌",
+          "terms": [
+            "炎性乳腺癌"
+          ]
+        }
+      ],
+      "granularity": "patient",
+      "pick": "mode",
+      "sources": {
+        "sections": [
+          "诊断",
+          "初步诊断",
+          "出院诊断",
+          "入院诊断",
+          "ICD-10 名称",
+          "ICD-10",
+          "所见",
+          "结论",
+          "诊断",
+          "病理诊断",
+          "免疫组化",
+          "正文",
+          "辅助检查",
+          "现病史",
+          "病理"
+        ]
+      }
+    },
+    {
+      "id": "A3",
+      "name": "侧别",
+      "group": "A",
+      "priority": "P1",
+      "type": "enum",
+      "definition": "肿瘤所在乳腺。",
+      "options": [
+        {
+          "value": "左侧",
+          "terms": [
+            "左乳",
+            "左侧乳腺",
+            "左乳腺",
+            "左乳房"
+          ]
+        },
+        {
+          "value": "右侧",
+          "terms": [
+            "右乳",
+            "右侧乳腺",
+            "右乳腺",
+            "右乳房"
+          ]
+        },
+        {
+          "value": "双侧",
+          "terms": [
+            "双乳",
+            "双侧乳腺"
+          ]
+        }
+      ],
+      "granularity": "patient",
+      "pick": "mode",
+      "sources": {
+        "sections": [
+          "诊断",
+          "初步诊断",
+          "出院诊断",
+          "入院诊断",
+          "ICD-10 名称",
+          "ICD-10",
+          "所见",
+          "结论",
+          "诊断",
+          "病理诊断",
+          "免疫组化",
+          "正文",
+          "辅助检查",
+          "现病史",
+          "病理"
+        ]
+      }
+    },
+    {
+      "id": "A4",
+      "name": "组织学分级",
+      "group": "A",
+      "priority": "P1",
+      "type": "enum",
+      "granularity": "patient",
+      "pick": "last",
+      "definition": "Nottingham 组织学分级 I–III 级（G1–G3）。",
+      "options": [
+        {
+          "value": "I级"
+        },
+        {
+          "value": "II级"
+        },
+        {
+          "value": "III级"
+        }
+      ],
+      "sources": {
+        "sections": [
+          "所见",
+          "结论",
+          "诊断",
+          "病理诊断",
+          "免疫组化",
+          "正文",
+          "辅助检查",
+          "现病史",
+          "病理"
+        ]
+      },
+      "rules": [
+        {
+          "id": "grade",
+          "regex": "(?:组织学分级|组织学级别|Nottingham分级|SBR分级|分级)\\s*[:：]?\\s*(?<v>Ⅲ|Ⅱ|Ⅰ|III|II|I|[1-3])\\s*级",
+          "map": {
+            "1": "I级",
+            "2": "II级",
+            "3": "III级",
+            "Ⅰ": "I级",
+            "Ⅱ": "II级",
+            "Ⅲ": "III级",
+            "I": "I级",
+            "II": "II级",
+            "III": "III级"
+          }
+        },
+        {
+          "id": "grade-g",
+          "regex": "(?<![A-Za-z])G(?<v>[1-3])(?![0-9A-Za-z])",
+          "map": {
+            "1": "I级",
+            "2": "II级",
+            "3": "III级"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A5",
+      "name": "病理确诊时间",
+      "group": "A",
+      "priority": "P0",
+      "type": "date",
+      "definition": "病理（穿刺或术后）确诊乳腺癌的时间。",
+      "granularity": "patient",
+      "pick": "earliest",
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "model": "always",
+      "sources": {
+        "sections": [
+          "现病史",
+          "既往史",
+          "诊疗经过",
+          "病例特点"
+        ]
+      },
+      "recall": {
+        "terms": [
+          "确诊",
+          "病理",
+          "穿刺",
+          "活检",
+          "术后病理"
+        ]
+      }
+    },
+    {
+      "id": "A6",
+      "name": "确诊年龄",
+      "group": "A",
+      "priority": "P0",
+      "type": "derived",
+      "definition": "确诊时年龄。",
+      "derive": {
+        "op": "ageAt",
+        "at": "A5"
+      },
+      "granularity": "patient"
+    },
+    {
+      "id": "A7",
+      "name": "绝经状态",
+      "group": "A",
+      "priority": "P0",
+      "type": "enum",
+      "definition": "确诊或治疗时的月经状态。",
+      "options": [
+        {
+          "value": "绝经前",
+          "terms": [
+            "绝经前",
+            "未绝经",
+            "月经规律",
+            "尚未绝经"
+          ]
+        },
+        {
+          "value": "围绝经期",
+          "terms": [
+            "围绝经期",
+            "围绝经"
+          ]
+        },
+        {
+          "value": "绝经后",
+          "terms": [
+            "绝经后",
+            "已绝经",
+            "绝经后状态",
+            "自然绝经",
+            "人工绝经"
+          ]
+        }
+      ],
+      "granularity": "patient",
+      "pick": "last",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "B1",
+      "name": "TNM 分期（原文）",
+      "group": "B",
+      "priority": "P0",
+      "type": "text",
+      "granularity": "encounter",
+      "pick": "last",
+      "definition": "写明的 TNM（如 cT2N1M0、pT1cN0M0、ypT0N0），原文。",
+      "rules": [
+        {
+          "id": "tnm",
+          "regex": "(?<v>(?:yp|yc|[cpy])?T(?:is|[0-4x])[abcd]?\\s*N[0-3x][abc]?\\s*M[01x][abc]?[12]?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?:yp|yc|[cpy])?T(?:is|[0-4x])[abcd]?\\s*N[0-3x]"
+        ]
+      }
+    },
+    {
+      "id": "B2",
+      "name": "临床／病理分期",
+      "group": "B",
+      "priority": "P0",
+      "type": "enum",
+      "granularity": "encounter",
+      "pick": "last",
+      "definition": "AJCC 第 8 版解剖分期 0–IV 期（只认与乳腺癌写在同一句里的分期）。",
+      "options": [
+        {
+          "value": "0"
+        },
+        {
+          "value": "IA"
+        },
+        {
+          "value": "IB"
+        },
+        {
+          "value": "IIA"
+        },
+        {
+          "value": "IIB"
+        },
+        {
+          "value": "IIIA"
+        },
+        {
+          "value": "IIIB"
+        },
+        {
+          "value": "IIIC"
+        },
+        {
+          "value": "IV"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "乳腺癌|乳腺恶性肿瘤|浸润性导管癌|浸润性癌|乳腺Ca"
+        ]
+      },
+      "rules": [
+        {
+          "id": "stage",
+          "regex": "(?:乳腺癌|乳腺恶性肿瘤|浸润性导管癌|浸润性癌|乳腺Ca)[^。；\\n]{0,40}?(?<![A-Za-zⅠⅡⅢⅣ0-9])(?<v>(?:Ⅳ|Ⅲ|Ⅱ|Ⅰ|IV|III|II|I|0)[ABCabc]?)[123]?\\s*期",
+          "map": {
+            "0": "0",
+            "IA": "IA",
+            "Ia": "IA",
+            "ⅠA": "IA",
+            "Ⅰa": "IA",
+            "IB": "IB",
+            "Ib": "IB",
+            "ⅠB": "IB",
+            "Ⅰb": "IB",
+            "IIA": "IIA",
+            "IIa": "IIA",
+            "ⅡA": "IIA",
+            "Ⅱa": "IIA",
+            "IIB": "IIB",
+            "IIb": "IIB",
+            "ⅡB": "IIB",
+            "Ⅱb": "IIB",
+            "IIIA": "IIIA",
+            "IIIa": "IIIA",
+            "ⅢA": "IIIA",
+            "Ⅲa": "IIIA",
+            "IIIB": "IIIB",
+            "IIIb": "IIIB",
+            "ⅢB": "IIIB",
+            "Ⅲb": "IIIB",
+            "IIIC": "IIIC",
+            "IIIc": "IIIC",
+            "ⅢC": "IIIC",
+            "Ⅲc": "IIIC",
+            "IV": "IV",
+            "Ⅳ": "IV"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B3",
+      "name": "肿瘤最大径",
+      "group": "B",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "patient",
+      "unit": "cm",
+      "range": {
+        "min": 0.1,
+        "max": 30
+      },
+      "pick": "max",
+      "definition": "肿瘤最大径（cm）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "b3-v",
+          "regex": "(?<![A-Za-z0-9])(?:最大(?:直)?径|肿瘤(?:最大径|大小)|肿物(?:最大径|大小)|肿块(?:最大径|大小)|病灶(?:最大径|大小))(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d{1,2}(?:\\.\\d{1,2})?(?=\\s*(?:cm|CM|厘米)))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:最大(?:直)?径|肿瘤(?:最大径|大小)|肿物(?:最大径|大小)|肿块(?:最大径|大小)|病灶(?:最大径|大小))(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "B4",
+      "name": "阳性淋巴结数",
+      "group": "B",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "patient",
+      "unit": "枚",
+      "range": {
+        "min": 0,
+        "max": 80
+      },
+      "pick": "max",
+      "definition": "病理报告阳性淋巴结数（\"淋巴结 3/15\"取 3）。",
+      "rules": [
+        {
+          "id": "b4-v",
+          "regex": "(?<![A-Za-z0-9])(?:(?:腋窝|前哨|区域)?淋巴结)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d{1,2}(?=\\s*\\/\\s*\\d{1,2}))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:(?:腋窝|前哨|区域)?淋巴结)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "B5",
+      "name": "远处转移部位",
+      "group": "B",
+      "priority": "P0",
+      "type": "list",
+      "definition": "远处转移部位（复发转移时写）。",
+      "options": [
+        {
+          "value": "骨转移",
+          "terms": [
+            "骨转移",
+            "多发骨转移",
+            "骨质破坏"
+          ]
+        },
+        {
+          "value": "肺转移",
+          "terms": [
+            "肺转移",
+            "双肺转移"
+          ]
+        },
+        {
+          "value": "肝转移",
+          "terms": [
+            "肝转移"
+          ]
+        },
+        {
+          "value": "脑转移",
+          "terms": [
+            "脑转移",
+            "颅内转移"
+          ]
+        },
+        {
+          "value": "胸膜转移",
+          "terms": [
+            "胸膜转移",
+            "恶性胸腔积液"
+          ]
+        },
+        {
+          "value": "远处淋巴结转移",
+          "terms": [
+            "远处淋巴结转移",
+            "锁骨上淋巴结转移",
+            "纵隔淋巴结转移"
+          ]
+        }
+      ],
+      "granularity": "patient",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "C1",
+      "name": "ER 状态",
+      "group": "C",
+      "priority": "P0",
+      "type": "enum",
+      "granularity": "patient",
+      "pick": "last",
+      "definition": "ER 状态（≥1% 阳性；1%–10% 为低表达，仍记阳性）。",
+      "options": [
+        {
+          "value": "阳性"
+        },
+        {
+          "value": "阴性"
+        }
+      ],
+      "rules": [
+        {
+          "id": "c1-sign",
+          "regex": "(?<![A-Za-z])(?:ER)\\s*[:：]?\\s*[（(]?\\s*(?<v>\\+{1,3}|＋{1,3}|-|－|阳性|阴性)",
+          "map": {
+            "+": "阳性",
+            "++": "阳性",
+            "+++": "阳性",
+            "＋": "阳性",
+            "＋＋": "阳性",
+            "＋＋＋": "阳性",
+            "-": "阴性",
+            "－": "阴性",
+            "阳性": "阳性",
+            "阴性": "阴性"
+          }
+        }
+      ]
+    },
+    {
+      "id": "C2",
+      "name": "ER 阳性百分比",
+      "group": "C",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "patient",
+      "unit": "%",
+      "range": {
+        "min": 0,
+        "max": 100
+      },
+      "pick": "last",
+      "definition": "ER 阳性百分比（%）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c2-v",
+          "regex": "(?<![A-Za-z0-9])(?:(?<![A-Za-z])(?:ER))(?![A-Za-z])[^。；;\\n\\d]{0,14}?(?<v>\\d{1,3}(?=\\s*%))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:(?<![A-Za-z])(?:ER))(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C3",
+      "name": "PR 状态",
+      "group": "C",
+      "priority": "P0",
+      "type": "enum",
+      "granularity": "patient",
+      "pick": "last",
+      "definition": "PR 状态（≥1% 阳性；1%–10% 为低表达，仍记阳性）。",
+      "options": [
+        {
+          "value": "阳性"
+        },
+        {
+          "value": "阴性"
+        }
+      ],
+      "rules": [
+        {
+          "id": "c3-sign",
+          "regex": "(?<![A-Za-z])(?:PR|PgR)\\s*[:：]?\\s*[（(]?\\s*(?<v>\\+{1,3}|＋{1,3}|-|－|阳性|阴性)",
+          "map": {
+            "+": "阳性",
+            "++": "阳性",
+            "+++": "阳性",
+            "＋": "阳性",
+            "＋＋": "阳性",
+            "＋＋＋": "阳性",
+            "-": "阴性",
+            "－": "阴性",
+            "阳性": "阳性",
+            "阴性": "阴性"
+          }
+        }
+      ]
+    },
+    {
+      "id": "C4",
+      "name": "PR 阳性百分比",
+      "group": "C",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "patient",
+      "unit": "%",
+      "range": {
+        "min": 0,
+        "max": 100
+      },
+      "pick": "last",
+      "definition": "PR 阳性百分比（%）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c4-v",
+          "regex": "(?<![A-Za-z0-9])(?:(?<![A-Za-z])(?:PR|PgR))(?![A-Za-z])[^。；;\\n\\d]{0,14}?(?<v>\\d{1,3}(?=\\s*%))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:(?<![A-Za-z])(?:PR|PgR))(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C5",
+      "name": "HER2 免疫组化",
+      "group": "C",
+      "priority": "P0",
+      "type": "enum",
+      "granularity": "patient",
+      "pick": "last",
+      "definition": "HER2 IHC 评分：0、1+、2+、3+（\"（+++）\"记 3+，\"（-）\"记 0）。",
+      "options": [
+        {
+          "value": "0"
+        },
+        {
+          "value": "1+"
+        },
+        {
+          "value": "2+"
+        },
+        {
+          "value": "3+"
+        }
+      ],
+      "rules": [
+        {
+          "id": "her2-score",
+          "regex": "(?:HER-?2|Her-?2|C-?erbB-?2|CerbB-?2)\\s*[:：]?\\s*[（(]?\\s*(?:IHC)?\\s*[:：]?\\s*(?<v>[0-3])\\s*(?:[+＋](?![+＋])|(?=[）)，,。；;\\s]|$))",
+          "map": {
+            "0": "0",
+            "1": "1+",
+            "2": "2+",
+            "3": "3+"
+          }
+        },
+        {
+          "id": "her2-plus",
+          "regex": "(?:HER-?2|Her-?2|C-?erbB-?2|CerbB-?2)\\s*[:：]?\\s*[（(]\\s*(?<v>[+＋]{1,3}|[-－])\\s*[)）]",
+          "map": {
+            "+": "1+",
+            "++": "2+",
+            "+++": "3+",
+            "＋": "1+",
+            "＋＋": "2+",
+            "＋＋＋": "3+",
+            "-": "0",
+            "－": "0"
+          }
+        }
+      ]
+    },
+    {
+      "id": "C6",
+      "name": "HER2 ISH（FISH）",
+      "group": "C",
+      "priority": "P1",
+      "type": "enum",
+      "definition": "HER2 原位杂交结果：扩增或无扩增。",
+      "options": [
+        {
+          "value": "扩增",
+          "terms": [
+            "FISH阳性",
+            "FISH检测阳性",
+            "FISH（+）",
+            "有扩增",
+            "HER2基因扩增"
+          ]
+        },
+        {
+          "value": "无扩增",
+          "terms": [
+            "FISH阴性",
+            "FISH检测阴性",
+            "FISH（-）",
+            "无扩增",
+            "未见扩增",
+            "未扩增"
+          ]
+        }
+      ],
+      "granularity": "patient",
+      "pick": "last"
+    },
+    {
+      "id": "C7",
+      "name": "HER2 状态",
+      "group": "C",
+      "priority": "P0",
+      "type": "enum",
+      "definition": "HER2 综合判定：阳性、低表达、阴性（0）。",
+      "options": [
+        {
+          "value": "阳性",
+          "terms": [
+            "HER2阳性",
+            "HER-2阳性",
+            "HER2（+++）",
+            "HER2过表达"
+          ]
+        },
+        {
+          "value": "低表达",
+          "terms": [
+            "HER2低表达",
+            "HER2-low",
+            "HER2 low"
+          ]
+        },
+        {
+          "value": "阴性",
+          "terms": [
+            "HER2阴性",
+            "HER-2阴性",
+            "HER2（-）",
+            "HER2 0"
+          ]
+        }
+      ],
+      "granularity": "patient",
+      "pick": "last"
+    },
+    {
+      "id": "C8",
+      "name": "Ki-67",
+      "group": "C",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "patient",
+      "unit": "%",
+      "range": {
+        "min": 0,
+        "max": 100
+      },
+      "pick": "last",
+      "definition": "Ki-67（%）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c8-v",
+          "regex": "(?<![A-Za-z0-9])(?:Ki-?67)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d{1,3}(?=\\s*%))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:Ki-?67)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C9",
+      "name": "分子分型",
+      "group": "C",
+      "priority": "P0",
+      "type": "enum",
+      "definition": "St. Gallen 分子分型（医生写明）。",
+      "options": [
+        {
+          "value": "Luminal A型",
+          "terms": [
+            "Luminal A",
+            "LuminalA",
+            "Luminal A样"
+          ]
+        },
+        {
+          "value": "Luminal B型",
+          "terms": [
+            "Luminal B",
+            "LuminalB",
+            "Luminal B样"
+          ]
+        },
+        {
+          "value": "HER2阳性（非Luminal）",
+          "terms": [
+            "HER2过表达型",
+            "HER2阳性型",
+            "HER2富集型",
+            "HER2扩增型"
+          ]
+        },
+        {
+          "value": "三阴性",
+          "terms": [
+            "三阴性乳腺癌",
+            "TNBC",
+            "三阴型"
+          ]
+        }
+      ],
+      "granularity": "patient",
+      "pick": "last"
+    },
+    {
+      "id": "C10",
+      "name": "BRCA1/2 致病突变",
+      "group": "C",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "胚系 BRCA1/2 致病或可能致病突变。",
+      "recall": {
+        "terms": [
+          "BRCA1突变",
+          "BRCA2突变",
+          "BRCA突变",
+          "BRCA1/2突变",
+          "gBRCA突变",
+          "gBRCAm"
+        ]
+      },
+      "granularity": "patient",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "C11",
+      "name": "PIK3CA 突变",
+      "group": "C",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "PIK3CA 激活突变。",
+      "recall": {
+        "terms": [
+          "PIK3CA突变",
+          "PIK3CA"
+        ]
+      },
+      "granularity": "patient",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "C12",
+      "name": "21 基因复发评分",
+      "group": "C",
+      "priority": "P2",
+      "type": "score",
+      "scale": "21 基因复发评分",
+      "granularity": "timepoint",
+      "range": {
+        "min": 0,
+        "max": 100
+      },
+      "definition": "21 基因复发评分总分（每次评定一条）。只取写明的总分，不取条目分、不取参考范围。",
+      "rules": [
+        {
+          "id": "c12-total",
+          "regex": "(?:21基因(?:检测)?(?:复发)?(?:风险)?(?:评分|RS)?|Oncotype\\s*DX|复发评分\\s*[（(]?RS[)）]?)\\s*(?:量表)?\\s*(?:评分|总分|得分|评定|测评|分值|评估)?\\s*(?:结果)?\\s*[:：为是]?\\s*(?<v>\\d{1,3}(?:\\.\\d)?)\\s*分?"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "21基因(?:检测)?(?:复发)?(?:风险)?(?:评分|RS)?|Oncotype\\s*DX|复发评分\\s*[（(]?RS[)）]?"
+        ]
+      }
+    },
+    {
+      "id": "D1",
+      "name": "乳腺手术方式",
+      "group": "D",
+      "priority": "P0",
+      "type": "enum",
+      "definition": "乳腺原发灶手术方式。",
+      "options": [
+        {
+          "value": "保乳手术",
+          "terms": [
+            "保乳手术",
+            "保乳术",
+            "保乳",
+            "乳腺区段切除",
+            "乳腺癌保乳"
+          ]
+        },
+        {
+          "value": "改良根治术",
+          "terms": [
+            "改良根治术",
+            "乳腺癌改良根治",
+            "改良根治"
+          ]
+        },
+        {
+          "value": "全乳切除",
+          "terms": [
+            "全乳切除",
+            "单纯乳房切除",
+            "乳房切除术",
+            "全乳房切除"
+          ]
+        },
+        {
+          "value": "保留乳头乳晕的乳房切除",
+          "terms": [
+            "保留乳头乳晕的乳房切除",
+            "保留乳头乳晕"
+          ]
+        }
+      ],
+      "granularity": "patient",
+      "pick": "all",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "D2",
+      "name": "腋窝处理",
+      "group": "D",
+      "priority": "P0",
+      "type": "enum",
+      "definition": "前哨淋巴结活检或腋窝淋巴结清扫。",
+      "options": [
+        {
+          "value": "前哨淋巴结活检",
+          "terms": [
+            "前哨淋巴结活检",
+            "SLNB",
+            "前哨淋巴结"
+          ]
+        },
+        {
+          "value": "腋窝淋巴结清扫",
+          "terms": [
+            "腋窝淋巴结清扫",
+            "ALND",
+            "腋清",
+            "腋窝清扫"
+          ]
+        }
+      ],
+      "granularity": "patient",
+      "pick": "all",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "D3",
+      "name": "乳房重建",
+      "group": "D",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "即刻或延期乳房重建。",
+      "recall": {
+        "terms": [
+          "乳房重建",
+          "假体重建",
+          "扩张器",
+          "背阔肌皮瓣",
+          "TRAM",
+          "DIEP"
+        ]
+      },
+      "granularity": "patient",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "D4",
+      "name": "新辅助治疗",
+      "group": "D",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "术前新辅助化疗、靶向或内分泌治疗。",
+      "recall": {
+        "terms": [
+          "新辅助",
+          "新辅助化疗",
+          "新辅助治疗",
+          "术前化疗"
+        ]
+      },
+      "granularity": "patient",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "D5",
+      "name": "病理完全缓解（pCR）",
+      "group": "D",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "新辅助后乳腺及腋窝无浸润癌残留（ypT0/is ypN0）。",
+      "recall": {
+        "terms": [
+          "pCR",
+          "病理完全缓解",
+          "病理学完全缓解",
+          "未见残余浸润癌",
+          "未见浸润癌残留"
+        ]
+      },
+      "granularity": "patient",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "D6",
+      "name": "Miller-Payne 分级",
+      "group": "D",
+      "priority": "P1",
+      "type": "score",
+      "scale": "Miller-Payne 分级",
+      "granularity": "timepoint",
+      "range": {
+        "min": 1,
+        "max": 5
+      },
+      "definition": "Miller-Payne 分级总分（每次评定一条）。只取写明的总分，不取条目分、不取参考范围。",
+      "rules": [
+        {
+          "id": "d6-total",
+          "regex": "(?:Miller-?Payne(?:分级|系统)?|MP分级)\\s*(?:量表)?\\s*(?:评分|总分|得分|评定|测评|分值|评估)?\\s*(?:结果)?\\s*[:：为是]?\\s*(?<v>\\d{1,3}(?:\\.\\d)?)\\s*分?"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "Miller-?Payne(?:分级|系统)?|MP分级"
+        ]
+      }
+    },
+    {
+      "id": "D7",
+      "name": "手术切缘",
+      "group": "D",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "patient",
+      "unit": "mm",
+      "range": {
+        "min": 0,
+        "max": 100
+      },
+      "pick": "min",
+      "definition": "保乳切缘距肿瘤最近距离（mm）。",
+      "rules": [
+        {
+          "id": "d7-v",
+          "regex": "(?<![A-Za-z0-9])(?:切缘)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d{1,2}(?:\\.\\d)?(?=\\s*(?:mm|毫米)))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:切缘)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "E1",
+      "name": "化疗药物",
+      "group": "E",
+      "priority": "P0",
+      "type": "list",
+      "definition": "化疗药物（蒽环、紫杉、铂类、卡培他滨等）。",
+      "options": [
+        {
+          "value": "表柔比星",
+          "terms": [
+            "表柔比星",
+            "法玛新"
+          ]
+        },
+        {
+          "value": "多柔比星",
+          "terms": [
+            "多柔比星",
+            "阿霉素"
+          ]
+        },
+        {
+          "value": "吡柔比星",
+          "terms": [
+            "吡柔比星"
+          ]
+        },
+        {
+          "value": "多柔比星脂质体",
+          "terms": [
+            "多柔比星脂质体",
+            "脂质体多柔比星",
+            "里葆多"
+          ]
+        },
+        {
+          "value": "紫杉醇",
+          "terms": [
+            "紫杉醇",
+            "泰素"
+          ]
+        },
+        {
+          "value": "白蛋白结合型紫杉醇",
+          "terms": [
+            "白蛋白结合型紫杉醇",
+            "白蛋白紫杉醇",
+            "克艾力"
+          ]
+        },
+        {
+          "value": "紫杉醇脂质体",
+          "terms": [
+            "紫杉醇脂质体",
+            "力扑素"
+          ]
+        },
+        {
+          "value": "多西他赛",
+          "terms": [
+            "多西他赛",
+            "泰索帝"
+          ]
+        },
+        {
+          "value": "环磷酰胺",
+          "terms": [
+            "环磷酰胺"
+          ]
+        },
+        {
+          "value": "卡培他滨",
+          "terms": [
+            "卡培他滨",
+            "希罗达"
+          ]
+        },
+        {
+          "value": "卡铂",
+          "terms": [
+            "卡铂"
+          ]
+        },
+        {
+          "value": "顺铂",
+          "terms": [
+            "顺铂"
+          ]
+        },
+        {
+          "value": "吉西他滨",
+          "terms": [
+            "吉西他滨"
+          ]
+        },
+        {
+          "value": "长春瑞滨",
+          "terms": [
+            "长春瑞滨"
+          ]
+        },
+        {
+          "value": "艾立布林",
+          "terms": [
+            "艾立布林",
+            "海乐卫"
+          ]
+        },
+        {
+          "value": "优替德隆",
+          "terms": [
+            "优替德隆"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "E2",
+      "name": "抗 HER2 药物",
+      "group": "E",
+      "priority": "P0",
+      "type": "list",
+      "definition": "抗 HER2 单抗、TKI 与 ADC。",
+      "options": [
+        {
+          "value": "曲妥珠单抗",
+          "terms": [
+            "曲妥珠单抗",
+            "赫赛汀",
+            "汉曲优",
+            "赛妥"
+          ]
+        },
+        {
+          "value": "帕妥珠单抗",
+          "terms": [
+            "帕妥珠单抗",
+            "帕捷特"
+          ]
+        },
+        {
+          "value": "帕妥珠曲妥珠单抗",
+          "terms": [
+            "帕妥珠曲妥珠单抗",
+            "帕妥珠单抗曲妥珠单抗",
+            "依优"
+          ]
+        },
+        {
+          "value": "吡咯替尼",
+          "terms": [
+            "吡咯替尼",
+            "艾瑞妮"
+          ]
+        },
+        {
+          "value": "拉帕替尼",
+          "terms": [
+            "拉帕替尼"
+          ]
+        },
+        {
+          "value": "奈拉替尼",
+          "terms": [
+            "奈拉替尼"
+          ]
+        },
+        {
+          "value": "图卡替尼",
+          "terms": [
+            "图卡替尼"
+          ]
+        },
+        {
+          "value": "恩美曲妥珠单抗",
+          "terms": [
+            "恩美曲妥珠单抗",
+            "T-DM1",
+            "赫赛莱"
+          ]
+        },
+        {
+          "value": "德曲妥珠单抗",
+          "terms": [
+            "德曲妥珠单抗",
+            "T-DXd",
+            "DS-8201",
+            "优赫得"
+          ]
+        },
+        {
+          "value": "伊尼妥单抗",
+          "terms": [
+            "伊尼妥单抗"
+          ]
+        },
+        {
+          "value": "维迪西妥单抗",
+          "terms": [
+            "维迪西妥单抗"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "E3",
+      "name": "内分泌治疗",
+      "group": "E",
+      "priority": "P0",
+      "type": "list",
+      "definition": "SERM、芳香化酶抑制剂、SERD 与卵巢功能抑制。",
+      "options": [
+        {
+          "value": "他莫昔芬",
+          "terms": [
+            "他莫昔芬",
+            "三苯氧胺"
+          ]
+        },
+        {
+          "value": "托瑞米芬",
+          "terms": [
+            "托瑞米芬"
+          ]
+        },
+        {
+          "value": "来曲唑",
+          "terms": [
+            "来曲唑",
+            "弗隆"
+          ]
+        },
+        {
+          "value": "阿那曲唑",
+          "terms": [
+            "阿那曲唑",
+            "瑞宁得"
+          ]
+        },
+        {
+          "value": "依西美坦",
+          "terms": [
+            "依西美坦",
+            "阿诺新"
+          ]
+        },
+        {
+          "value": "氟维司群",
+          "terms": [
+            "氟维司群",
+            "芙仕得"
+          ]
+        },
+        {
+          "value": "戈舍瑞林",
+          "terms": [
+            "戈舍瑞林",
+            "诺雷德"
+          ]
+        },
+        {
+          "value": "亮丙瑞林",
+          "terms": [
+            "亮丙瑞林",
+            "抑那通",
+            "贝依"
+          ]
+        },
+        {
+          "value": "曲普瑞林",
+          "terms": [
+            "曲普瑞林",
+            "达菲林"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "E4",
+      "name": "CDK4/6 抑制剂",
+      "group": "E",
+      "priority": "P0",
+      "type": "list",
+      "definition": "CDK4/6 抑制剂。",
+      "options": [
+        {
+          "value": "哌柏西利",
+          "terms": [
+            "哌柏西利",
+            "爱博新"
+          ]
+        },
+        {
+          "value": "阿贝西利",
+          "terms": [
+            "阿贝西利",
+            "威佳达"
+          ]
+        },
+        {
+          "value": "瑞波西利",
+          "terms": [
+            "瑞波西利",
+            "凯丽隆"
+          ]
+        },
+        {
+          "value": "达尔西利",
+          "terms": [
+            "达尔西利",
+            "艾瑞康"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "E5",
+      "name": "其他靶向／免疫治疗",
+      "group": "E",
+      "priority": "P1",
+      "type": "list",
+      "definition": "PARP 抑制剂、ADC、免疫检查点抑制剂、mTOR/PI3K 抑制剂等。",
+      "options": [
+        {
+          "value": "奥拉帕利",
+          "terms": [
+            "奥拉帕利",
+            "利普卓"
+          ]
+        },
+        {
+          "value": "戈沙妥珠单抗",
+          "terms": [
+            "戈沙妥珠单抗",
+            "拓达维"
+          ]
+        },
+        {
+          "value": "帕博利珠单抗",
+          "terms": [
+            "帕博利珠单抗",
+            "可瑞达",
+            "K药"
+          ]
+        },
+        {
+          "value": "特瑞普利单抗",
+          "terms": [
+            "特瑞普利单抗",
+            "拓益"
+          ]
+        },
+        {
+          "value": "西达本胺",
+          "terms": [
+            "西达本胺",
+            "爱谱沙"
+          ]
+        },
+        {
+          "value": "依维莫司",
+          "terms": [
+            "依维莫司",
+            "飞尼妥"
+          ]
+        },
+        {
+          "value": "阿培利司",
+          "terms": [
+            "阿培利司"
+          ]
+        },
+        {
+          "value": "贝伐珠单抗",
+          "terms": [
+            "贝伐珠单抗",
+            "安维汀"
+          ]
+        },
+        {
+          "value": "卡瑞利珠单抗",
+          "terms": [
+            "卡瑞利珠单抗"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "E6",
+      "name": "骨改良药物",
+      "group": "E",
+      "priority": "P2",
+      "type": "list",
+      "definition": "双膦酸盐或地舒单抗。",
+      "options": [
+        {
+          "value": "唑来膦酸",
+          "terms": [
+            "唑来膦酸",
+            "择泰",
+            "密固达"
+          ]
+        },
+        {
+          "value": "地舒单抗",
+          "terms": [
+            "地舒单抗",
+            "安加维",
+            "普罗力"
+          ]
+        },
+        {
+          "value": "伊班膦酸",
+          "terms": [
+            "伊班膦酸"
+          ]
+        },
+        {
+          "value": "帕米膦酸",
+          "terms": [
+            "帕米膦酸"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "E7",
+      "name": "治疗阶段",
+      "group": "E",
+      "priority": "P1",
+      "type": "enum",
+      "definition": "本次系统治疗所处阶段。",
+      "options": [
+        {
+          "value": "新辅助",
+          "terms": [
+            "新辅助治疗"
+          ]
+        },
+        {
+          "value": "辅助",
+          "terms": [
+            "辅助治疗",
+            "术后辅助"
+          ]
+        },
+        {
+          "value": "晚期解救",
+          "terms": [
+            "解救治疗",
+            "姑息治疗",
+            "复发转移后治疗"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "pick": "last"
+    },
+    {
+      "id": "E8",
+      "name": "治疗线数",
+      "group": "E",
+      "priority": "P1",
+      "type": "enum",
+      "definition": "当前系统治疗线数。",
+      "options": [
+        {
+          "value": "一线",
+          "terms": [
+            "一线",
+            "1线",
+            "一线治疗"
+          ]
+        },
+        {
+          "value": "二线",
+          "terms": [
+            "二线",
+            "2线",
+            "二线治疗"
+          ]
+        },
+        {
+          "value": "三线",
+          "terms": [
+            "三线",
+            "3线",
+            "三线及以上",
+            "后线"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "pick": "last"
+    },
+    {
+      "id": "E9",
+      "name": "化疗周期数",
+      "group": "E",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "encounter",
+      "unit": "周期",
+      "range": {
+        "min": 1,
+        "max": 60
+      },
+      "pick": "max",
+      "definition": "化疗周期数（周期）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "e9-v",
+          "regex": "(?<![A-Za-z0-9])(?:(?:化疗|治疗|免疫治疗))(?![A-Za-z])[^。；;\\n\\d]{0,12}?(?<v>\\d{1,2}(?=\\s*(?:个)?(?:周期|疗程|程)))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:(?:化疗|治疗|免疫治疗))(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "F1",
+      "name": "放疗",
+      "group": "F",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "乳腺癌放疗（全乳、胸壁、区域淋巴结或转移灶）。",
+      "recall": {
+        "terms": [
+          "放疗",
+          "放射治疗",
+          "术后放疗",
+          "全乳放疗",
+          "胸壁放疗",
+          "瘤床加量"
+        ]
+      },
+      "granularity": "patient",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "F2",
+      "name": "放疗总剂量",
+      "group": "F",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "patient",
+      "unit": "Gy",
+      "range": {
+        "min": 1,
+        "max": 80
+      },
+      "pick": "max",
+      "definition": "放疗总剂量（Gy）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "f2-v",
+          "regex": "(?<![A-Za-z0-9])(?:(?:放疗|DT|总剂量|处方剂量))(?![A-Za-z])[^。；;\\n\\d]{0,16}?(?<v>\\d{1,2}(?:\\.\\d{1,2})?(?=\\s*Gy))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:(?:放疗|DT|总剂量|处方剂量))(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "G1",
+      "name": "疗效评价（RECIST）",
+      "group": "G",
+      "priority": "P0",
+      "type": "enum",
+      "definition": "RECIST 1.1（或 mRECIST）疗效：CR、PR、SD、PD。",
+      "options": [
+        {
+          "value": "CR",
+          "terms": [
+            "完全缓解"
+          ]
+        },
+        {
+          "value": "PR",
+          "terms": [
+            "部分缓解"
+          ]
+        },
+        {
+          "value": "SD",
+          "terms": [
+            "疾病稳定",
+            "病情稳定"
+          ]
+        },
+        {
+          "value": "PD",
+          "terms": [
+            "疾病进展",
+            "病情进展"
+          ]
+        }
+      ],
+      "granularity": "timepoint",
+      "rules": [
+        {
+          "id": "recist",
+          "regex": "(?:疗效|评价|评估|评效)[^。；\\n]{0,8}?(?<v>CR|PR|SD|PD)(?![-A-Za-z0-9])"
+        }
+      ]
+    },
+    {
+      "id": "G2",
+      "name": "复发／转移",
+      "group": "G",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "局部区域复发或远处转移（术后随访中）。",
+      "recall": {
+        "terms": [
+          "复发",
+          "局部复发",
+          "远处转移",
+          "新发转移",
+          "新增转移",
+          "复发转移"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "G3",
+      "name": "复发转移时间",
+      "group": "G",
+      "priority": "P1",
+      "type": "date",
+      "definition": "首次确认复发或远处转移的时间。",
+      "granularity": "patient",
+      "pick": "earliest",
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "model": "always",
+      "recall": {
+        "terms": [
+          "复发",
+          "转移"
+        ]
+      }
+    },
+    {
+      "id": "G4",
+      "name": "疾病进展",
+      "group": "G",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "晚期治疗中影像或临床确认的进展。",
+      "recall": {
+        "terms": [
+          "疾病进展",
+          "病情进展",
+          "进展"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "G5",
+      "name": "死亡",
+      "group": "G",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "记录的死亡。",
+      "recall": {
+        "terms": [
+          "死亡",
+          "临床死亡",
+          "宣告死亡",
+          "抢救无效"
+        ]
+      },
+      "granularity": "patient",
+      "sources": {
+        "sections": [
+          "出院情况",
+          "诊疗经过",
+          "病程记录",
+          "正文"
+        ]
+      }
+    },
+    {
+      "id": "H1",
+      "name": "心脏毒性",
+      "group": "H",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "抗 HER2 或蒽环治疗相关心脏毒性（LVEF 下降等）。",
+      "recall": {
+        "terms": [
+          "心脏毒性",
+          "LVEF下降",
+          "射血分数下降",
+          "心功能下降"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "H2",
+      "name": "LVEF",
+      "group": "H",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "%",
+      "range": {
+        "min": 5,
+        "max": 85
+      },
+      "definition": "LVEF（%）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "h2-v",
+          "regex": "(?<![A-Za-z0-9])(?:(?:LVEF|左室射血分数|左心室射血分数|射血分数|EF值?))(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d{1,2}(?:\\.\\d)?(?=\\s*%))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:(?:LVEF|左室射血分数|左心室射血分数|射血分数|EF值?))(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "H3",
+      "name": "治疗不良反应",
+      "group": "H",
+      "priority": "P1",
+      "type": "list",
+      "definition": "记录的治疗不良反应。",
+      "options": [
+        {
+          "value": "骨髓抑制",
+          "terms": [
+            "骨髓抑制",
+            "白细胞减少",
+            "中性粒细胞减少",
+            "粒缺",
+            "血小板减少"
+          ]
+        },
+        {
+          "value": "发热性中性粒细胞减少",
+          "terms": [
+            "发热性中性粒细胞减少",
+            "粒缺伴发热"
+          ]
+        },
+        {
+          "value": "腹泻",
+          "terms": [
+            "腹泻"
+          ]
+        },
+        {
+          "value": "手足综合征",
+          "terms": [
+            "手足综合征"
+          ]
+        },
+        {
+          "value": "周围神经毒性",
+          "terms": [
+            "周围神经毒性",
+            "周围神经病变",
+            "手足麻木"
+          ]
+        },
+        {
+          "value": "间质性肺病",
+          "terms": [
+            "间质性肺病",
+            "ILD",
+            "间质性肺炎"
+          ]
+        },
+        {
+          "value": "肝功能损害",
+          "terms": [
+            "肝功能损害",
+            "转氨酶升高"
+          ]
+        },
+        {
+          "value": "恶心呕吐",
+          "terms": [
+            "恶心呕吐",
+            "恶心",
+            "呕吐"
+          ]
+        },
+        {
+          "value": "脱发",
+          "terms": [
+            "脱发"
+          ]
+        },
+        {
+          "value": "潮热",
+          "terms": [
+            "潮热"
+          ]
+        },
+        {
+          "value": "关节痛",
+          "terms": [
+            "关节痛"
+          ]
+        },
+        {
+          "value": "骨质疏松",
+          "terms": [
+            "骨质疏松"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "model": "always",
+      "recall": {
+        "terms": [
+          "不良反应",
+          "毒副反应",
+          "骨髓抑制",
+          "腹泻",
+          "手足",
+          "麻木",
+          "间质性",
+          "转氨酶升高",
+          "潮热",
+          "关节痛"
+        ]
+      }
+    },
+    {
+      "id": "H4",
+      "name": "最高 CTCAE 分级",
+      "group": "H",
+      "priority": "P2",
+      "type": "enum",
+      "definition": "记录的不良事件最高分级。",
+      "options": [
+        {
+          "value": "1级"
+        },
+        {
+          "value": "2级"
+        },
+        {
+          "value": "3级"
+        },
+        {
+          "value": "4级"
+        },
+        {
+          "value": "5级"
+        }
+      ],
+      "granularity": "encounter",
+      "pick": "last",
+      "rules": [
+        {
+          "id": "ctcae",
+          "regex": "(?:CTCAE|不良反应|不良事件|骨髓抑制)[^。；\\n]{0,12}?(?<v>[1-5])\\s*级",
+          "map": {
+            "1": "1级",
+            "2": "2级",
+            "3": "3级",
+            "4": "4级",
+            "5": "5级"
+          }
+        }
+      ]
+    },
+    {
+      "id": "I1",
+      "name": "乳腺癌／卵巢癌家族史",
+      "group": "I",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "亲属乳腺癌或卵巢癌史。",
+      "recall": {
+        "terms": [
+          "乳腺癌",
+          "卵巢癌",
+          "乳腺恶性肿瘤"
+        ]
+      },
+      "accept": [
+        "家族"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "I2",
+      "name": "月经初潮年龄",
+      "group": "I",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "patient",
+      "unit": "岁",
+      "range": {
+        "min": 8,
+        "max": 20
+      },
+      "pick": "first",
+      "definition": "月经初潮年龄（岁）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "i2-v",
+          "regex": "(?<![A-Za-z0-9])(?:初潮(?:年龄)?)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d{1,2}(?=\\s*岁))"
+        },
+        {
+          "id": "menarche-b",
+          "regex": "(?<v>\\d{1,2})\\s*岁\\s*(?:月经)?初潮"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:初潮(?:年龄)?)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "I3",
+      "name": "体重指数（BMI）",
+      "group": "I",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "kg/m²",
+      "range": {
+        "min": 10,
+        "max": 70
+      },
+      "definition": "体重指数（BMI）（kg/m²）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "i3-v",
+          "regex": "(?<![A-Za-z0-9])(?:BMI|体重指数)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:BMI|体重指数)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "I4",
+      "name": "ECOG PS",
+      "group": "I",
+      "priority": "P1",
+      "type": "score",
+      "scale": "ECOG PS",
+      "granularity": "timepoint",
+      "range": {
+        "min": 0,
+        "max": 5
+      },
+      "definition": "ECOG PS总分（每次评定一条）。只取写明的总分，不取条目分、不取参考范围。",
+      "rules": [
+        {
+          "id": "i4-total",
+          "regex": "(?:ECOG(?:\\s*PS)?|PS评分|体能状态评分)\\s*(?:量表)?\\s*(?:评分|总分|得分|评定|测评|分值|评估)?\\s*(?:结果)?\\s*[:：为是]?\\s*(?<v>\\d{1,3}(?:\\.\\d)?)\\s*分?"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "ECOG(?:\\s*PS)?|PS评分|体能状态评分"
+        ]
+      }
+    },
+    {
+      "id": "I5",
+      "name": "就诊年龄",
+      "group": "I",
+      "priority": "P0",
+      "type": "derived",
+      "definition": "本次就诊时年龄。",
+      "derive": {
+        "op": "ageAt",
+        "at": "$encounter.start"
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "I6",
+      "name": "主诉",
+      "group": "I",
+      "priority": "P1",
+      "type": "text",
+      "definition": "本次就诊主诉原文。",
+      "granularity": "encounter",
+      "pick": "first",
+      "sources": {
+        "sections": [
+          "主诉"
+        ]
+      },
+      "rules": [
+        {
+          "id": "chief",
+          "regex": "(?<v>[^\\n]{2,100})"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "[^\\s]{2,}"
+        ]
+      }
+    },
+    {
+      "id": "K1",
+      "name": "CA15-3",
+      "group": "K",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "U/mL",
+      "range": {
+        "min": 0,
+        "max": 10000
+      },
+      "definition": "CA15-3（U/mL）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k1-v",
+          "regex": "(?<![A-Za-z0-9])(?:CA\\s*-?15-?3|糖类抗原\\s*15-?3)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:CA\\s*-?15-?3|糖类抗原\\s*15-?3)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K2",
+      "name": "CEA",
+      "group": "K",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "ng/mL",
+      "range": {
+        "min": 0,
+        "max": 10000
+      },
+      "definition": "CEA（ng/mL）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k2-v",
+          "regex": "(?<![A-Za-z0-9])(?:CEA|癌胚抗原)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:CEA|癌胚抗原)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K3",
+      "name": "CA125",
+      "group": "K",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "U/mL",
+      "range": {
+        "min": 0,
+        "max": 50000
+      },
+      "definition": "CA125（U/mL）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k3-v",
+          "regex": "(?<![A-Za-z0-9])(?:CA\\s*-?125|糖类抗原\\s*125)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:CA\\s*-?125|糖类抗原\\s*125)(?![A-Za-z])"
+        ]
+      }
+    }
+  ]
+}

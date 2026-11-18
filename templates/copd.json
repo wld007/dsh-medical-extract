@@ -1,0 +1,1982 @@
+{
+  "format": "extract-template/1",
+  "id": "copd",
+  "name": "慢性阻塞性肺疾病（COPD）",
+  "version": "0.1.0",
+  "domain": "呼吸",
+  "description": "慢阻肺研究与质控常用字段：诊断与 GOLD 分级、ABE 分组、症状与 CAT/mMRC、肺功能、急性加重与住院、呼吸衰竭与通气支持、吸入药物（LAMA/LABA/ICS 及复方）、氧疗与肺康复、疫苗、合并症、暴露因素与血气。",
+  "references": [
+    {
+      "title": "慢性阻塞性肺疾病诊治指南（2021 年修订版），中华结核和呼吸杂志 2021;44(3)"
+    },
+    {
+      "title": "Global Initiative for Chronic Obstructive Lung Disease (GOLD) 2025 Report",
+      "url": "https://goldcopd.org/2025-gold-report/"
+    },
+    {
+      "title": "慢性阻塞性肺疾病急性加重诊治中国专家共识（2023 年修订版），国际呼吸杂志 2023;43(2)"
+    },
+    {
+      "title": "古脉 G-MPAS 数据目录：慢阻肺专病（字段范围参考）",
+      "url": "https://www.g-mpas.com/data.html"
+    }
+  ],
+  "groups": [
+    {
+      "id": "A",
+      "name": "诊断与分级"
+    },
+    {
+      "id": "B",
+      "name": "症状与评估"
+    },
+    {
+      "id": "C",
+      "name": "肺功能"
+    },
+    {
+      "id": "D",
+      "name": "急性加重与住院"
+    },
+    {
+      "id": "E",
+      "name": "吸入与口服药物"
+    },
+    {
+      "id": "F",
+      "name": "非药物治疗与预防"
+    },
+    {
+      "id": "G",
+      "name": "合并症"
+    },
+    {
+      "id": "H",
+      "name": "危险因素"
+    },
+    {
+      "id": "K",
+      "name": "血气与检验"
+    }
+  ],
+  "fields": [
+    {
+      "id": "A1",
+      "name": "慢阻肺相关诊断",
+      "group": "A",
+      "priority": "P0",
+      "type": "list",
+      "granularity": "encounter",
+      "definition": "诊断栏写明的慢阻肺、AECOPD、肺气肿、慢性支气管炎等诊断（原文写法）。",
+      "sources": {
+        "sections": [
+          "诊断",
+          "初步诊断",
+          "出院诊断",
+          "入院诊断",
+          "ICD-10 名称",
+          "ICD-10"
+        ]
+      },
+      "rules": [
+        {
+          "id": "dx",
+          "regex": "(?<v>[^\\n，,。；;：:]{0,14}(?:慢性阻塞性肺疾病|慢阻肺|COPD|肺气肿|慢性支气管炎|慢性喘息性支气管炎)[^\\n，,。；;：:]{0,16})"
+        }
+      ],
+      "recall": {
+        "terms": [
+          "慢性阻塞性肺疾病",
+          "慢阻肺",
+          "COPD",
+          "AECOPD",
+          "肺气肿",
+          "慢性支气管炎"
+        ]
+      }
+    },
+    {
+      "id": "A1c",
+      "name": "ICD-10 编码（J41–J44）",
+      "group": "A",
+      "priority": "P0",
+      "type": "list",
+      "granularity": "encounter",
+      "definition": "慢性支气管炎、肺气肿、慢阻肺编码。",
+      "rules": [
+        {
+          "id": "icd",
+          "regex": "(?<![A-Za-z0-9])(?<v>(?:J4[1-4])(?:\\.\\d{1,3})?)(?![0-9A-Za-z])"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:J4[1-4])(?:\\.\\d{1,3})?(?![0-9A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "A2",
+      "name": "GOLD 肺功能分级",
+      "group": "A",
+      "priority": "P0",
+      "type": "enum",
+      "granularity": "encounter",
+      "pick": "last",
+      "definition": "气流受限严重程度 GOLD 1–4 级（或写作轻度／中度／重度／极重度气流受限）。",
+      "options": [
+        {
+          "value": "GOLD 1"
+        },
+        {
+          "value": "GOLD 2"
+        },
+        {
+          "value": "GOLD 3"
+        },
+        {
+          "value": "GOLD 4"
+        }
+      ],
+      "rules": [
+        {
+          "id": "gold",
+          "regex": "GOLD\\s*(?:分级)?\\s*[:：]?\\s*(?<v>Ⅳ|Ⅲ|Ⅱ|Ⅰ|IV|III|II|I|[1-4])\\s*级?",
+          "map": {
+            "1": "GOLD 1",
+            "2": "GOLD 2",
+            "3": "GOLD 3",
+            "4": "GOLD 4",
+            "Ⅰ": "GOLD 1",
+            "Ⅱ": "GOLD 2",
+            "Ⅲ": "GOLD 3",
+            "Ⅳ": "GOLD 4",
+            "I": "GOLD 1",
+            "II": "GOLD 2",
+            "III": "GOLD 3",
+            "IV": "GOLD 4",
+            "轻度": "GOLD 1",
+            "中度": "GOLD 2",
+            "重度": "GOLD 3",
+            "极重度": "GOLD 4"
+          }
+        },
+        {
+          "id": "gold-severity",
+          "regex": "(?<v>极重度|重度|中度|轻度)\\s*(?:持续)?气流受限",
+          "map": {
+            "1": "GOLD 1",
+            "2": "GOLD 2",
+            "3": "GOLD 3",
+            "4": "GOLD 4",
+            "Ⅰ": "GOLD 1",
+            "Ⅱ": "GOLD 2",
+            "Ⅲ": "GOLD 3",
+            "Ⅳ": "GOLD 4",
+            "I": "GOLD 1",
+            "II": "GOLD 2",
+            "III": "GOLD 3",
+            "IV": "GOLD 4",
+            "轻度": "GOLD 1",
+            "中度": "GOLD 2",
+            "重度": "GOLD 3",
+            "极重度": "GOLD 4"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A3",
+      "name": "GOLD 综合评估分组",
+      "group": "A",
+      "priority": "P1",
+      "type": "enum",
+      "granularity": "encounter",
+      "pick": "last",
+      "definition": "GOLD 综合评估分组：A、B、E 组（2023 前的 C、D 组照记）。",
+      "options": [
+        {
+          "value": "A组"
+        },
+        {
+          "value": "B组"
+        },
+        {
+          "value": "C组"
+        },
+        {
+          "value": "D组"
+        },
+        {
+          "value": "E组"
+        }
+      ],
+      "rules": [
+        {
+          "id": "abe",
+          "regex": "(?:GOLD\\s*(?:(?:[1-4]|Ⅳ|Ⅲ|Ⅱ|Ⅰ|IV|III|II|I)\\s*级)?\\s*[，,]?|综合评估|评估分组|分组)\\s*(?:分组)?\\s*[:：为]?\\s*(?<v>[ABCDE])\\s*组",
+          "map": {
+            "A": "A组",
+            "B": "B组",
+            "C": "C组",
+            "D": "D组",
+            "E": "E组"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A4",
+      "name": "本次急性加重（AECOPD）",
+      "group": "A",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "本次就诊为慢阻肺急性加重。",
+      "recall": {
+        "terms": [
+          "AECOPD",
+          "慢阻肺急性加重",
+          "慢性阻塞性肺疾病急性加重",
+          "急性加重期",
+          "慢性阻塞性肺疾病伴有急性加重",
+          "慢性阻塞性肺疾病伴急性下呼吸道感染"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "A5",
+      "name": "慢性肺源性心脏病",
+      "group": "A",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "慢性肺源性心脏病。",
+      "recall": {
+        "terms": [
+          "肺源性心脏病",
+          "肺心病",
+          "慢性肺心病"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "A6",
+      "name": "呼吸衰竭类型",
+      "group": "A",
+      "priority": "P0",
+      "type": "enum",
+      "definition": "本次呼吸衰竭类型（Ⅰ型或Ⅱ型）。",
+      "options": [
+        {
+          "value": "Ⅱ型呼吸衰竭",
+          "terms": [
+            "Ⅱ型呼吸衰竭",
+            "II型呼吸衰竭",
+            "2型呼吸衰竭",
+            "Ⅱ型呼衰",
+            "高碳酸血症性呼吸衰竭"
+          ]
+        },
+        {
+          "value": "Ⅰ型呼吸衰竭",
+          "terms": [
+            "Ⅰ型呼吸衰竭",
+            "I型呼吸衰竭",
+            "1型呼吸衰竭",
+            "Ⅰ型呼衰",
+            "低氧血症性呼吸衰竭"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "pick": "last"
+    },
+    {
+      "id": "A7",
+      "name": "慢阻肺诊断时间",
+      "group": "A",
+      "priority": "P1",
+      "type": "date",
+      "definition": "首次诊断慢阻肺（或慢性咳嗽咳痰起病）的时间；\"反复咳嗽咳痰20年\"取 20 年前。",
+      "granularity": "patient",
+      "pick": "earliest",
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "model": "always",
+      "sources": {
+        "sections": [
+          "主诉",
+          "现病史",
+          "既往史"
+        ]
+      },
+      "recall": {
+        "terms": [
+          "慢阻肺",
+          "慢性阻塞性肺疾病",
+          "咳嗽",
+          "咳痰",
+          "气喘"
+        ],
+        "regex": [
+          "[\\d一二两三四五六七八九十半]+\\s*个?\\s*(?:年|月|周|星期|天|日|小时|h)\\s*(?:余|多|左右|许)?"
+        ]
+      }
+    },
+    {
+      "id": "A8",
+      "name": "病程（月）",
+      "group": "A",
+      "priority": "P2",
+      "type": "derived",
+      "definition": "诊断至本次就诊的月数。",
+      "derive": {
+        "op": "monthsBetween",
+        "from": "A7",
+        "to": "$encounter.start"
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "B1",
+      "name": "咳嗽",
+      "group": "B",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "咳嗽（含慢性咳嗽）。",
+      "recall": {
+        "terms": [
+          "咳嗽",
+          "咳嗽咳痰",
+          "反复咳嗽"
+        ]
+      }
+    },
+    {
+      "id": "B2",
+      "name": "咳痰",
+      "group": "B",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "咳痰（含脓痰、痰量增多）。",
+      "recall": {
+        "terms": [
+          "咳痰",
+          "咳白痰",
+          "咳黄痰",
+          "脓痰",
+          "痰多",
+          "痰量增多",
+          "咳黄脓痰"
+        ]
+      }
+    },
+    {
+      "id": "B3",
+      "name": "呼吸困难／气促",
+      "group": "B",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "活动后气促、呼吸困难、胸闷气短。",
+      "recall": {
+        "terms": [
+          "呼吸困难",
+          "气促",
+          "气急",
+          "气短",
+          "活动后气促",
+          "胸闷气短",
+          "喘憋"
+        ]
+      }
+    },
+    {
+      "id": "B4",
+      "name": "喘息",
+      "group": "B",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "喘息、哮鸣。",
+      "recall": {
+        "terms": [
+          "喘息",
+          "气喘",
+          "哮鸣音",
+          "喘鸣"
+        ]
+      }
+    },
+    {
+      "id": "B5",
+      "name": "CAT 评分",
+      "group": "B",
+      "priority": "P0",
+      "type": "score",
+      "scale": "CAT 评分",
+      "granularity": "timepoint",
+      "range": {
+        "min": 0,
+        "max": 40
+      },
+      "definition": "CAT 评分总分（每次评定一条）。只取写明的总分，不取条目分、不取参考范围。",
+      "rules": [
+        {
+          "id": "b5-total",
+          "regex": "(?:CAT|慢阻肺评估测试)\\s*(?:量表)?\\s*(?:评分|总分|得分|评定|测评|分值|评估)?\\s*(?:结果)?\\s*[:：为是]?\\s*(?<v>\\d{1,3}(?:\\.\\d)?)\\s*分?"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "CAT|慢阻肺评估测试"
+        ]
+      }
+    },
+    {
+      "id": "B6",
+      "name": "mMRC 呼吸困难分级",
+      "group": "B",
+      "priority": "P0",
+      "type": "score",
+      "scale": "mMRC 呼吸困难分级",
+      "granularity": "timepoint",
+      "range": {
+        "min": 0,
+        "max": 4
+      },
+      "definition": "mMRC 呼吸困难分级总分（每次评定一条）。只取写明的总分，不取条目分、不取参考范围。",
+      "rules": [
+        {
+          "id": "b6-total",
+          "regex": "(?:mMRC|改良版?英国医学研究委员会(?:呼吸困难)?(?:问卷|量表)?)\\s*(?:量表)?\\s*(?:评分|总分|得分|评定|测评|分值|评估)?\\s*(?:结果)?\\s*[:：为是]?\\s*(?<v>\\d{1,3}(?:\\.\\d)?)\\s*分?"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "mMRC|改良版?英国医学研究委员会(?:呼吸困难)?(?:问卷|量表)?"
+        ]
+      }
+    },
+    {
+      "id": "B7",
+      "name": "6 分钟步行距离",
+      "group": "B",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "m",
+      "range": {
+        "min": 10,
+        "max": 1000
+      },
+      "definition": "6 分钟步行距离（m）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "b7-v",
+          "regex": "(?<![A-Za-z0-9])(?:6\\s*分钟步行(?:距离|试验)?|6MWD|6MWT)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:6\\s*分钟步行(?:距离|试验)?|6MWD|6MWT)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "B8",
+      "name": "桶状胸／肺气肿体征",
+      "group": "B",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "查体桶状胸、叩诊过清音、呼吸音减低。",
+      "recall": {
+        "terms": [
+          "桶状胸",
+          "过清音",
+          "呼吸音减低",
+          "呼吸音低"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "C1",
+      "name": "FEV1/FVC",
+      "group": "C",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "%",
+      "range": {
+        "min": 10,
+        "max": 120
+      },
+      "definition": "（支气管舒张剂后）FEV1/FVC（%）；写成 0.62 的按 62% 记。",
+      "rules": [
+        {
+          "id": "c1-v",
+          "regex": "(?<![A-Za-z0-9])(?:FEV(?:1|₁)\\s*/\\s*FVC|一秒率)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>[1-9]\\d(?:\\.\\d{1,2})?)"
+        },
+        {
+          "id": "ratio-fraction",
+          "regex": "(?:FEV(?:1|₁)\\s*/\\s*FVC|一秒率)[^。；;\\n\\d]{0,12}?(?<v>0\\.\\d{1,3})(?!\\d)",
+          "factor": 100
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:FEV(?:1|₁)\\s*/\\s*FVC|一秒率)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C2",
+      "name": "FEV1 占预计值%",
+      "group": "C",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "%",
+      "range": {
+        "min": 5,
+        "max": 150
+      },
+      "definition": "FEV1 占预计值%（%）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c2-v",
+          "regex": "(?<![A-Za-z0-9])(?:FEV(?:1|₁)\\s*(?:%\\s*(?:pred|预计值?)|占预计值(?:百分比|%)?|实测值?\\s*\\/\\s*预计值))(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d{1,3}(?:\\.\\d{1,2})?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:FEV(?:1|₁)\\s*(?:%\\s*(?:pred|预计值?)|占预计值(?:百分比|%)?|实测值?\\s*\\/\\s*预计值))(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C3",
+      "name": "FEV1（L）",
+      "group": "C",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "L",
+      "range": {
+        "min": 0.1,
+        "max": 7
+      },
+      "definition": "FEV1（L）（L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c3-v",
+          "regex": "(?<![A-Za-z0-9])(?:FEV(?:1|₁)(?!\\s*(?:\\/|%|占|实测)))(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d(?:\\.\\d{1,3})?(?=\\s*[Ll]))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:FEV(?:1|₁)(?!\\s*(?:\\/|%|占|实测)))(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C4",
+      "name": "支气管舒张试验",
+      "group": "C",
+      "priority": "P1",
+      "type": "enum",
+      "definition": "支气管舒张试验结果。",
+      "options": [
+        {
+          "value": "阳性",
+          "terms": [
+            "舒张试验阳性",
+            "支气管舒张试验阳性",
+            "舒张试验（+）",
+            "舒张试验(+)"
+          ]
+        },
+        {
+          "value": "阴性",
+          "terms": [
+            "舒张试验阴性",
+            "支气管舒张试验阴性",
+            "舒张试验（-）",
+            "舒张试验(-)"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "pick": "last"
+    },
+    {
+      "id": "C5",
+      "name": "DLCO 占预计值%",
+      "group": "C",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "%",
+      "range": {
+        "min": 5,
+        "max": 150
+      },
+      "definition": "DLCO 占预计值%（%）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c5-v",
+          "regex": "(?<![A-Za-z0-9])(?:DLCO(?:\\s*SB)?|弥散功能|一氧化碳弥散量)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d{1,3}(?:\\.\\d)?(?=\\s*%))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:DLCO(?:\\s*SB)?|弥散功能|一氧化碳弥散量)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C6",
+      "name": "通气功能障碍类型",
+      "group": "C",
+      "priority": "P2",
+      "type": "enum",
+      "definition": "肺功能报告的通气功能障碍类型。",
+      "options": [
+        {
+          "value": "阻塞性",
+          "terms": [
+            "阻塞性通气功能障碍"
+          ]
+        },
+        {
+          "value": "混合性",
+          "terms": [
+            "混合性通气功能障碍"
+          ]
+        },
+        {
+          "value": "限制性",
+          "terms": [
+            "限制性通气功能障碍"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "pick": "last"
+    },
+    {
+      "id": "D1",
+      "name": "近 1 年急性加重次数",
+      "group": "D",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "encounter",
+      "unit": "次",
+      "range": {
+        "min": 0,
+        "max": 30
+      },
+      "pick": "max",
+      "definition": "近 1 年急性加重次数（次）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "d1-v",
+          "regex": "(?<![A-Za-z0-9])(?:(?:近|过去|最近)\\s*(?:1|一)\\s*年[^。；\\n]{0,10}?(?:急性加重|加重))(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d{1,2}(?=\\s*次))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:(?:近|过去|最近)\\s*(?:1|一)\\s*年[^。；\\n]{0,10}?(?:急性加重|加重))(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "D2",
+      "name": "近 1 年因加重住院次数",
+      "group": "D",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "encounter",
+      "unit": "次",
+      "range": {
+        "min": 0,
+        "max": 30
+      },
+      "pick": "max",
+      "definition": "近 1 年因加重住院次数（次）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "d2-v",
+          "regex": "(?<![A-Za-z0-9])(?:(?:近|过去|最近)\\s*(?:1|一)\\s*年[^。；\\n]{0,12}?住院)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d{1,2}(?=\\s*次))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:(?:近|过去|最近)\\s*(?:1|一)\\s*年[^。；\\n]{0,12}?住院)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "D3",
+      "name": "无创通气（本次）",
+      "group": "D",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "本次使用无创正压通气。",
+      "recall": {
+        "terms": [
+          "无创通气",
+          "无创呼吸机",
+          "无创正压通气",
+          "NIV",
+          "NPPV",
+          "BiPAP",
+          "双水平"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "D4",
+      "name": "有创机械通气",
+      "group": "D",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "本次气管插管有创机械通气。",
+      "recall": {
+        "terms": [
+          "有创机械通气",
+          "有创通气",
+          "气管插管",
+          "气管切开"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "D5",
+      "name": "经鼻高流量氧疗",
+      "group": "D",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "本次经鼻高流量湿化氧疗（HFNC）。",
+      "recall": {
+        "terms": [
+          "经鼻高流量",
+          "HFNC",
+          "高流量湿化氧疗",
+          "高流量氧疗"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "D6",
+      "name": "全身糖皮质激素",
+      "group": "D",
+      "priority": "P0",
+      "type": "list",
+      "definition": "本次全身（静脉或口服）糖皮质激素。",
+      "options": [
+        {
+          "value": "甲泼尼龙",
+          "terms": [
+            "甲泼尼龙",
+            "甲强龙",
+            "美卓乐",
+            "甲基强的松龙"
+          ]
+        },
+        {
+          "value": "泼尼松",
+          "terms": [
+            "泼尼松",
+            "强的松"
+          ]
+        },
+        {
+          "value": "泼尼松龙",
+          "terms": [
+            "泼尼松龙"
+          ]
+        },
+        {
+          "value": "氢化可的松",
+          "terms": [
+            "氢化可的松"
+          ]
+        },
+        {
+          "value": "地塞米松",
+          "terms": [
+            "地塞米松"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "D7",
+      "name": "抗感染治疗",
+      "group": "D",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "本次使用抗菌药物。",
+      "recall": {
+        "terms": [
+          "抗感染",
+          "抗生素",
+          "抗菌药物",
+          "抗感染治疗"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "D8",
+      "name": "入住 ICU",
+      "group": "D",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "本次入住 ICU／RICU。",
+      "recall": {
+        "terms": [
+          "ICU",
+          "RICU",
+          "MICU",
+          "重症监护",
+          "转入监护室"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "D9",
+      "name": "住院天数",
+      "group": "D",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "encounter",
+      "unit": "天",
+      "range": {
+        "min": 0,
+        "max": 365
+      },
+      "pick": "last",
+      "definition": "住院天数（天）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "d9-v",
+          "regex": "(?<![A-Za-z0-9])(?:住院(?:天数|日数)|共住院)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        },
+        {
+          "id": "los-b",
+          "regex": "住院(?<v>\\d{1,3})\\s*天"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:住院(?:天数|日数)|共住院)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "D10",
+      "name": "院内死亡",
+      "group": "D",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "住院期间死亡。",
+      "recall": {
+        "terms": [
+          "死亡",
+          "临床死亡",
+          "宣告死亡",
+          "抢救无效"
+        ]
+      },
+      "granularity": "encounter",
+      "sources": {
+        "sections": [
+          "出院情况",
+          "诊疗经过",
+          "病程记录",
+          "正文"
+        ]
+      }
+    },
+    {
+      "id": "E1",
+      "name": "LAMA",
+      "group": "E",
+      "priority": "P0",
+      "type": "list",
+      "definition": "长效抗胆碱能药（单药）。",
+      "options": [
+        {
+          "value": "噻托溴铵",
+          "terms": [
+            "噻托溴铵",
+            "思力华",
+            "天晴速乐"
+          ]
+        },
+        {
+          "value": "格隆溴铵",
+          "terms": [
+            "格隆溴铵",
+            "希润"
+          ]
+        },
+        {
+          "value": "乌美溴铵",
+          "terms": [
+            "乌美溴铵"
+          ]
+        },
+        {
+          "value": "阿地溴铵",
+          "terms": [
+            "阿地溴铵"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "E2",
+      "name": "LABA",
+      "group": "E",
+      "priority": "P0",
+      "type": "list",
+      "definition": "长效 β2 受体激动剂（单药，含复方中的组分）。",
+      "options": [
+        {
+          "value": "沙美特罗",
+          "terms": [
+            "沙美特罗"
+          ]
+        },
+        {
+          "value": "福莫特罗",
+          "terms": [
+            "福莫特罗",
+            "奥克斯都保"
+          ]
+        },
+        {
+          "value": "茚达特罗",
+          "terms": [
+            "茚达特罗",
+            "昂润"
+          ]
+        },
+        {
+          "value": "奥达特罗",
+          "terms": [
+            "奥达特罗"
+          ]
+        },
+        {
+          "value": "维兰特罗",
+          "terms": [
+            "维兰特罗"
+          ]
+        },
+        {
+          "value": "阿福特罗",
+          "terms": [
+            "阿福特罗"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "E3",
+      "name": "ICS 及 ICS/LABA",
+      "group": "E",
+      "priority": "P0",
+      "type": "list",
+      "definition": "吸入糖皮质激素及其与 LABA 的复方。",
+      "options": [
+        {
+          "value": "布地奈德福莫特罗",
+          "terms": [
+            "布地奈德福莫特罗",
+            "信必可",
+            "信必可都保"
+          ]
+        },
+        {
+          "value": "沙美特罗替卡松",
+          "terms": [
+            "沙美特罗替卡松",
+            "舒利迭"
+          ]
+        },
+        {
+          "value": "氟替卡松维兰特罗",
+          "terms": [
+            "氟替卡松维兰特罗",
+            "万瑞舒"
+          ]
+        },
+        {
+          "value": "倍氯米松福莫特罗",
+          "terms": [
+            "倍氯米松福莫特罗",
+            "启尔畅"
+          ]
+        },
+        {
+          "value": "布地奈德",
+          "terms": [
+            "布地奈德",
+            "普米克"
+          ]
+        },
+        {
+          "value": "氟替卡松",
+          "terms": [
+            "氟替卡松",
+            "辅舒酮"
+          ]
+        },
+        {
+          "value": "倍氯米松",
+          "terms": [
+            "倍氯米松"
+          ]
+        },
+        {
+          "value": "环索奈德",
+          "terms": [
+            "环索奈德"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "E4",
+      "name": "LAMA/LABA 复方",
+      "group": "E",
+      "priority": "P0",
+      "type": "list",
+      "definition": "双支气管扩张剂复方。",
+      "options": [
+        {
+          "value": "噻托溴铵奥达特罗",
+          "terms": [
+            "噻托溴铵奥达特罗",
+            "思合华"
+          ]
+        },
+        {
+          "value": "茚达特罗格隆溴铵",
+          "terms": [
+            "茚达特罗格隆溴铵",
+            "杰润"
+          ]
+        },
+        {
+          "value": "乌美溴铵维兰特罗",
+          "terms": [
+            "乌美溴铵维兰特罗",
+            "欧乐欣"
+          ]
+        },
+        {
+          "value": "格隆溴铵福莫特罗",
+          "terms": [
+            "格隆溴铵福莫特罗",
+            "备劳喘"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "E5",
+      "name": "三联吸入",
+      "group": "E",
+      "priority": "P0",
+      "type": "list",
+      "definition": "ICS/LAMA/LABA 单一装置三联。",
+      "options": [
+        {
+          "value": "布地格福",
+          "terms": [
+            "布地格福",
+            "倍择瑞",
+            "布地奈德格隆溴铵福莫特罗"
+          ]
+        },
+        {
+          "value": "氟替美维",
+          "terms": [
+            "氟替美维",
+            "全再乐",
+            "糠酸氟替卡松乌美溴铵维兰特罗"
+          ]
+        },
+        {
+          "value": "倍氯米松格隆溴铵福莫特罗",
+          "terms": [
+            "倍氯米松格隆溴铵福莫特罗"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "E6",
+      "name": "短效支气管扩张剂",
+      "group": "E",
+      "priority": "P1",
+      "type": "list",
+      "definition": "SABA、SAMA 及其复方（雾化或吸入）。",
+      "options": [
+        {
+          "value": "沙丁胺醇",
+          "terms": [
+            "沙丁胺醇",
+            "万托林"
+          ]
+        },
+        {
+          "value": "特布他林",
+          "terms": [
+            "特布他林",
+            "博利康尼"
+          ]
+        },
+        {
+          "value": "异丙托溴铵",
+          "terms": [
+            "异丙托溴铵",
+            "爱全乐"
+          ]
+        },
+        {
+          "value": "复方异丙托溴铵",
+          "terms": [
+            "复方异丙托溴铵",
+            "可必特"
+          ]
+        },
+        {
+          "value": "左沙丁胺醇",
+          "terms": [
+            "左沙丁胺醇"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "E7",
+      "name": "其他慢阻肺用药",
+      "group": "E",
+      "priority": "P1",
+      "type": "list",
+      "definition": "茶碱类、PDE4 抑制剂、祛痰药、长期大环内酯、生物制剂等。",
+      "options": [
+        {
+          "value": "茶碱",
+          "terms": [
+            "茶碱",
+            "氨茶碱"
+          ]
+        },
+        {
+          "value": "多索茶碱",
+          "terms": [
+            "多索茶碱"
+          ]
+        },
+        {
+          "value": "罗氟司特",
+          "terms": [
+            "罗氟司特"
+          ]
+        },
+        {
+          "value": "阿奇霉素",
+          "terms": [
+            "阿奇霉素"
+          ]
+        },
+        {
+          "value": "乙酰半胱氨酸",
+          "terms": [
+            "乙酰半胱氨酸",
+            "富露施"
+          ]
+        },
+        {
+          "value": "羧甲司坦",
+          "terms": [
+            "羧甲司坦"
+          ]
+        },
+        {
+          "value": "厄多司坦",
+          "terms": [
+            "厄多司坦"
+          ]
+        },
+        {
+          "value": "氨溴索",
+          "terms": [
+            "氨溴索",
+            "沐舒坦"
+          ]
+        },
+        {
+          "value": "度普利尤单抗",
+          "terms": [
+            "度普利尤单抗",
+            "达必妥"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "E8",
+      "name": "吸入装置使用正确",
+      "group": "E",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "吸入技术评估：使用正确（\"吸入方法不正确\"记无）。",
+      "recall": {
+        "terms": [
+          "吸入方法正确",
+          "吸入装置使用正确",
+          "吸入技术正确",
+          "能正确使用吸入装置"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "F1",
+      "name": "长期家庭氧疗",
+      "group": "F",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "长期家庭氧疗（LTOT）。",
+      "recall": {
+        "terms": [
+          "长期家庭氧疗",
+          "家庭氧疗",
+          "LTOT",
+          "长期氧疗",
+          "家庭制氧机"
+        ]
+      },
+      "granularity": "patient",
+      "accept": [
+        "阳性",
+        "既往",
+        "计划"
+      ]
+    },
+    {
+      "id": "F2",
+      "name": "家庭无创通气",
+      "group": "F",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "家庭无创呼吸机。",
+      "recall": {
+        "terms": [
+          "家庭无创通气",
+          "家用呼吸机",
+          "家庭呼吸机",
+          "家用无创呼吸机"
+        ]
+      },
+      "granularity": "patient",
+      "accept": [
+        "阳性",
+        "既往",
+        "计划"
+      ]
+    },
+    {
+      "id": "F3",
+      "name": "肺康复",
+      "group": "F",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "肺康复或呼吸康复训练。",
+      "recall": {
+        "terms": [
+          "肺康复",
+          "呼吸康复",
+          "呼吸功能锻炼",
+          "缩唇呼吸",
+          "腹式呼吸"
+        ]
+      },
+      "granularity": "encounter",
+      "accept": [
+        "阳性",
+        "计划"
+      ]
+    },
+    {
+      "id": "F4",
+      "name": "流感疫苗接种",
+      "group": "F",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "接种流感疫苗。",
+      "recall": {
+        "terms": [
+          "流感疫苗"
+        ]
+      },
+      "granularity": "patient",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "F5",
+      "name": "肺炎球菌疫苗接种",
+      "group": "F",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "接种肺炎球菌疫苗。",
+      "recall": {
+        "terms": [
+          "肺炎疫苗",
+          "肺炎球菌疫苗",
+          "PPV23",
+          "PCV13"
+        ]
+      },
+      "granularity": "patient",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "F6",
+      "name": "戒烟干预",
+      "group": "F",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "医嘱戒烟或戒烟药物、门诊。",
+      "recall": {
+        "terms": [
+          "戒烟",
+          "伐尼克兰",
+          "戒烟门诊"
+        ]
+      },
+      "granularity": "encounter",
+      "accept": [
+        "阳性",
+        "计划"
+      ]
+    },
+    {
+      "id": "G1",
+      "name": "心力衰竭",
+      "group": "G",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "心力衰竭。",
+      "recall": {
+        "terms": [
+          "心力衰竭",
+          "心衰",
+          "心功能不全"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G2",
+      "name": "冠心病",
+      "group": "G",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "冠心病或心肌梗死。",
+      "recall": {
+        "terms": [
+          "冠心病",
+          "冠状动脉粥样硬化性心脏病",
+          "心肌梗死"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G3",
+      "name": "肺动脉高压",
+      "group": "G",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "肺动脉高压（超声估测或右心导管）。",
+      "recall": {
+        "terms": [
+          "肺动脉高压",
+          "肺动脉压增高",
+          "肺动脉压升高"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G4",
+      "name": "支气管扩张",
+      "group": "G",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "支气管扩张症。",
+      "recall": {
+        "terms": [
+          "支气管扩张",
+          "支扩"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G5",
+      "name": "哮喘／哮喘-慢阻肺重叠",
+      "group": "G",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "支气管哮喘或哮喘-慢阻肺重叠。",
+      "recall": {
+        "terms": [
+          "哮喘",
+          "支气管哮喘",
+          "哮喘-慢阻肺重叠",
+          "ACO"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G6",
+      "name": "肺癌",
+      "group": "G",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "肺癌。",
+      "recall": {
+        "terms": [
+          "肺癌",
+          "肺恶性肿瘤"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G7",
+      "name": "骨质疏松",
+      "group": "G",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "骨质疏松。",
+      "recall": {
+        "terms": [
+          "骨质疏松"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G8",
+      "name": "焦虑／抑郁",
+      "group": "G",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "焦虑或抑郁。",
+      "recall": {
+        "terms": [
+          "焦虑",
+          "抑郁"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G9",
+      "name": "糖尿病",
+      "group": "G",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "糖尿病。",
+      "recall": {
+        "terms": [
+          "糖尿病"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G10",
+      "name": "阻塞性睡眠呼吸暂停",
+      "group": "G",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "OSA（重叠综合征）。",
+      "recall": {
+        "terms": [
+          "睡眠呼吸暂停",
+          "OSAHS",
+          "OSA"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G11",
+      "name": "肺结核史",
+      "group": "G",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "陈旧性或既往肺结核。",
+      "recall": {
+        "terms": [
+          "肺结核",
+          "陈旧性肺结核",
+          "结核"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "H1",
+      "name": "吸烟",
+      "group": "H",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "吸烟（含已戒）。",
+      "recall": {
+        "terms": [
+          "吸烟",
+          "抽烟"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "H2",
+      "name": "吸烟包年",
+      "group": "H",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "patient",
+      "unit": "包年",
+      "range": {
+        "min": 0,
+        "max": 300
+      },
+      "pick": "max",
+      "definition": "吸烟包年（包年）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "h2-v",
+          "regex": "(?<![A-Za-z0-9])(?:包年|包\\/年|吸烟指数|吸烟)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d{1,3}(?=\\s*(?:包年|包\\/年|年包)))"
+        },
+        {
+          "id": "packyears-b",
+          "regex": "(?<v>\\d{1,3})\\s*(?:包年|包\\/年|年包)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:包年|包\\/年|吸烟指数|吸烟)(?![A-Za-z])"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "H3",
+      "name": "生物燃料／职业粉尘暴露",
+      "group": "H",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "生物燃料（柴草、煤炉）烟雾或职业粉尘、化学烟雾暴露。",
+      "recall": {
+        "terms": [
+          "生物燃料",
+          "柴草",
+          "煤炉",
+          "粉尘接触",
+          "粉尘暴露",
+          "职业暴露",
+          "矿工",
+          "油烟"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "H4",
+      "name": "体重指数（BMI）",
+      "group": "H",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "kg/m²",
+      "range": {
+        "min": 10,
+        "max": 70
+      },
+      "definition": "体重指数（BMI）（kg/m²）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "h4-v",
+          "regex": "(?<![A-Za-z0-9])(?:BMI|体重指数)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:BMI|体重指数)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "H5",
+      "name": "就诊年龄",
+      "group": "H",
+      "priority": "P0",
+      "type": "derived",
+      "definition": "本次就诊时年龄。",
+      "derive": {
+        "op": "ageAt",
+        "at": "$encounter.start"
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "H6",
+      "name": "主诉",
+      "group": "H",
+      "priority": "P1",
+      "type": "text",
+      "definition": "本次就诊主诉原文。",
+      "granularity": "encounter",
+      "pick": "first",
+      "sources": {
+        "sections": [
+          "主诉"
+        ]
+      },
+      "rules": [
+        {
+          "id": "chief",
+          "regex": "(?<v>[^\\n]{2,100})"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "[^\\s]{2,}"
+        ]
+      }
+    },
+    {
+      "id": "K1",
+      "name": "PaCO2",
+      "group": "K",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mmHg",
+      "range": {
+        "min": 10,
+        "max": 150
+      },
+      "definition": "PaCO2（mmHg）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k1-v",
+          "regex": "(?<![A-Za-z0-9])(?:PaCO(?:2|₂)|PCO(?:2|₂)|二氧化碳分压)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:PaCO(?:2|₂)|PCO(?:2|₂)|二氧化碳分压)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K2",
+      "name": "PaO2",
+      "group": "K",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mmHg",
+      "range": {
+        "min": 15,
+        "max": 600
+      },
+      "definition": "PaO2（mmHg）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k2-v",
+          "regex": "(?<![A-Za-z0-9])(?:PaO(?:2|₂)|PO(?:2|₂)|(?<!二)氧分压)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:PaO(?:2|₂)|PO(?:2|₂)|(?<!二)氧分压)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K3",
+      "name": "pH（动脉血）",
+      "group": "K",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "range": {
+        "min": 6.5,
+        "max": 8
+      },
+      "definition": "pH（动脉血）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k3-v",
+          "regex": "(?<![A-Za-z0-9])(?:pH|PH|酸碱度)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>[67]\\.\\d{1,3})"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:pH|PH|酸碱度)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K4",
+      "name": "SpO2",
+      "group": "K",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "%",
+      "range": {
+        "min": 30,
+        "max": 100
+      },
+      "definition": "SpO2（%）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k4-v",
+          "regex": "(?<![A-Za-z0-9])(?:SpO(?:2|₂)|SPO2|血氧饱和度|指脉氧|经皮血氧饱和度)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d{2,3}(?=\\s*%))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:SpO(?:2|₂)|SPO2|血氧饱和度|指脉氧|经皮血氧饱和度)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K5",
+      "name": "血嗜酸性粒细胞计数",
+      "group": "K",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "×10⁹/L",
+      "range": {
+        "min": 0,
+        "max": 5
+      },
+      "definition": "血嗜酸性粒细胞绝对计数（×10⁹/L）；写成 300 个/μL 的按 0.3 记。不取百分比。",
+      "rules": [
+        {
+          "id": "k5-v",
+          "regex": "(?<![A-Za-z0-9])(?:EOS#?|嗜酸(?:性)?粒细胞(?:计数|绝对值)?)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d\\.\\d{1,3}(?!\\d|\\s*%))"
+        },
+        {
+          "id": "eos-ul",
+          "regex": "嗜酸(?:性)?粒细胞[^。；;\\n\\d]{0,12}?(?<v>\\d{2,4})\\s*(?:个|cells)?\\s*\\/\\s*[μu]L",
+          "factor": 0.001
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:EOS#?|嗜酸(?:性)?粒细胞(?:计数|绝对值)?)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K6",
+      "name": "C 反应蛋白",
+      "group": "K",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mg/L",
+      "range": {
+        "min": 0,
+        "max": 500
+      },
+      "definition": "C 反应蛋白（mg/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k6-v",
+          "regex": "(?<![A-Za-z0-9])(?:hs-?CRP|CRP|C\\s*-?反应蛋白|超敏C反应蛋白)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:hs-?CRP|CRP|C\\s*-?反应蛋白|超敏C反应蛋白)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K7",
+      "name": "降钙素原（PCT）",
+      "group": "K",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "ng/mL",
+      "range": {
+        "min": 0,
+        "max": 500
+      },
+      "definition": "降钙素原（PCT）（ng/mL）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k7-v",
+          "regex": "(?<![A-Za-z0-9])(?:PCT|降钙素原)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:PCT|降钙素原)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K8",
+      "name": "NT-proBNP",
+      "group": "K",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "pg/mL",
+      "range": {
+        "min": 5,
+        "max": 70000
+      },
+      "definition": "NT-proBNP（pg/mL）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k8-v",
+          "regex": "(?<![A-Za-z0-9])(?:NT-?pro-?BNP|N末端(?:B型)?(?:利钠肽|脑钠肽)前体|氨基末端脑钠肽前体)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:NT-?pro-?BNP|N末端(?:B型)?(?:利钠肽|脑钠肽)前体|氨基末端脑钠肽前体)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K9",
+      "name": "血红蛋白",
+      "group": "K",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "g/L",
+      "range": {
+        "min": 20,
+        "max": 250
+      },
+      "definition": "血红蛋白（g/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k9-v",
+          "regex": "(?<![A-Za-z0-9])(?:(?<!平均红细胞|红细胞平均|糖化|平均|碳氧|游离|高铁)血红蛋白(?!浓度)|Hb(?!A)|HGB)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:(?<!平均红细胞|红细胞平均|糖化|平均|碳氧|游离|高铁)血红蛋白(?!浓度)|Hb(?!A)|HGB)(?![A-Za-z])"
+        ]
+      }
+    }
+  ]
+}

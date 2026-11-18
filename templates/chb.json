@@ -1,0 +1,1961 @@
+{
+  "format": "extract-template/1",
+  "id": "chb",
+  "name": "慢性乙型肝炎与肝硬化（CHB）",
+  "version": "0.1.0",
+  "domain": "消化",
+  "description": "慢性乙肝与肝硬化研究常用字段：诊断与自然史分期、乙肝五项与 HBV DNA、ALT／AST、肝纤维化无创评估（LSM、APRI、FIB-4）、肝硬化代偿状态与 Child-Pugh／MELD、门静脉高压与并发症（腹水、静脉曲张出血、肝性脑病、SBP、肝肾综合征）、抗病毒治疗与应答、耐药、合并 HCV/HDV/HIV、脂肪肝与饮酒、肝癌监测与家族史。",
+  "references": [
+    {
+      "title": "慢性乙型肝炎防治指南（2022 年版），中华肝脏病杂志 2022;30(12)"
+    },
+    {
+      "title": "肝硬化诊治指南（2019），中华肝脏病杂志 2019;27(11)"
+    },
+    {
+      "title": "肝硬化门静脉高压食管胃静脉曲张出血的防治指南（2022），中华内科杂志 2023;62(1)"
+    },
+    {
+      "title": "肝硬化腹水诊疗指南（2023 年版），中华肝脏病杂志 2023;31(8)"
+    },
+    {
+      "title": "EASL 2017 Clinical Practice Guidelines on the management of hepatitis B virus infection"
+    },
+    {
+      "title": "古脉 G-MPAS 数据目录：慢性肝病专病（字段范围参考）",
+      "url": "https://www.g-mpas.com/data.html"
+    }
+  ],
+  "groups": [
+    {
+      "id": "A",
+      "name": "诊断与分期"
+    },
+    {
+      "id": "B",
+      "name": "病毒学与血清学"
+    },
+    {
+      "id": "C",
+      "name": "肝功能与纤维化"
+    },
+    {
+      "id": "D",
+      "name": "肝硬化与并发症"
+    },
+    {
+      "id": "E",
+      "name": "抗病毒治疗"
+    },
+    {
+      "id": "F",
+      "name": "合并因素与肝癌监测"
+    },
+    {
+      "id": "K",
+      "name": "其他检验"
+    }
+  ],
+  "fields": [
+    {
+      "id": "A1",
+      "name": "乙肝／肝硬化相关诊断",
+      "group": "A",
+      "priority": "P0",
+      "type": "list",
+      "granularity": "encounter",
+      "definition": "诊断栏写明的乙肝、肝硬化及并发症诊断（原文写法）。",
+      "sources": {
+        "sections": [
+          "诊断",
+          "初步诊断",
+          "出院诊断",
+          "入院诊断",
+          "ICD-10 名称",
+          "ICD-10"
+        ]
+      },
+      "rules": [
+        {
+          "id": "dx",
+          "regex": "(?<v>[^\\n，,。；;：:]{0,14}(?:乙型|乙肝|HBV|肝硬化|肝硬变|肝纤维化|肝衰竭)[^\\n，,。；;：:]{0,16})"
+        }
+      ],
+      "recall": {
+        "terms": [
+          "乙型肝炎",
+          "乙肝",
+          "慢性乙型病毒性肝炎",
+          "乙肝肝硬化",
+          "肝硬化",
+          "HBV",
+          "肝衰竭"
+        ]
+      }
+    },
+    {
+      "id": "A1c",
+      "name": "ICD-10 编码（B18.0–B18.1/K74/K70.3）",
+      "group": "A",
+      "priority": "P0",
+      "type": "list",
+      "granularity": "encounter",
+      "definition": "慢性乙肝与肝硬化编码。",
+      "rules": [
+        {
+          "id": "icd",
+          "regex": "(?<![A-Za-z0-9])(?<v>(?:B18\\.[01]|K74|K70\\.3|B19\\.1)(?:\\.\\d{1,3})?)(?![0-9A-Za-z])"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:B18\\.[01]|K74|K70\\.3|B19\\.1)(?:\\.\\d{1,3})?(?![0-9A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "A2",
+      "name": "自然史分期",
+      "group": "A",
+      "priority": "P0",
+      "type": "enum",
+      "definition": "2022 中国指南：HBeAg 阳性／阴性慢性 HBV 感染（免疫耐受期／非活动期）、HBeAg 阳性／阴性慢性乙型肝炎（免疫清除期／再活动期）、不确定期。",
+      "options": [
+        {
+          "value": "HBeAg阳性慢性HBV感染",
+          "terms": [
+            "HBeAg阳性慢性HBV感染",
+            "免疫耐受期",
+            "HBeAg阳性慢性乙型肝炎病毒感染"
+          ]
+        },
+        {
+          "value": "HBeAg阳性慢性乙型肝炎",
+          "terms": [
+            "HBeAg阳性慢性乙型肝炎",
+            "免疫清除期",
+            "HBeAg阳性CHB",
+            "免疫活动期"
+          ]
+        },
+        {
+          "value": "HBeAg阴性慢性HBV感染",
+          "terms": [
+            "HBeAg阴性慢性HBV感染",
+            "非活动期",
+            "免疫控制期",
+            "非活动性HBsAg携带",
+            "非活动性携带者"
+          ]
+        },
+        {
+          "value": "HBeAg阴性慢性乙型肝炎",
+          "terms": [
+            "HBeAg阴性慢性乙型肝炎",
+            "再活动期",
+            "HBeAg阴性CHB"
+          ]
+        },
+        {
+          "value": "不确定期",
+          "terms": [
+            "不确定期",
+            "灰区"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "pick": "last"
+    },
+    {
+      "id": "A3",
+      "name": "肝硬化状态",
+      "group": "A",
+      "priority": "P0",
+      "type": "enum",
+      "definition": "无肝硬化、代偿期或失代偿期肝硬化。",
+      "options": [
+        {
+          "value": "失代偿期肝硬化",
+          "terms": [
+            "失代偿期",
+            "肝硬化失代偿",
+            "失代偿性肝硬化"
+          ]
+        },
+        {
+          "value": "代偿期肝硬化",
+          "terms": [
+            "肝硬化代偿期"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "pick": "last",
+      "recall": {
+        "terms": [
+          "肝硬化",
+          "代偿期",
+          "失代偿"
+        ]
+      }
+    },
+    {
+      "id": "A4",
+      "name": "肝衰竭",
+      "group": "A",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "急性、亚急性、慢加急性（ACLF）或慢性肝衰竭。",
+      "recall": {
+        "terms": [
+          "肝衰竭",
+          "慢加急性肝衰竭",
+          "ACLF",
+          "肝功能衰竭"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "A5",
+      "name": "发现乙肝时间",
+      "group": "A",
+      "priority": "P1",
+      "type": "date",
+      "definition": "首次发现 HBsAg 阳性或诊断乙肝的时间；\"发现乙肝20年\"取 20 年前。",
+      "granularity": "patient",
+      "pick": "earliest",
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "model": "always",
+      "sources": {
+        "sections": [
+          "主诉",
+          "现病史",
+          "既往史"
+        ]
+      },
+      "recall": {
+        "terms": [
+          "乙肝",
+          "HBsAg",
+          "乙型肝炎",
+          "大三阳",
+          "小三阳"
+        ]
+      }
+    },
+    {
+      "id": "A6",
+      "name": "感染病程（月）",
+      "group": "A",
+      "priority": "P2",
+      "type": "derived",
+      "definition": "发现乙肝至本次就诊的月数。",
+      "derive": {
+        "op": "monthsBetween",
+        "from": "A5",
+        "to": "$encounter.start"
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "A7",
+      "name": "传播途径",
+      "group": "A",
+      "priority": "P2",
+      "type": "enum",
+      "definition": "可能的传播途径。",
+      "options": [
+        {
+          "value": "母婴传播",
+          "terms": [
+            "母婴垂直传播",
+            "垂直传播"
+          ]
+        },
+        {
+          "value": "血液传播",
+          "terms": [
+            "输血",
+            "血制品"
+          ]
+        },
+        {
+          "value": "性传播"
+        },
+        {
+          "value": "不详",
+          "terms": [
+            "途径不详"
+          ]
+        }
+      ],
+      "granularity": "patient",
+      "pick": "first"
+    },
+    {
+      "id": "B1",
+      "name": "HBsAg",
+      "group": "B",
+      "priority": "P0",
+      "type": "enum",
+      "granularity": "timepoint",
+      "pick": "last",
+      "definition": "HBsAg（阳性／阴性）。",
+      "options": [
+        {
+          "value": "阳性"
+        },
+        {
+          "value": "阴性"
+        }
+      ],
+      "rules": [
+        {
+          "id": "b1-sign",
+          "regex": "(?:HBsAg|乙肝表面抗原|乙型肝炎表面抗原)\\s*[:：]?\\s*[（(]?\\s*(?<v>[+＋]|[-－]|阳性|阴性)",
+          "map": {
+            "+": "阳性",
+            "＋": "阳性",
+            "-": "阴性",
+            "－": "阴性",
+            "阳性": "阳性",
+            "阴性": "阴性"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B2",
+      "name": "HBsAg 定量",
+      "group": "B",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "IU/mL",
+      "range": {
+        "min": 0,
+        "max": 1000000
+      },
+      "definition": "HBsAg 定量（IU/mL）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "b2-v",
+          "regex": "(?<![A-Za-z0-9])(?:HBsAg\\s*(?:定量)?)(?![A-Za-z])[^。；;\\n\\d]{0,10}?(?<v>\\d+(?:\\.\\d+)?(?=\\s*IU\\/m[lL]))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:HBsAg\\s*(?:定量)?)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "B3",
+      "name": "HBeAg",
+      "group": "B",
+      "priority": "P0",
+      "type": "enum",
+      "granularity": "timepoint",
+      "pick": "last",
+      "definition": "HBeAg（阳性／阴性）。",
+      "options": [
+        {
+          "value": "阳性"
+        },
+        {
+          "value": "阴性"
+        }
+      ],
+      "rules": [
+        {
+          "id": "b3-sign",
+          "regex": "(?:HBeAg|乙肝e抗原|乙型肝炎e抗原)\\s*[:：]?\\s*[（(]?\\s*(?<v>[+＋]|[-－]|阳性|阴性)",
+          "map": {
+            "+": "阳性",
+            "＋": "阳性",
+            "-": "阴性",
+            "－": "阴性",
+            "阳性": "阳性",
+            "阴性": "阴性"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B4",
+      "name": "抗-HBe",
+      "group": "B",
+      "priority": "P2",
+      "type": "enum",
+      "granularity": "timepoint",
+      "pick": "last",
+      "definition": "抗-HBe（阳性／阴性）。",
+      "options": [
+        {
+          "value": "阳性"
+        },
+        {
+          "value": "阴性"
+        }
+      ],
+      "rules": [
+        {
+          "id": "b4-sign",
+          "regex": "(?:抗-?HBe|HBeAb|乙肝e抗体)\\s*[:：]?\\s*[（(]?\\s*(?<v>[+＋]|[-－]|阳性|阴性)",
+          "map": {
+            "+": "阳性",
+            "＋": "阳性",
+            "-": "阴性",
+            "－": "阴性",
+            "阳性": "阳性",
+            "阴性": "阴性"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B5",
+      "name": "抗-HBc",
+      "group": "B",
+      "priority": "P2",
+      "type": "enum",
+      "granularity": "timepoint",
+      "pick": "last",
+      "definition": "抗-HBc（阳性／阴性）。",
+      "options": [
+        {
+          "value": "阳性"
+        },
+        {
+          "value": "阴性"
+        }
+      ],
+      "rules": [
+        {
+          "id": "b5-sign",
+          "regex": "(?:抗-?HBc|HBcAb|乙肝核心抗体)\\s*[:：]?\\s*[（(]?\\s*(?<v>[+＋]|[-－]|阳性|阴性)",
+          "map": {
+            "+": "阳性",
+            "＋": "阳性",
+            "-": "阴性",
+            "－": "阴性",
+            "阳性": "阳性",
+            "阴性": "阴性"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B6",
+      "name": "抗-HBs",
+      "group": "B",
+      "priority": "P2",
+      "type": "enum",
+      "granularity": "timepoint",
+      "pick": "last",
+      "definition": "抗-HBs（阳性／阴性）。",
+      "options": [
+        {
+          "value": "阳性"
+        },
+        {
+          "value": "阴性"
+        }
+      ],
+      "rules": [
+        {
+          "id": "b6-sign",
+          "regex": "(?:抗-?HBs|HBsAb|乙肝表面抗体)\\s*[:：]?\\s*[（(]?\\s*(?<v>[+＋]|[-－]|阳性|阴性)",
+          "map": {
+            "+": "阳性",
+            "＋": "阳性",
+            "-": "阴性",
+            "－": "阴性",
+            "阳性": "阳性",
+            "阴性": "阴性"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B7",
+      "name": "HBV DNA",
+      "group": "B",
+      "priority": "P0",
+      "type": "text",
+      "definition": "HBV DNA 定量结果原文（如 2.3×10^5 IU/mL、<20 IU/mL、低于检测下限）。",
+      "granularity": "timepoint",
+      "pick": "all",
+      "rules": [
+        {
+          "id": "hbvdna",
+          "regex": "HBV[-\\s]?DNA[^。；;\\n\\d<＜>低未]{0,8}?(?<v>(?:[<＜>]\\s*)?\\d+(?:\\.\\d+)?\\s*(?:[×xX*]\\s*10\\s*\\^?\\s*[0-9⁰¹²³⁴⁵⁶⁷⁸⁹]+|[eE][+]?\\d+)?\\s*(?:IU\\/m[lL]|拷贝\\/m[lL]|copies\\/m[lL])?|低于检测下限|未检出|阴性)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "HBV[-\\s]?DNA"
+        ]
+      }
+    },
+    {
+      "id": "B8",
+      "name": "HBV DNA 是否可测",
+      "group": "B",
+      "priority": "P0",
+      "type": "enum",
+      "definition": "HBV DNA 阳性（可测到）或阴性（低于检测下限）。",
+      "options": [
+        {
+          "value": "阳性",
+          "terms": [
+            "HBV DNA阳性",
+            "HBV-DNA阳性",
+            "HBV DNA可测"
+          ]
+        },
+        {
+          "value": "阴性",
+          "terms": [
+            "HBV DNA阴性",
+            "HBV-DNA阴性",
+            "HBV DNA低于检测下限",
+            "HBV DNA未检出",
+            "HBV-DNA低于检测下限",
+            "HBV DNA<20",
+            "HBV-DNA<20"
+          ]
+        }
+      ],
+      "granularity": "timepoint",
+      "pick": "last"
+    },
+    {
+      "id": "B9",
+      "name": "HBeAg 血清学转换",
+      "group": "B",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "HBeAg 消失并出现抗-HBe。",
+      "recall": {
+        "terms": [
+          "e抗原血清学转换",
+          "HBeAg血清学转换",
+          "HBeAg血清转换",
+          "e系统转换"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "B10",
+      "name": "HBsAg 消失（临床治愈）",
+      "group": "B",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "HBsAg 消失、功能性治愈。",
+      "recall": {
+        "terms": [
+          "HBsAg消失",
+          "HBsAg转阴",
+          "表面抗原转阴",
+          "功能性治愈",
+          "临床治愈",
+          "HBsAg清除"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "B11",
+      "name": "HBV 基因型",
+      "group": "B",
+      "priority": "P2",
+      "type": "enum",
+      "definition": "HBV 基因型。",
+      "options": [
+        {
+          "value": "B型"
+        },
+        {
+          "value": "C型"
+        },
+        {
+          "value": "D型"
+        },
+        {
+          "value": "其他"
+        }
+      ],
+      "granularity": "patient",
+      "pick": "last",
+      "rules": [
+        {
+          "id": "genotype",
+          "regex": "(?:HBV)?\\s*基因型\\s*[:：为]?\\s*(?<v>[A-H])\\s*型?",
+          "map": {
+            "B": "B型",
+            "C": "C型",
+            "D": "D型",
+            "A": "其他",
+            "E": "其他",
+            "F": "其他",
+            "G": "其他",
+            "H": "其他"
+          }
+        }
+      ]
+    },
+    {
+      "id": "C1",
+      "name": "ALT",
+      "group": "C",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "U/L",
+      "range": {
+        "min": 1,
+        "max": 10000
+      },
+      "definition": "ALT（U/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c1-v",
+          "regex": "(?<![A-Za-z0-9])(?:ALT|丙氨酸(?:氨基)?转移酶|谷丙转氨酶)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:ALT|丙氨酸(?:氨基)?转移酶|谷丙转氨酶)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C2",
+      "name": "AST",
+      "group": "C",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "U/L",
+      "range": {
+        "min": 1,
+        "max": 10000
+      },
+      "definition": "AST（U/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c2-v",
+          "regex": "(?<![A-Za-z0-9])(?:AST|天(?:门)?冬氨酸(?:氨基)?转移酶|谷草转氨酶)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:AST|天(?:门)?冬氨酸(?:氨基)?转移酶|谷草转氨酶)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C3",
+      "name": "总胆红素",
+      "group": "C",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "μmol/L",
+      "range": {
+        "min": 1,
+        "max": 1000
+      },
+      "definition": "总胆红素（μmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c3-v",
+          "regex": "(?<![A-Za-z0-9])(?:TBIL|TBil|T-BIL|总胆红素)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:TBIL|TBil|T-BIL|总胆红素)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C4",
+      "name": "白蛋白",
+      "group": "C",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "g/L",
+      "range": {
+        "min": 5,
+        "max": 70
+      },
+      "definition": "白蛋白（g/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c4-v",
+          "regex": "(?<![A-Za-z0-9])(?:(?<!尿|前|微量)白蛋白(?![\\/与]|肌酐)|ALB)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:(?<!尿|前|微量)白蛋白(?![\\/与]|肌酐)|ALB)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C5",
+      "name": "GGT",
+      "group": "C",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "U/L",
+      "range": {
+        "min": 1,
+        "max": 5000
+      },
+      "definition": "GGT（U/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c5-v",
+          "regex": "(?<![A-Za-z0-9])(?:GGT|γ-?GT|谷氨酰转(?:肽|移)酶)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:GGT|γ-?GT|谷氨酰转(?:肽|移)酶)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C6",
+      "name": "肝脏硬度（LSM）",
+      "group": "C",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "kPa",
+      "range": {
+        "min": 1,
+        "max": 80
+      },
+      "definition": "肝脏硬度（LSM）（kPa）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c6-v",
+          "regex": "(?<![A-Za-z0-9])(?:LSM|E值|肝脏?硬度(?:值|测定)?|FibroScan|弹性(?:测定|值)|硬度值)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d{1,2}(?:\\.\\d{1,2})?(?=\\s*(?:kPa|KPa|kpa)))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:LSM|E值|肝脏?硬度(?:值|测定)?|FibroScan|弹性(?:测定|值)|硬度值)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C7",
+      "name": "CAP（受控衰减参数）",
+      "group": "C",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "dB/m",
+      "range": {
+        "min": 100,
+        "max": 400
+      },
+      "definition": "CAP（受控衰减参数）（dB/m）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "c7-v",
+          "regex": "(?<![A-Za-z0-9])(?:CAP|受控衰减参数)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d{3})"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:CAP|受控衰减参数)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C8",
+      "name": "APRI",
+      "group": "C",
+      "priority": "P2",
+      "type": "score",
+      "scale": "APRI",
+      "granularity": "timepoint",
+      "range": {
+        "min": 0,
+        "max": 20
+      },
+      "definition": "APRI总分（每次评定一条）。只取写明的总分，不取条目分、不取参考范围。",
+      "rules": [
+        {
+          "id": "c8-total",
+          "regex": "(?:APRI)\\s*(?:量表)?\\s*(?:评分|总分|得分|评定|测评|分值|评估)?\\s*(?:结果)?\\s*[:：为是]?\\s*(?<v>\\d{1,3}(?:\\.\\d)?)\\s*分?"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "APRI"
+        ]
+      }
+    },
+    {
+      "id": "C9",
+      "name": "FIB-4",
+      "group": "C",
+      "priority": "P1",
+      "type": "score",
+      "scale": "FIB-4",
+      "granularity": "timepoint",
+      "range": {
+        "min": 0,
+        "max": 30
+      },
+      "definition": "FIB-4总分（每次评定一条）。只取写明的总分，不取条目分、不取参考范围。",
+      "rules": [
+        {
+          "id": "c9-total",
+          "regex": "(?:FIB-?4)\\s*(?:量表)?\\s*(?:评分|总分|得分|评定|测评|分值|评估)?\\s*(?:结果)?\\s*[:：为是]?\\s*(?<v>\\d{1,3}(?:\\.\\d)?)\\s*分?"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "FIB-?4"
+        ]
+      }
+    },
+    {
+      "id": "C10",
+      "name": "肝纤维化分期（病理）",
+      "group": "C",
+      "priority": "P1",
+      "type": "enum",
+      "definition": "肝穿病理纤维化分期（Metavir F0–F4 或 Scheuer S0–S4）。",
+      "options": [
+        {
+          "value": "F0"
+        },
+        {
+          "value": "F1"
+        },
+        {
+          "value": "F2"
+        },
+        {
+          "value": "F3"
+        },
+        {
+          "value": "F4"
+        }
+      ],
+      "granularity": "patient",
+      "pick": "last",
+      "rules": [
+        {
+          "id": "fib",
+          "regex": "(?:Metavir|纤维化|Scheuer|G\\d\\s*)[^。；\\n]{0,6}?(?<![A-Za-z])(?<v>[FS][0-4])(?![0-9])",
+          "map": {
+            "F0": "F0",
+            "F1": "F1",
+            "F2": "F2",
+            "F3": "F3",
+            "F4": "F4",
+            "S0": "F0",
+            "S1": "F1",
+            "S2": "F2",
+            "S3": "F3",
+            "S4": "F4"
+          }
+        }
+      ]
+    },
+    {
+      "id": "D1",
+      "name": "Child-Pugh 分级",
+      "group": "D",
+      "priority": "P0",
+      "type": "enum",
+      "granularity": "encounter",
+      "pick": "last",
+      "definition": "Child-Pugh A、B、C 级。",
+      "options": [
+        {
+          "value": "A级"
+        },
+        {
+          "value": "B级"
+        },
+        {
+          "value": "C级"
+        }
+      ],
+      "rules": [
+        {
+          "id": "cp",
+          "regex": "Child(?:-?Pugh)?\\s*(?:分级|评分|改良分级)?\\s*[:：]?\\s*(?<v>[ABC])\\s*级?",
+          "map": {
+            "A": "A级",
+            "B": "B级",
+            "C": "C级"
+          }
+        }
+      ]
+    },
+    {
+      "id": "D2",
+      "name": "MELD 评分",
+      "group": "D",
+      "priority": "P1",
+      "type": "score",
+      "scale": "MELD 评分",
+      "granularity": "timepoint",
+      "range": {
+        "min": 6,
+        "max": 40
+      },
+      "definition": "MELD 评分总分（每次评定一条）。只取写明的总分，不取条目分、不取参考范围。",
+      "rules": [
+        {
+          "id": "d2-total",
+          "regex": "(?:MELD(?:-?Na)?)\\s*(?:量表)?\\s*(?:评分|总分|得分|评定|测评|分值|评估)?\\s*(?:结果)?\\s*[:：为是]?\\s*(?<v>\\d{1,3}(?:\\.\\d)?)\\s*分?"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "MELD(?:-?Na)?"
+        ]
+      }
+    },
+    {
+      "id": "D3",
+      "name": "腹水",
+      "group": "D",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "腹水／腹腔积液。",
+      "recall": {
+        "terms": [
+          "腹水",
+          "腹腔积液"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "D4",
+      "name": "食管胃底静脉曲张",
+      "group": "D",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "胃镜或影像示食管胃底静脉曲张。",
+      "recall": {
+        "terms": [
+          "食管胃底静脉曲张",
+          "食管静脉曲张",
+          "胃底静脉曲张",
+          "静脉曲张"
+        ]
+      },
+      "granularity": "patient",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "D5",
+      "name": "静脉曲张破裂出血",
+      "group": "D",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "食管胃底静脉曲张破裂出血或上消化道出血。",
+      "recall": {
+        "terms": [
+          "静脉曲张破裂出血",
+          "食管胃底静脉曲张破裂出血",
+          "上消化道出血",
+          "呕血",
+          "黑便"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "D6",
+      "name": "肝性脑病",
+      "group": "D",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "肝性脑病（含轻微型）。",
+      "recall": {
+        "terms": [
+          "肝性脑病",
+          "肝昏迷",
+          "血氨升高伴意识障碍"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "D7",
+      "name": "自发性细菌性腹膜炎",
+      "group": "D",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "自发性细菌性腹膜炎（SBP）。",
+      "recall": {
+        "terms": [
+          "自发性细菌性腹膜炎",
+          "SBP",
+          "腹腔感染"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "D8",
+      "name": "肝肾综合征",
+      "group": "D",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "肝肾综合征（HRS-AKI）。",
+      "recall": {
+        "terms": [
+          "肝肾综合征",
+          "HRS",
+          "HRS-AKI"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "D9",
+      "name": "脾大／脾功能亢进",
+      "group": "D",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "脾大或脾功能亢进。",
+      "recall": {
+        "terms": [
+          "脾大",
+          "脾肿大",
+          "脾功能亢进",
+          "脾亢"
+        ]
+      },
+      "granularity": "patient",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "D10",
+      "name": "门静脉血栓",
+      "group": "D",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "门静脉血栓（非癌栓）。",
+      "recall": {
+        "terms": [
+          "门静脉血栓",
+          "门脉血栓",
+          "PVT"
+        ]
+      },
+      "granularity": "patient",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "D11",
+      "name": "门静脉高压治疗",
+      "group": "D",
+      "priority": "P1",
+      "type": "list",
+      "definition": "静脉曲张与门静脉高压治疗（每次一条）。",
+      "options": [
+        {
+          "value": "内镜下套扎",
+          "terms": [
+            "内镜下套扎",
+            "EVL",
+            "套扎术"
+          ]
+        },
+        {
+          "value": "内镜下组织胶注射",
+          "terms": [
+            "内镜下组织胶注射",
+            "组织胶注射",
+            "硬化剂注射",
+            "EIS"
+          ]
+        },
+        {
+          "value": "TIPS",
+          "terms": [
+            "TIPS",
+            "经颈静脉肝内门体分流"
+          ]
+        },
+        {
+          "value": "非选择性β受体阻滞剂",
+          "terms": [
+            "非选择性β受体阻滞剂",
+            "普萘洛尔",
+            "卡维地洛"
+          ]
+        },
+        {
+          "value": "脾切除",
+          "terms": [
+            "脾切除",
+            "断流术",
+            "脾切除断流"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "D12",
+      "name": "腹水与肝性脑病用药",
+      "group": "D",
+      "priority": "P2",
+      "type": "list",
+      "definition": "利尿剂、白蛋白、特利加压素、乳果糖等。",
+      "options": [
+        {
+          "value": "螺内酯",
+          "terms": [
+            "螺内酯",
+            "安体舒通"
+          ]
+        },
+        {
+          "value": "呋塞米",
+          "terms": [
+            "呋塞米",
+            "速尿"
+          ]
+        },
+        {
+          "value": "托伐普坦",
+          "terms": [
+            "托伐普坦",
+            "苏麦卡"
+          ]
+        },
+        {
+          "value": "人血白蛋白",
+          "terms": [
+            "人血白蛋白",
+            "人血清白蛋白"
+          ]
+        },
+        {
+          "value": "特利加压素",
+          "terms": [
+            "特利加压素",
+            "可利新"
+          ]
+        },
+        {
+          "value": "乳果糖",
+          "terms": [
+            "乳果糖",
+            "杜密克"
+          ]
+        },
+        {
+          "value": "利福昔明",
+          "terms": [
+            "利福昔明"
+          ]
+        },
+        {
+          "value": "门冬氨酸鸟氨酸",
+          "terms": [
+            "门冬氨酸鸟氨酸",
+            "雅博司"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "D13",
+      "name": "肝移植",
+      "group": "D",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "肝移植或列入等待。",
+      "recall": {
+        "terms": [
+          "肝移植",
+          "原位肝移植"
+        ]
+      },
+      "granularity": "patient",
+      "accept": [
+        "阳性",
+        "既往",
+        "计划"
+      ]
+    },
+    {
+      "id": "D14",
+      "name": "死亡",
+      "group": "D",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "记录的死亡。",
+      "recall": {
+        "terms": [
+          "死亡",
+          "临床死亡",
+          "宣告死亡",
+          "抢救无效"
+        ]
+      },
+      "granularity": "patient",
+      "sources": {
+        "sections": [
+          "出院情况",
+          "诊疗经过",
+          "病程记录",
+          "正文"
+        ]
+      }
+    },
+    {
+      "id": "E1",
+      "name": "核苷（酸）类似物",
+      "group": "E",
+      "priority": "P0",
+      "type": "list",
+      "definition": "在用或用过的核苷（酸）类似物。",
+      "options": [
+        {
+          "value": "恩替卡韦",
+          "terms": [
+            "恩替卡韦",
+            "博路定",
+            "润众",
+            "ETV"
+          ]
+        },
+        {
+          "value": "富马酸替诺福韦二吡呋酯",
+          "terms": [
+            "富马酸替诺福韦二吡呋酯",
+            "替诺福韦酯",
+            "TDF",
+            "韦瑞德"
+          ]
+        },
+        {
+          "value": "丙酚替诺福韦",
+          "terms": [
+            "丙酚替诺福韦",
+            "TAF",
+            "韦立德"
+          ]
+        },
+        {
+          "value": "艾米替诺福韦",
+          "terms": [
+            "艾米替诺福韦",
+            "TMF",
+            "恒沐"
+          ]
+        },
+        {
+          "value": "拉米夫定",
+          "terms": [
+            "拉米夫定",
+            "贺普丁",
+            "LAM"
+          ]
+        },
+        {
+          "value": "阿德福韦酯",
+          "terms": [
+            "阿德福韦酯",
+            "贺维力",
+            "ADV"
+          ]
+        },
+        {
+          "value": "替比夫定",
+          "terms": [
+            "替比夫定",
+            "素比伏",
+            "LdT"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "E2",
+      "name": "干扰素",
+      "group": "E",
+      "priority": "P0",
+      "type": "list",
+      "definition": "聚乙二醇干扰素或普通干扰素。",
+      "options": [
+        {
+          "value": "聚乙二醇干扰素α-2a",
+          "terms": [
+            "聚乙二醇干扰素α-2a",
+            "派罗欣",
+            "聚乙二醇干扰素",
+            "PEG-IFN"
+          ]
+        },
+        {
+          "value": "聚乙二醇干扰素α-2b",
+          "terms": [
+            "聚乙二醇干扰素α-2b",
+            "派格宾"
+          ]
+        },
+        {
+          "value": "普通干扰素",
+          "terms": [
+            "普通干扰素",
+            "干扰素α"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "E3",
+      "name": "抗病毒治疗开始时间",
+      "group": "E",
+      "priority": "P1",
+      "type": "date",
+      "definition": "首次开始抗病毒治疗的时间。",
+      "granularity": "patient",
+      "pick": "earliest",
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "model": "always",
+      "recall": {
+        "terms": [
+          "抗病毒",
+          "恩替卡韦",
+          "替诺福韦",
+          "干扰素",
+          "拉米夫定",
+          "阿德福韦"
+        ]
+      }
+    },
+    {
+      "id": "E4",
+      "name": "抗病毒疗程（月）",
+      "group": "E",
+      "priority": "P2",
+      "type": "derived",
+      "definition": "开始抗病毒至本次就诊的月数。",
+      "derive": {
+        "op": "monthsBetween",
+        "from": "E3",
+        "to": "$encounter.start"
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "E5",
+      "name": "病毒学应答",
+      "group": "E",
+      "priority": "P0",
+      "type": "enum",
+      "definition": "抗病毒治疗病毒学应答（医生写明）。",
+      "options": [
+        {
+          "value": "完全应答",
+          "terms": [
+            "病毒学应答",
+            "完全病毒学应答",
+            "HBV DNA持续阴性"
+          ]
+        },
+        {
+          "value": "部分应答",
+          "terms": [
+            "部分病毒学应答"
+          ]
+        },
+        {
+          "value": "低病毒血症",
+          "terms": [
+            "低水平病毒血症",
+            "LLV"
+          ]
+        },
+        {
+          "value": "原发性无应答",
+          "terms": [
+            "无应答"
+          ]
+        },
+        {
+          "value": "病毒学突破",
+          "terms": [
+            "病毒学反弹"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "pick": "last"
+    },
+    {
+      "id": "E6",
+      "name": "耐药",
+      "group": "E",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "核苷（酸）类似物耐药或耐药突变。",
+      "recall": {
+        "terms": [
+          "耐药",
+          "YMDD变异",
+          "rtM204",
+          "rtA181",
+          "耐药突变",
+          "耐药位点"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "E7",
+      "name": "停药或自行停药",
+      "group": "E",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "抗病毒治疗停药（含自行停药）。",
+      "recall": {
+        "terms": [
+          "停药",
+          "自行停药",
+          "停用恩替卡韦",
+          "停用替诺福韦",
+          "中断治疗"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "F1",
+      "name": "丙肝／丁肝合并感染",
+      "group": "F",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "合并 HCV 或 HDV 感染。",
+      "recall": {
+        "terms": [
+          "丙肝",
+          "丙型肝炎",
+          "HCV",
+          "丁肝",
+          "丁型肝炎",
+          "HDV"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "F2",
+      "name": "HIV 合并感染",
+      "group": "F",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "合并 HIV 感染。",
+      "recall": {
+        "terms": [
+          "HIV",
+          "艾滋病",
+          "人类免疫缺陷病毒"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "F3",
+      "name": "脂肪性肝病",
+      "group": "F",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "脂肪肝、MAFLD/MASLD。",
+      "recall": {
+        "terms": [
+          "脂肪肝",
+          "MAFLD",
+          "MASLD",
+          "NAFLD",
+          "代谢相关脂肪性肝病"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "F4",
+      "name": "饮酒",
+      "group": "F",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "饮酒（含已戒）。",
+      "recall": {
+        "terms": [
+          "饮酒",
+          "喝酒",
+          "酗酒"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "F5",
+      "name": "糖尿病",
+      "group": "F",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "糖尿病。",
+      "recall": {
+        "terms": [
+          "糖尿病"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "F6",
+      "name": "肝癌或肝硬化家族史",
+      "group": "F",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "一级亲属肝癌或肝硬化。",
+      "recall": {
+        "terms": [
+          "肝癌",
+          "肝硬化",
+          "肝细胞癌"
+        ]
+      },
+      "accept": [
+        "家族"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "F7",
+      "name": "乙肝家族史",
+      "group": "F",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "母亲或家族中乙肝感染。",
+      "recall": {
+        "terms": [
+          "乙肝",
+          "乙型肝炎",
+          "HBsAg阳性",
+          "乙肝病毒携带"
+        ]
+      },
+      "accept": [
+        "家族"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "F8",
+      "name": "肝细胞癌",
+      "group": "F",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "已诊断肝细胞癌。",
+      "recall": {
+        "terms": [
+          "肝细胞癌",
+          "原发性肝癌",
+          "HCC"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "F9",
+      "name": "AFP",
+      "group": "F",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "ng/mL",
+      "range": {
+        "min": 0,
+        "max": 1000000
+      },
+      "definition": "AFP（ng/mL）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "f9-v",
+          "regex": "(?<![A-Za-z0-9])(?:AFP(?!-?L3)|甲胎蛋白(?!异质体))(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:AFP(?!-?L3)|甲胎蛋白(?!异质体))(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "F10",
+      "name": "PIVKA-II",
+      "group": "F",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mAU/mL",
+      "range": {
+        "min": 0,
+        "max": 1000000
+      },
+      "definition": "PIVKA-II（mAU/mL）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "f10-v",
+          "regex": "(?<![A-Za-z0-9])(?:PIVKA-?(?:Ⅱ|II|2)|DCP|异常凝血酶原)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:PIVKA-?(?:Ⅱ|II|2)|DCP|异常凝血酶原)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "F11",
+      "name": "肝占位／结节",
+      "group": "F",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "影像示肝内占位或结节。",
+      "recall": {
+        "terms": [
+          "肝占位",
+          "肝内占位",
+          "肝内结节",
+          "肝脏占位",
+          "肝内低密度灶",
+          "肝内实性结节"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "F12",
+      "name": "免疫抑制／化疗",
+      "group": "F",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "正在或计划接受化疗、免疫抑制剂治疗（HBV 再激活风险）。",
+      "recall": {
+        "terms": [
+          "化疗",
+          "免疫抑制剂",
+          "利妥昔单抗",
+          "糖皮质激素治疗",
+          "生物制剂"
+        ]
+      },
+      "granularity": "encounter",
+      "accept": [
+        "阳性",
+        "计划"
+      ]
+    },
+    {
+      "id": "K1",
+      "name": "血小板",
+      "group": "K",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "×10⁹/L",
+      "range": {
+        "min": 1,
+        "max": 2000
+      },
+      "definition": "血小板（×10⁹/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k1-v",
+          "regex": "(?<![A-Za-z0-9])(?:PLT|血小板(?:计数)?)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:PLT|血小板(?:计数)?)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K2",
+      "name": "INR",
+      "group": "K",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "range": {
+        "min": 0.5,
+        "max": 15
+      },
+      "definition": "INR的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k2-v",
+          "regex": "(?<![A-Za-z0-9])(?:INR|国际标准化比值)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:INR|国际标准化比值)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K3",
+      "name": "凝血酶原时间",
+      "group": "K",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "s",
+      "range": {
+        "min": 5,
+        "max": 150
+      },
+      "definition": "凝血酶原时间（s）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k3-v",
+          "regex": "(?<![A-Za-z0-9])(?:PT(?![A-Za-z])|凝血酶原时间)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:PT(?![A-Za-z])|凝血酶原时间)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K4",
+      "name": "血氨",
+      "group": "K",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "μmol/L",
+      "range": {
+        "min": 1,
+        "max": 500
+      },
+      "definition": "血氨（μmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k4-v",
+          "regex": "(?<![A-Za-z0-9])(?:血氨|NH3)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:血氨|NH3)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K5",
+      "name": "肌酐",
+      "group": "K",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "μmol/L",
+      "range": {
+        "min": 10,
+        "max": 2500
+      },
+      "definition": "肌酐（μmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k5-v",
+          "regex": "(?<![A-Za-z0-9])(?:(?<!尿)肌酐|Scr|SCr|Cr(?![a-z]))(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:(?<!尿)肌酐|Scr|SCr|Cr(?![a-z]))(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K6",
+      "name": "血钠",
+      "group": "K",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mmol/L",
+      "range": {
+        "min": 100,
+        "max": 180
+      },
+      "definition": "血钠（mmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k6-v",
+          "regex": "(?<![A-Za-z0-9])(?:血钠|血清钠|(?<![\\u4e00-\\u9fff])钠(?![\\u4e00-\\u9fff]))(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>1\\d{2}(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:血钠|血清钠|(?<![\\u4e00-\\u9fff])钠(?![\\u4e00-\\u9fff]))(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K7",
+      "name": "血红蛋白",
+      "group": "K",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "g/L",
+      "range": {
+        "min": 20,
+        "max": 250
+      },
+      "definition": "血红蛋白（g/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k7-v",
+          "regex": "(?<![A-Za-z0-9])(?:(?<!平均红细胞|红细胞平均|糖化|平均|碳氧|游离|高铁)血红蛋白(?!浓度)|Hb(?!A)|HGB)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:(?<!平均红细胞|红细胞平均|糖化|平均|碳氧|游离|高铁)血红蛋白(?!浓度)|Hb(?!A)|HGB)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K8",
+      "name": "就诊年龄",
+      "group": "K",
+      "priority": "P0",
+      "type": "derived",
+      "definition": "本次就诊时年龄。",
+      "derive": {
+        "op": "ageAt",
+        "at": "$encounter.start"
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "K9",
+      "name": "主诉",
+      "group": "K",
+      "priority": "P1",
+      "type": "text",
+      "definition": "本次就诊主诉原文。",
+      "granularity": "encounter",
+      "pick": "first",
+      "sources": {
+        "sections": [
+          "主诉"
+        ]
+      },
+      "rules": [
+        {
+          "id": "chief",
+          "regex": "(?<v>[^\\n]{2,100})"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "[^\\s]{2,}"
+        ]
+      }
+    }
+  ]
+}

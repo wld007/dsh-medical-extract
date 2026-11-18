@@ -4,7 +4,7 @@
       config:
         # 输出根目录；空 = 输入旁的 _medical-extract
         outputRoot: ''
-        # 默认提取模板 id（内置：mdd、stroke-ais、ad、hf、t2dm、ckd-hd、nsclc；我的模板放在插件数据目录 templates/）
+        # 默认提取模板 id（内置：mdd、stroke-ais、ad、hf、t2dm、ckd-hd、nsclc、htn、cad、af、copd、bc、crc、hcc、thyroid、op、gout、dlp、asthma、chb；我的模板放在插件数据目录 templates/）
         template: mdd
         # hybrid：模型通读＋规则票；model：模型通读，不出规则票。必须配置提取模型（baseURL、model）才能运行
         extractMode: hybrid

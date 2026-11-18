@@ -1,0 +1,1580 @@
+{
+  "format": "extract-template/1",
+  "id": "af",
+  "name": "心房颤动（AF）",
+  "version": "0.1.0",
+  "domain": "心血管",
+  "description": "房颤研究与质控常用字段：房颤分型与病程、EHRA 症状分级、CHA2DS2-VASc／HAS-BLED、抗凝与 INR、室率与节律控制药物、电复律、导管消融、左心耳封堵、合并症、栓塞与出血结局、超声与关键检验。",
+  "references": [
+    {
+      "title": "心房颤动诊断和治疗中国指南（2023），中华心血管病杂志 2023;51(6)"
+    },
+    {
+      "title": "2024 ESC Guidelines for the management of atrial fibrillation (AF-CARE)"
+    },
+    {
+      "title": "2023 ACC/AHA/ACCP/HRS Guideline for the Diagnosis and Management of Atrial Fibrillation"
+    },
+    {
+      "title": "古脉 G-MPAS 数据目录：心律失常专病（字段范围参考）",
+      "url": "https://www.g-mpas.com/data.html"
+    }
+  ],
+  "groups": [
+    {
+      "id": "A",
+      "name": "诊断与分型"
+    },
+    {
+      "id": "B",
+      "name": "症状"
+    },
+    {
+      "id": "C",
+      "name": "卒中与出血风险"
+    },
+    {
+      "id": "D",
+      "name": "抗栓治疗"
+    },
+    {
+      "id": "E",
+      "name": "室率与节律控制"
+    },
+    {
+      "id": "F",
+      "name": "介入与器械"
+    },
+    {
+      "id": "G",
+      "name": "合并症"
+    },
+    {
+      "id": "H",
+      "name": "结局"
+    },
+    {
+      "id": "K",
+      "name": "检查与检验"
+    }
+  ],
+  "fields": [
+    {
+      "id": "A1",
+      "name": "房颤相关诊断",
+      "group": "A",
+      "priority": "P0",
+      "type": "list",
+      "granularity": "encounter",
+      "definition": "诊断栏写明的心房颤动／心房扑动诊断（原文写法）。",
+      "sources": {
+        "sections": [
+          "诊断",
+          "初步诊断",
+          "出院诊断",
+          "入院诊断",
+          "ICD-10 名称",
+          "ICD-10"
+        ]
+      },
+      "rules": [
+        {
+          "id": "dx",
+          "regex": "(?<v>[^\\n，,。；;：:]{0,14}(?:房颤|心房颤动|心房扑动|房扑)[^\\n，,。；;：:]{0,16})"
+        }
+      ],
+      "recall": {
+        "terms": [
+          "房颤",
+          "心房颤动",
+          "心房扑动",
+          "房扑"
+        ]
+      }
+    },
+    {
+      "id": "A1c",
+      "name": "ICD-10 编码（I48）",
+      "group": "A",
+      "priority": "P0",
+      "type": "list",
+      "granularity": "encounter",
+      "definition": "心房颤动与扑动编码。",
+      "rules": [
+        {
+          "id": "icd",
+          "regex": "(?<![A-Za-z0-9])(?<v>(?:I48)(?:\\.\\d{1,3})?)(?![0-9A-Za-z])"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:I48)(?:\\.\\d{1,3})?(?![0-9A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "A2",
+      "name": "房颤类型",
+      "group": "A",
+      "priority": "P0",
+      "type": "enum",
+      "definition": "首诊、阵发性、持续性、长程持续性、永久性。",
+      "options": [
+        {
+          "value": "阵发性",
+          "terms": [
+            "阵发性房颤",
+            "阵发性心房颤动"
+          ]
+        },
+        {
+          "value": "持续性",
+          "terms": [
+            "持续性房颤",
+            "持续性心房颤动"
+          ]
+        },
+        {
+          "value": "长程持续性",
+          "terms": [
+            "长程持续性房颤",
+            "长程持续性心房颤动",
+            "长期持续性房颤"
+          ]
+        },
+        {
+          "value": "永久性",
+          "terms": [
+            "永久性房颤",
+            "永久性心房颤动",
+            "慢性房颤",
+            "慢性心房颤动"
+          ]
+        },
+        {
+          "value": "首诊",
+          "terms": [
+            "首诊房颤",
+            "新发房颤",
+            "新发心房颤动",
+            "初发房颤"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "pick": "last"
+    },
+    {
+      "id": "A3",
+      "name": "瓣膜性／非瓣膜性",
+      "group": "A",
+      "priority": "P1",
+      "type": "enum",
+      "definition": "瓣膜性房颤（中重度二尖瓣狭窄或机械瓣）或非瓣膜性房颤。",
+      "options": [
+        {
+          "value": "非瓣膜性",
+          "terms": [
+            "非瓣膜性房颤",
+            "非瓣膜性心房颤动",
+            "NVAF"
+          ]
+        },
+        {
+          "value": "瓣膜性",
+          "terms": [
+            "瓣膜性房颤",
+            "瓣膜性心房颤动",
+            "风湿性心脏病二尖瓣狭窄",
+            "机械瓣置换术后"
+          ]
+        }
+      ],
+      "granularity": "patient",
+      "pick": "last"
+    },
+    {
+      "id": "A4",
+      "name": "心房扑动",
+      "group": "A",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "心房扑动（含典型房扑）。",
+      "recall": {
+        "terms": [
+          "心房扑动",
+          "房扑",
+          "典型房扑"
+        ]
+      },
+      "granularity": "patient",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "A5",
+      "name": "首次发现房颤时间",
+      "group": "A",
+      "priority": "P0",
+      "type": "date",
+      "definition": "首次发现或诊断房颤的时间；\"阵发心悸5年，诊断房颤\"取 5 年前。",
+      "granularity": "patient",
+      "pick": "earliest",
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "model": "always",
+      "sources": {
+        "sections": [
+          "主诉",
+          "现病史",
+          "既往史"
+        ]
+      },
+      "recall": {
+        "terms": [
+          "房颤",
+          "心房颤动",
+          "心悸"
+        ],
+        "regex": [
+          "[\\d一二两三四五六七八九十半]+\\s*个?\\s*(?:年|月|周|星期|天|日|小时|h)\\s*(?:余|多|左右|许)?"
+        ]
+      }
+    },
+    {
+      "id": "A6",
+      "name": "房颤病程（月）",
+      "group": "A",
+      "priority": "P1",
+      "type": "derived",
+      "definition": "首次发现至本次就诊的月数。",
+      "derive": {
+        "op": "monthsBetween",
+        "from": "A5",
+        "to": "$encounter.start"
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "B1",
+      "name": "心悸",
+      "group": "B",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "心悸、心慌、心跳不齐。",
+      "recall": {
+        "terms": [
+          "心悸",
+          "心慌",
+          "心跳不齐",
+          "心律不齐",
+          "心跳快"
+        ]
+      }
+    },
+    {
+      "id": "B2",
+      "name": "胸闷／气短",
+      "group": "B",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "胸闷、气短、活动耐量下降。",
+      "recall": {
+        "terms": [
+          "胸闷",
+          "气短",
+          "气促",
+          "活动后气促",
+          "活动耐量下降"
+        ]
+      }
+    },
+    {
+      "id": "B3",
+      "name": "晕厥／黑蒙",
+      "group": "B",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "晕厥、黑蒙、近乎晕厥。",
+      "recall": {
+        "terms": [
+          "晕厥",
+          "黑蒙",
+          "一过性意识丧失",
+          "眼前发黑"
+        ]
+      }
+    },
+    {
+      "id": "B4",
+      "name": "EHRA 症状分级",
+      "group": "B",
+      "priority": "P1",
+      "type": "enum",
+      "granularity": "encounter",
+      "pick": "last",
+      "definition": "EHRA 症状分级 I、IIa、IIb、III、IV（只写 II 的记 IIa）。",
+      "options": [
+        {
+          "value": "I"
+        },
+        {
+          "value": "IIa"
+        },
+        {
+          "value": "IIb"
+        },
+        {
+          "value": "III"
+        },
+        {
+          "value": "IV"
+        }
+      ],
+      "rules": [
+        {
+          "id": "ehra",
+          "regex": "EHRA\\s*(?:症状)?\\s*(?:分级|评分)?\\s*[:：为]?\\s*(?<v>(?:Ⅳ|Ⅲ|Ⅱ|Ⅰ|IV|III|II|I|[1-4])[ab]?)\\s*级?",
+          "map": {
+            "1": "I",
+            "2": "IIa",
+            "3": "III",
+            "4": "IV",
+            "I": "I",
+            "Ⅰ": "I",
+            "IIa": "IIa",
+            "Ⅱa": "IIa",
+            "2a": "IIa",
+            "IIb": "IIb",
+            "Ⅱb": "IIb",
+            "2b": "IIb",
+            "II": "IIa",
+            "Ⅱ": "IIa",
+            "III": "III",
+            "Ⅲ": "III",
+            "IV": "IV",
+            "Ⅳ": "IV"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B5",
+      "name": "心室率",
+      "group": "B",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "次/分",
+      "range": {
+        "min": 20,
+        "max": 300
+      },
+      "definition": "心室率（次/分）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "b5-v",
+          "regex": "(?<![A-Za-z0-9])(?:心室率|平均心室率)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d{2,3})"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:心室率|平均心室率)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "C1",
+      "name": "CHA2DS2-VASc",
+      "group": "C",
+      "priority": "P0",
+      "type": "score",
+      "scale": "CHA2DS2-VASc",
+      "granularity": "timepoint",
+      "range": {
+        "min": 0,
+        "max": 9
+      },
+      "definition": "CHA2DS2-VASc总分（每次评定一条）。只取写明的总分，不取条目分、不取参考范围。",
+      "rules": [
+        {
+          "id": "c1-total",
+          "regex": "(?:CHA(?:2|₂)?DS(?:2|₂)?\\s*-?\\s*VAS[Cc])\\s*(?:量表)?\\s*(?:评分|总分|得分|评定|测评|分值|评估)?\\s*(?:结果)?\\s*[:：为是]?\\s*(?<v>\\d{1,3}(?:\\.\\d)?)\\s*分?"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "CHA(?:2|₂)?DS(?:2|₂)?\\s*-?\\s*VAS[Cc]"
+        ]
+      }
+    },
+    {
+      "id": "C2",
+      "name": "HAS-BLED",
+      "group": "C",
+      "priority": "P0",
+      "type": "score",
+      "scale": "HAS-BLED",
+      "granularity": "timepoint",
+      "range": {
+        "min": 0,
+        "max": 9
+      },
+      "definition": "HAS-BLED总分（每次评定一条）。只取写明的总分，不取条目分、不取参考范围。",
+      "rules": [
+        {
+          "id": "c2-total",
+          "regex": "(?:HAS-?BLED)\\s*(?:量表)?\\s*(?:评分|总分|得分|评定|测评|分值|评估)?\\s*(?:结果)?\\s*[:：为是]?\\s*(?<v>\\d{1,3}(?:\\.\\d)?)\\s*分?"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "HAS-?BLED"
+        ]
+      }
+    },
+    {
+      "id": "C3",
+      "name": "既往卒中／TIA／血栓栓塞",
+      "group": "C",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "既往缺血性卒中、TIA 或体循环栓塞。",
+      "recall": {
+        "terms": [
+          "脑梗死",
+          "脑梗塞",
+          "脑栓塞",
+          "脑卒中",
+          "TIA",
+          "短暂性脑缺血发作",
+          "体循环栓塞",
+          "外周动脉栓塞"
+        ]
+      },
+      "accept": [
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "C4",
+      "name": "左心耳／左房血栓",
+      "group": "C",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "经食管超声或 CT 示左心耳或左房血栓。",
+      "recall": {
+        "terms": [
+          "左心耳血栓",
+          "心耳血栓",
+          "左房血栓",
+          "左心房血栓",
+          "左心耳内血栓"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "C5",
+      "name": "既往大出血",
+      "group": "C",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "既往大出血或出血倾向（颅内出血、消化道出血等）。",
+      "recall": {
+        "terms": [
+          "颅内出血",
+          "脑出血",
+          "消化道出血",
+          "上消化道出血",
+          "大出血"
+        ]
+      },
+      "accept": [
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "D1",
+      "name": "口服抗凝药",
+      "group": "D",
+      "priority": "P0",
+      "type": "list",
+      "definition": "在用或出院带的抗凝药（华法林、NOAC、低分子肝素）。",
+      "options": [
+        {
+          "value": "华法林",
+          "terms": [
+            "华法林"
+          ]
+        },
+        {
+          "value": "达比加群",
+          "terms": [
+            "达比加群",
+            "泰毕全"
+          ]
+        },
+        {
+          "value": "利伐沙班",
+          "terms": [
+            "利伐沙班",
+            "拜瑞妥"
+          ]
+        },
+        {
+          "value": "阿哌沙班",
+          "terms": [
+            "阿哌沙班",
+            "艾乐妥"
+          ]
+        },
+        {
+          "value": "艾多沙班",
+          "terms": [
+            "艾多沙班"
+          ]
+        },
+        {
+          "value": "低分子肝素",
+          "terms": [
+            "低分子肝素",
+            "依诺肝素",
+            "那屈肝素",
+            "达肝素",
+            "克赛",
+            "速碧林"
+          ]
+        },
+        {
+          "value": "磺达肝癸钠",
+          "terms": [
+            "磺达肝癸钠"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "D2",
+      "name": "INR",
+      "group": "D",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "range": {
+        "min": 0.5,
+        "max": 15
+      },
+      "definition": "INR的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "d2-v",
+          "regex": "(?<![A-Za-z0-9])(?:INR|国际标准化比值)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d(?:\\.\\d{1,2})?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:INR|国际标准化比值)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "D3",
+      "name": "TTR（INR 在目标范围内时间）",
+      "group": "D",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "%",
+      "range": {
+        "min": 0,
+        "max": 100
+      },
+      "definition": "TTR（INR 在目标范围内时间）（%）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "d3-v",
+          "regex": "(?<![A-Za-z0-9])(?:TTR|INR(?:在)?目标范围内时间)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:TTR|INR(?:在)?目标范围内时间)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "D4",
+      "name": "抗血小板药",
+      "group": "D",
+      "priority": "P1",
+      "type": "list",
+      "definition": "在用抗血小板药。",
+      "options": [
+        {
+          "value": "阿司匹林",
+          "terms": [
+            "阿司匹林",
+            "拜阿司匹灵"
+          ]
+        },
+        {
+          "value": "氯吡格雷",
+          "terms": [
+            "氯吡格雷",
+            "波立维",
+            "泰嘉"
+          ]
+        },
+        {
+          "value": "替格瑞洛",
+          "terms": [
+            "替格瑞洛",
+            "倍林达"
+          ]
+        },
+        {
+          "value": "普拉格雷",
+          "terms": [
+            "普拉格雷"
+          ]
+        },
+        {
+          "value": "西洛他唑",
+          "terms": [
+            "西洛他唑"
+          ]
+        },
+        {
+          "value": "吲哚布芬",
+          "terms": [
+            "吲哚布芬"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "D5",
+      "name": "未抗凝或抗凝禁忌",
+      "group": "D",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "医生写明未予抗凝、拒绝抗凝或存在抗凝禁忌。",
+      "recall": {
+        "terms": [
+          "抗凝禁忌",
+          "拒绝抗凝",
+          "未予抗凝",
+          "不愿抗凝",
+          "暂不抗凝",
+          "未行抗凝"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "E1",
+      "name": "治疗策略",
+      "group": "E",
+      "priority": "P1",
+      "type": "enum",
+      "definition": "节律控制或室率控制。",
+      "options": [
+        {
+          "value": "节律控制",
+          "terms": [
+            "节律控制",
+            "转复窦律",
+            "维持窦律",
+            "复律治疗"
+          ]
+        },
+        {
+          "value": "室率控制",
+          "terms": [
+            "室率控制",
+            "心室率控制",
+            "控制心室率",
+            "控制室率"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "pick": "last"
+    },
+    {
+      "id": "E2",
+      "name": "室率控制药",
+      "group": "E",
+      "priority": "P0",
+      "type": "list",
+      "definition": "β 受体阻滞剂、非二氢吡啶类 CCB、洋地黄类。",
+      "options": [
+        {
+          "value": "美托洛尔",
+          "terms": [
+            "美托洛尔",
+            "倍他乐克",
+            "琥珀酸美托洛尔",
+            "酒石酸美托洛尔"
+          ]
+        },
+        {
+          "value": "比索洛尔",
+          "terms": [
+            "比索洛尔",
+            "康忻",
+            "博苏"
+          ]
+        },
+        {
+          "value": "艾司洛尔",
+          "terms": [
+            "艾司洛尔"
+          ]
+        },
+        {
+          "value": "地尔硫䓬",
+          "terms": [
+            "地尔硫䓬",
+            "合贝爽"
+          ]
+        },
+        {
+          "value": "维拉帕米",
+          "terms": [
+            "维拉帕米"
+          ]
+        },
+        {
+          "value": "地高辛",
+          "terms": [
+            "地高辛"
+          ]
+        },
+        {
+          "value": "去乙酰毛花苷",
+          "terms": [
+            "去乙酰毛花苷",
+            "西地兰"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "E3",
+      "name": "抗心律失常药",
+      "group": "E",
+      "priority": "P0",
+      "type": "list",
+      "definition": "节律控制用抗心律失常药。",
+      "options": [
+        {
+          "value": "胺碘酮",
+          "terms": [
+            "胺碘酮",
+            "可达龙"
+          ]
+        },
+        {
+          "value": "普罗帕酮",
+          "terms": [
+            "普罗帕酮",
+            "心律平"
+          ]
+        },
+        {
+          "value": "决奈达隆",
+          "terms": [
+            "决奈达隆",
+            "迈达乐"
+          ]
+        },
+        {
+          "value": "索他洛尔",
+          "terms": [
+            "索他洛尔"
+          ]
+        },
+        {
+          "value": "伊布利特",
+          "terms": [
+            "伊布利特",
+            "欣无忧"
+          ]
+        },
+        {
+          "value": "维纳卡兰",
+          "terms": [
+            "维纳卡兰"
+          ]
+        },
+        {
+          "value": "氟卡尼",
+          "terms": [
+            "氟卡尼"
+          ]
+        },
+        {
+          "value": "多非利特",
+          "terms": [
+            "多非利特"
+          ]
+        },
+        {
+          "value": "莫雷西嗪",
+          "terms": [
+            "莫雷西嗪"
+          ]
+        },
+        {
+          "value": "稳心颗粒",
+          "terms": [
+            "稳心颗粒"
+          ]
+        },
+        {
+          "value": "参松养心胶囊",
+          "terms": [
+            "参松养心胶囊"
+          ]
+        }
+      ],
+      "granularity": "encounter"
+    },
+    {
+      "id": "F1",
+      "name": "电复律",
+      "group": "F",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "本次行同步电复律。",
+      "recall": {
+        "terms": [
+          "电复律",
+          "同步电复律",
+          "直流电复律",
+          "电转复",
+          "同步直流电复律"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "F2",
+      "name": "本次导管消融",
+      "group": "F",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "本次行房颤导管消融（射频、冷冻球囊、脉冲电场）。",
+      "recall": {
+        "terms": [
+          "导管消融",
+          "射频消融",
+          "冷冻消融",
+          "冷冻球囊消融",
+          "肺静脉隔离",
+          "PVI",
+          "脉冲电场消融",
+          "PFA",
+          "环肺静脉电隔离"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "F3",
+      "name": "消融史",
+      "group": "F",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "既往房颤／房扑导管消融史。",
+      "recall": {
+        "terms": [
+          "导管消融",
+          "射频消融",
+          "冷冻消融",
+          "冷冻球囊消融",
+          "肺静脉隔离"
+        ]
+      },
+      "granularity": "patient",
+      "accept": [
+        "既往"
+      ]
+    },
+    {
+      "id": "F4",
+      "name": "左心耳封堵",
+      "group": "F",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "左心耳封堵或夹闭。",
+      "recall": {
+        "terms": [
+          "左心耳封堵",
+          "左心耳封堵术",
+          "LAAC",
+          "LAAO",
+          "Watchman",
+          "左心耳夹闭",
+          "左心耳切除"
+        ]
+      },
+      "granularity": "patient",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "F5",
+      "name": "起搏器／ICD",
+      "group": "F",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "永久起搏器、ICD 或 CRT 植入。",
+      "recall": {
+        "terms": [
+          "起搏器",
+          "永久起搏器",
+          "PPM",
+          "ICD",
+          "CRT",
+          "房室结消融"
+        ]
+      },
+      "granularity": "patient",
+      "accept": [
+        "阳性",
+        "既往"
+      ]
+    },
+    {
+      "id": "F6",
+      "name": "术后复发",
+      "group": "F",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "消融或复律后房颤／房扑／房速复发。",
+      "recall": {
+        "terms": [
+          "房颤复发",
+          "复发房颤",
+          "心房颤动复发",
+          "房速复发",
+          "房扑复发",
+          "术后复发"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "G1",
+      "name": "高血压",
+      "group": "G",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "高血压病史。",
+      "recall": {
+        "terms": [
+          "高血压"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G2",
+      "name": "糖尿病",
+      "group": "G",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "糖尿病病史。",
+      "recall": {
+        "terms": [
+          "糖尿病",
+          "2型糖尿病"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G3",
+      "name": "心力衰竭",
+      "group": "G",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "心力衰竭或左室收缩功能障碍。",
+      "recall": {
+        "terms": [
+          "心力衰竭",
+          "心衰",
+          "心功能不全"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G4",
+      "name": "冠心病／血管疾病",
+      "group": "G",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "冠心病、心肌梗死、外周动脉疾病或主动脉斑块（CHA2DS2-VASc 的 V）。",
+      "recall": {
+        "terms": [
+          "冠心病",
+          "心肌梗死",
+          "外周动脉疾病",
+          "下肢动脉硬化闭塞",
+          "主动脉斑块"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G5",
+      "name": "慢性肾脏病",
+      "group": "G",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "慢性肾脏病或肾功能不全。",
+      "recall": {
+        "terms": [
+          "慢性肾脏病",
+          "CKD",
+          "肾功能不全",
+          "慢性肾衰竭"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G6",
+      "name": "甲状腺功能亢进",
+      "group": "G",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "甲亢或甲状腺毒症。",
+      "recall": {
+        "terms": [
+          "甲状腺功能亢进",
+          "甲亢",
+          "甲状腺毒症",
+          "Graves病"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G7",
+      "name": "阻塞性睡眠呼吸暂停",
+      "group": "G",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "OSA/OSAHS。",
+      "recall": {
+        "terms": [
+          "睡眠呼吸暂停",
+          "OSAHS",
+          "OSA"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G8",
+      "name": "瓣膜病",
+      "group": "G",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "心脏瓣膜病或瓣膜置换术后。",
+      "recall": {
+        "terms": [
+          "瓣膜病",
+          "二尖瓣狭窄",
+          "二尖瓣关闭不全",
+          "主动脉瓣狭窄",
+          "瓣膜置换",
+          "风湿性心脏病"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "G9",
+      "name": "饮酒",
+      "group": "G",
+      "priority": "P2",
+      "type": "presence",
+      "definition": "饮酒（含已戒）。",
+      "recall": {
+        "terms": [
+          "饮酒",
+          "喝酒",
+          "酗酒"
+        ]
+      },
+      "accept": [
+        "阳性",
+        "既往"
+      ],
+      "granularity": "patient"
+    },
+    {
+      "id": "H1",
+      "name": "缺血性卒中／体循环栓塞",
+      "group": "H",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "本次新发缺血性卒中、TIA 或体循环栓塞。",
+      "recall": {
+        "terms": [
+          "脑梗死",
+          "脑栓塞",
+          "心源性栓塞",
+          "急性缺血性卒中",
+          "TIA",
+          "体循环栓塞",
+          "肠系膜动脉栓塞",
+          "下肢动脉栓塞"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "H2",
+      "name": "出血事件",
+      "group": "H",
+      "priority": "P0",
+      "type": "presence",
+      "definition": "本次出血事件（颅内、消化道、泌尿道等）。",
+      "recall": {
+        "terms": [
+          "颅内出血",
+          "脑出血",
+          "消化道出血",
+          "上消化道出血",
+          "血尿",
+          "牙龈出血",
+          "鼻出血",
+          "大出血",
+          "黑便"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "H3",
+      "name": "心衰住院",
+      "group": "H",
+      "priority": "P1",
+      "type": "presence",
+      "definition": "本次因心力衰竭住院或心衰加重。",
+      "recall": {
+        "terms": [
+          "心衰加重",
+          "心力衰竭加重",
+          "急性左心衰",
+          "急性心力衰竭"
+        ]
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "H4",
+      "name": "就诊年龄",
+      "group": "H",
+      "priority": "P0",
+      "type": "derived",
+      "definition": "本次就诊时年龄。",
+      "derive": {
+        "op": "ageAt",
+        "at": "$encounter.start"
+      },
+      "granularity": "encounter"
+    },
+    {
+      "id": "H5",
+      "name": "主诉",
+      "group": "H",
+      "priority": "P1",
+      "type": "text",
+      "definition": "本次就诊主诉原文。",
+      "granularity": "encounter",
+      "pick": "first",
+      "sources": {
+        "sections": [
+          "主诉"
+        ]
+      },
+      "rules": [
+        {
+          "id": "chief",
+          "regex": "(?<v>[^\\n]{2,100})"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "[^\\s]{2,}"
+        ]
+      }
+    },
+    {
+      "id": "K1",
+      "name": "左房内径",
+      "group": "K",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mm",
+      "range": {
+        "min": 15,
+        "max": 90
+      },
+      "definition": "左房内径（mm）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k1-v",
+          "regex": "(?<![A-Za-z0-9])(?:左房(?:前后)?(?:内)?径|左心房(?:前后)?(?:内)?径|LA(?=\\s*[:：]?\\s*\\d))(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:左房(?:前后)?(?:内)?径|左心房(?:前后)?(?:内)?径|LA(?=\\s*[:：]?\\s*\\d))(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K2",
+      "name": "LVEF",
+      "group": "K",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "%",
+      "range": {
+        "min": 5,
+        "max": 85
+      },
+      "definition": "LVEF（%）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k2-v",
+          "regex": "(?<![A-Za-z0-9])(?:(?:LVEF|左室射血分数|左心室射血分数|射血分数|EF值?))(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d{1,2}(?:\\.\\d)?(?=\\s*%))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:(?:LVEF|左室射血分数|左心室射血分数|射血分数|EF值?))(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K3",
+      "name": "NT-proBNP",
+      "group": "K",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "pg/mL",
+      "range": {
+        "min": 5,
+        "max": 70000
+      },
+      "definition": "NT-proBNP（pg/mL）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k3-v",
+          "regex": "(?<![A-Za-z0-9])(?:NT-?pro-?BNP|N末端(?:B型)?(?:利钠肽|脑钠肽)前体|氨基末端脑钠肽前体)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:NT-?pro-?BNP|N末端(?:B型)?(?:利钠肽|脑钠肽)前体|氨基末端脑钠肽前体)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K4",
+      "name": "心率",
+      "group": "K",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "次/分",
+      "range": {
+        "min": 20,
+        "max": 300
+      },
+      "definition": "心率（次/分）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k4-v",
+          "regex": "(?<![A-Za-z0-9])(?:心率|HR|脉搏)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d{2,3}(?=\\s*次))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:心率|HR|脉搏)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K5",
+      "name": "收缩压",
+      "group": "K",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mmHg",
+      "range": {
+        "min": 50,
+        "max": 300
+      },
+      "definition": "血压记录中的收缩压（每次测量一条）。",
+      "rules": [
+        {
+          "id": "k5-v",
+          "regex": "(?<![A-Za-z0-9])(?:(?:BP|血压)\\s*[:：]?)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d{2,3}(?=\\s*/\\s*\\d{2,3}))"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:(?:BP|血压)\\s*[:：]?)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K6",
+      "name": "肌酐",
+      "group": "K",
+      "priority": "P0",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "μmol/L",
+      "range": {
+        "min": 10,
+        "max": 2500
+      },
+      "definition": "肌酐（μmol/L）的测定值，每次测定一条（NOAC 剂量调整依据）。",
+      "rules": [
+        {
+          "id": "k6-v",
+          "regex": "(?<![A-Za-z0-9])(?:(?<!尿)肌酐|Scr|SCr|Cr(?![a-z]))(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:(?<!尿)肌酐|Scr|SCr|Cr(?![a-z]))(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K7",
+      "name": "eGFR",
+      "group": "K",
+      "priority": "P1",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mL/min/1.73m²",
+      "range": {
+        "min": 1,
+        "max": 200
+      },
+      "definition": "eGFR（mL/min/1.73m²）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k7-v",
+          "regex": "(?<![A-Za-z0-9])(?:eGFR|估算肾小球滤过率|肾小球滤过率)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:eGFR|估算肾小球滤过率|肾小球滤过率)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K8",
+      "name": "TSH",
+      "group": "K",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mIU/L",
+      "range": {
+        "min": 0,
+        "max": 200
+      },
+      "definition": "TSH（mIU/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k8-v",
+          "regex": "(?<![A-Za-z0-9])(?:TSH|促甲状腺(?:激)?素)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:TSH|促甲状腺(?:激)?素)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K9",
+      "name": "血红蛋白",
+      "group": "K",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "g/L",
+      "range": {
+        "min": 20,
+        "max": 250
+      },
+      "definition": "血红蛋白（g/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k9-v",
+          "regex": "(?<![A-Za-z0-9])(?:(?<!平均红细胞|红细胞平均|糖化|平均|碳氧|游离|高铁)血红蛋白(?!浓度)|Hb(?!A)|HGB)(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d+(?:\\.\\d+)?)"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:(?<!平均红细胞|红细胞平均|糖化|平均|碳氧|游离|高铁)血红蛋白(?!浓度)|Hb(?!A)|HGB)(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K10",
+      "name": "血钾",
+      "group": "K",
+      "priority": "P2",
+      "type": "number",
+      "granularity": "timepoint",
+      "unit": "mmol/L",
+      "range": {
+        "min": 1.5,
+        "max": 9
+      },
+      "definition": "血钾（mmol/L）的测定值，每次测定一条。",
+      "rules": [
+        {
+          "id": "k10-v",
+          "regex": "(?<![A-Za-z0-9])(?:血钾|血清钾|(?<![\\u4e00-\\u9fff])钾(?![\\u4e00-\\u9fff]))(?![A-Za-z])[^。；;\\n\\d]{0,24}?(?<v>\\d\\.\\d{1,2})"
+        }
+      ],
+      "recall": {
+        "regex": [
+          "(?<![A-Za-z0-9])(?:血钾|血清钾|(?<![\\u4e00-\\u9fff])钾(?![\\u4e00-\\u9fff]))(?![A-Za-z])"
+        ]
+      }
+    },
+    {
+      "id": "K11",
+      "name": "动态心电图所见",
+      "group": "K",
+      "priority": "P2",
+      "type": "list",
+      "definition": "Holter 记录到的心律失常。",
+      "options": [
+        {
+          "value": "阵发性房颤",
+          "terms": [
+            "阵发性房颤",
+            "阵发性心房颤动"
+          ]
+        },
+        {
+          "value": "房扑",
+          "terms": [
+            "房扑",
+            "心房扑动"
+          ]
+        },
+        {
+          "value": "长间歇",
+          "terms": [
+            "长间歇",
+            "RR长间歇"
+          ]
+        },
+        {
+          "value": "室性早搏",
+          "terms": [
+            "室性早搏",
+            "室早",
+            "频发室早"
+          ]
+        },
+        {
+          "value": "房性早搏",
+          "terms": [
+            "房性早搏",
+            "房早",
+            "频发房早"
+          ]
+        },
+        {
+          "value": "房速",
+          "terms": [
+            "房速",
+            "房性心动过速"
+          ]
+        }
+      ],
+      "granularity": "encounter",
+      "sources": {
+        "sections": [
+          "所见",
+          "结论",
+          "动态心电图",
+          "Holter",
+          "辅助检查",
+          "正文"
+        ]
+      }
+    }
+  ]
+}
