@@ -686,7 +686,7 @@ button.mx-ob-mh{background:none;border:0;border-bottom:1px solid var(--line);fon
         h('header', { className: 'mx-frame mx-top' },
           h('div', { className: 'mx-brand' },
             h('div', { className: 'mx-logo' }, h('svg', { width: 17, height: 17, viewBox: '0 0 24 24', fill: 'none', stroke: '#fff', strokeWidth: 2.2, strokeLinecap: 'round', strokeLinejoin: 'round' }, h('path', { d: 'M5 6h8M5 11h5M5 16h4' }), h('circle', { cx: 16, cy: 15, r: 4.2 }), h('path', { d: 'M16 9v2M16 19v2M10 15h2M20 15h2' }))),
-            h('div', {}, h('b', {}, '病历文书提取'), h('span', {}, 'MEDICAL DOCUMENT EXTRACTION'))),
+            h('div', {}, h('b', {}, '病历文书提取'), h('span', {}, 'MEDICAL CHART ABSTRACTION'))),
           h('div', { className: `mx-status s-${lineStatus}` },
             h('span', { className: 'mx-lamp' }),
             h('div', {},

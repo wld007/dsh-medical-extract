@@ -16,7 +16,8 @@ const stateDir = process.argv[2]
 const port = Number(process.argv[3] ?? 18768)
 const umd = process.env.REACT_UMD_DIR
 if (!stateDir || !umd) { console.error('usage: REACT_UMD_DIR=<node_modules> node scripts/preview-page.mjs <stateDir> [port]'); process.exit(1) }
-const service = createService({ stateDir, config: { workers: 1 } })
+// PREVIEW_CONFIG：插件设置（JSON），如 '{"baseURL":"http://127.0.0.1:1234/v1","model":"m"}'，让页面上能真跑批次
+const service = createService({ stateDir, config: { workers: 1, ...JSON.parse(process.env.PREVIEW_CONFIG || '{}') } })
 
 const page = `<!doctype html><meta charset="utf-8"><title>preview</title>
 <style>html,body,#root{margin:0;height:100%}
@@ -56,6 +57,8 @@ const handlers = {
   models: (p) => service.models(p),
   clearRuns: (p) => service.clearRuns({ deliverable: p.deliverable === true }),
   list: () => service.list(),
+  start: (p) => service.start({ ...p, source: { kind: 'panel' } }),
+  cancel: (p) => service.cancel(p.runId),
   status: (p) => service.status(p.runId),
   report: (p) => service.report(p.runId),
   calls: (p) => service.calls(p.runId),
