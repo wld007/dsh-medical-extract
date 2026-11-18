@@ -5,6 +5,9 @@
   "type": "module",
   "license": "MIT",
   "author": "wld007",
+  "repository": { "type": "git", "url": "git+https://github.com/wld007/dsh-medical-extract.git" },
+  "homepage": "https://github.com/wld007/dsh-medical-extract#readme",
+  "bugs": { "url": "https://github.com/wld007/dsh-medical-extract/issues" },
   "engines": {
     "node": ">=22.5",
     "dsh": ">=0.2.1-0"
